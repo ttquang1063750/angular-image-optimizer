@@ -169,25 +169,15 @@ describe('ImageUploaderComponent', () => {
     component.setFormat('image/webp');
     expect(component.settingsChanged()).toBe(true);
 
-    // 3. Gọi nén lại thủ công
-    vi.spyOn(
-      compressionServiceMock as ImageCompressionService,
-      'compressImagesWithProgress',
-    ).mockReturnValue(of({} as import('../image-processing.model').FileStatusUpdate));
+    // 3. Gọi nén lại thủ công — verify qua public compressImagesWithProgress spy
+    const compressSpy = vi
+      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
+      .mockReturnValue(of({} as FileStatusUpdate));
 
-    const runSpy = vi.spyOn(
-      component as unknown as {
-        runCompressionTask: (
-          items: { file: File; id: string; index: number }[],
-          options: import('../image-processing.model').CompressionOptions,
-        ) => void;
-      },
-      'runCompressionTask',
-    );
     component.recompressAll();
 
     expect(component.settingsChanged()).toBe(false);
-    expect(runSpy).toHaveBeenCalled();
+    expect(compressSpy).toHaveBeenCalled();
   });
 
   it('should open and close comparison modal', () => {
