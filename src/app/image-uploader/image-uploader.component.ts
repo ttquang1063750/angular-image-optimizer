@@ -32,6 +32,15 @@ export class ImageUploaderComponent {
   readonly startNumberingIndex = signal<number>(1);
   readonly isDragging = signal<boolean>(false);
 
+  // Watermark
+  readonly includeWatermark = signal<boolean>(false);
+  readonly watermarkText = signal<string>('Image Optimizer');
+  readonly watermarkPosition =
+    signal<import('../image-processing.model').WatermarkPosition>('bottom-right');
+  readonly watermarkFontSize = signal<number>(3); // 3%
+  readonly watermarkOpacity = signal<number>(0.5);
+  readonly watermarkColor = signal<string>('#ffffff');
+
   // So sánh ảnh
   readonly comparingFile = signal<ProcessedFile | null>(null);
   readonly comparisonSliderValue = signal<number>(50);
@@ -104,6 +113,25 @@ export class ImageUploaderComponent {
 
   toggleNumbering(): void {
     this.includeNumbering.update((v) => !v);
+  }
+
+  toggleWatermark(): void {
+    this.includeWatermark.update((v) => !v);
+  }
+
+  setWatermarkPosition(pos: import('../image-processing.model').WatermarkPosition): void {
+    this.watermarkPosition.set(pos);
+  }
+
+  updateWatermarkValue(event: Event, type: 'text' | 'size' | 'opacity' | 'color'): void {
+    const input = event.target as HTMLInputElement;
+    if (type === 'text') this.watermarkText.set(input.value);
+    if (type === 'color') this.watermarkColor.set(input.value);
+
+    const val = input.valueAsNumber;
+    if (isNaN(val)) return;
+    if (type === 'size') this.watermarkFontSize.set(val);
+    if (type === 'opacity') this.watermarkOpacity.set(val);
   }
 
   openComparison(item: ProcessedFile): void {
@@ -188,6 +216,15 @@ export class ImageUploaderComponent {
         includeNumbering: this.includeNumbering(),
         startIndex: this.startNumberingIndex(),
       },
+      watermark: this.includeWatermark()
+        ? {
+            text: this.watermarkText(),
+            position: this.watermarkPosition(),
+            fontSize: this.watermarkFontSize(),
+            opacity: this.watermarkOpacity(),
+            color: this.watermarkColor(),
+          }
+        : undefined,
     };
 
     // Chuẩn bị dữ liệu để truyền vào service (bao gồm cả File, ID và Index để đánh số)

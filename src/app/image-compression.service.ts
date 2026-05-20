@@ -136,7 +136,18 @@ export class ImageCompressionService {
           mimeType: options.format ?? 'image/jpeg',
           // Tự động chuyển đổi sang định dạng đích nếu cần thiết
           convertSize: options.quality < 0.8 || options.format === 'image/webp' ? 0 : 5000000,
-          success: (result: Blob) => {
+          success: async (result: Blob) => {
+            let finalBlob = result;
+
+            // Nếu có cấu hình watermark, thực hiện đóng dấu
+            if (options.watermark && options.watermark.text) {
+              try {
+                finalBlob = await this.applyWatermark(result, options.watermark);
+              } catch {
+                // Vẫn tiếp tục với ảnh đã nén nếu lỗi đóng dấu
+              }
+            }
+
             let fileName = originalFileName;
 
             // Áp dụng đặt tên file theo pattern nếu có
@@ -159,8 +170,8 @@ export class ImageCompressionService {
             }
 
             // Đảm bảo extension đúng với định dạng đầu ra
-            const targetExt = result.type === 'image/webp' ? '.webp' : '.jpg';
-            const isTargetJpeg = result.type === 'image/jpeg';
+            const targetExt = finalBlob.type === 'image/webp' ? '.webp' : '.jpg';
+            const isTargetJpeg = finalBlob.type === 'image/jpeg';
 
             const hasCorrectExt = isTargetJpeg
               ? fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg')
@@ -176,8 +187,8 @@ export class ImageCompressionService {
               fileName = `${namePart}${targetExt}`;
             }
 
-            const compressedFile = new File([result], fileName, {
-              type: result.type,
+            const compressedFile = new File([finalBlob], fileName, {
+              type: finalBlob.type,
               lastModified: Date.now(),
             });
 
@@ -258,6 +269,100 @@ export class ImageCompressionService {
       } else {
         prepareAndRun(file);
       }
+    });
+  }
+
+  /**
+   * Đóng dấu watermark lên ảnh sử dụng Canvas.
+   */
+  private applyWatermark(
+    blob: Blob,
+    config: import('./image-processing.model').WatermarkConfig,
+  ): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(blob);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('Không thể khởi tạo Canvas Context'));
+          return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Vẽ ảnh gốc lên canvas
+        ctx.drawImage(img, 0, 0);
+
+        // Cấu hình font
+        // Font size dựa trên % chiều rộng ảnh (mặc định 3%) hoặc giá trị pixel nếu truyền vào lớn
+        const fontSize = (img.width * config.fontSize) / 100;
+        ctx.font = `bold ${fontSize}px Inter, Roboto, sans-serif`;
+        ctx.globalAlpha = config.opacity;
+        ctx.fillStyle = config.color;
+        ctx.textBaseline = 'middle';
+
+        const padding = fontSize;
+        let x = 0;
+        let y = 0;
+
+        // Tính toán vị trí
+        switch (config.position) {
+          case 'top-left':
+            x = padding;
+            y = padding;
+            ctx.textAlign = 'left';
+            break;
+          case 'top-right':
+            x = canvas.width - padding;
+            y = padding;
+            ctx.textAlign = 'right';
+            break;
+          case 'bottom-left':
+            x = padding;
+            y = canvas.height - padding;
+            ctx.textAlign = 'left';
+            break;
+          case 'bottom-right':
+            x = canvas.width - padding;
+            y = canvas.height - padding;
+            ctx.textAlign = 'right';
+            break;
+          case 'center':
+            x = canvas.width / 2;
+            y = canvas.height / 2;
+            ctx.textAlign = 'center';
+            break;
+        }
+
+        // Vẽ text
+        ctx.fillText(config.text, x, y);
+
+        // Xuất ra Blob
+        canvas.toBlob(
+          (result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(new Error('Lỗi khi xuất Canvas sang Blob'));
+            }
+          },
+          blob.type,
+          0.95, // Giữ chất lượng cao cho bước đóng dấu
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Không thể tải ảnh để đóng dấu'));
+      };
+
+      img.src = url;
     });
   }
 }

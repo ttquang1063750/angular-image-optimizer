@@ -180,6 +180,121 @@
       }
     }
   }
+
+  .watermark-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+
+      input {
+        width: 18px;
+        height: 18px;
+        accent-color: #c3002f;
+      }
+    }
+
+    .watermark-config {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #eee;
+
+      .input-text {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        outline: none;
+        width: 180px;
+        font-weight: 500;
+
+        &:focus {
+          border-color: #c3002f;
+        }
+      }
+
+      .select-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .sub-label {
+          font-size: 0.85rem;
+          color: #888;
+        }
+
+        select {
+          padding: 5px 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+          outline: none;
+          background: #fff;
+          cursor: pointer;
+
+          &:focus {
+            border-color: #c3002f;
+          }
+        }
+      }
+
+      .input-with-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff;
+        padding: 4px 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+
+        .sub-label {
+          font-size: 0.8rem;
+          color: #999;
+        }
+
+        input {
+          border: none;
+          width: 45px;
+          outline: none;
+          font-weight: 600;
+          text-align: center;
+        }
+      }
+
+      .color-picker {
+        display: flex;
+        align-items: center;
+
+        input[type='color'] {
+          width: 32px;
+          height: 32px;
+          border: none;
+          background: none;
+          cursor: pointer;
+          padding: 0;
+
+          &::-webkit-color-swatch-wrapper {
+            padding: 0;
+          }
+          &::-webkit-color-swatch {
+            border: 2px solid #fff;
+            border-radius: 4px;
+            box-shadow: 0 0 0 1px #ddd;
+          }
+        }
+      }
+    }
+  }
 }
 
 /* Drop Zone */

@@ -157,6 +157,73 @@
         </div>
       </div>
     </div>
+
+    <div class="control-group">
+      <span class="label">Đóng dấu ảnh:</span>
+      <div class="watermark-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" [checked]="includeWatermark()" (change)="toggleWatermark()" />
+          Chèn Text Watermark
+        </label>
+
+        @if (includeWatermark()) {
+          <div class="watermark-config">
+            <input
+              type="text"
+              [value]="watermarkText()"
+              (input)="updateWatermarkValue($event, 'text')"
+              placeholder="Nội dung đóng dấu..."
+              class="input-text"
+            />
+
+            <div class="select-group">
+              <span class="sub-label">Vị trí:</span>
+              <select
+                [value]="watermarkPosition()"
+                (change)="setWatermarkPosition($any($event.target).value)"
+              >
+                <option value="bottom-right">Dưới - Phải</option>
+                <option value="bottom-left">Dưới - Trái</option>
+                <option value="top-right">Trên - Phải</option>
+                <option value="top-left">Trên - Trái</option>
+                <option value="center">Chính giữa</option>
+              </select>
+            </div>
+
+            <div class="input-with-label">
+              <span class="sub-label">Cỡ (%):</span>
+              <input
+                type="number"
+                [value]="watermarkFontSize()"
+                (input)="updateWatermarkValue($event, 'size')"
+                min="1"
+                max="20"
+              />
+            </div>
+
+            <div class="input-with-label">
+              <span class="sub-label">Mờ:</span>
+              <input
+                type="number"
+                [value]="watermarkOpacity()"
+                (input)="updateWatermarkValue($event, 'opacity')"
+                min="0.1"
+                max="1"
+                step="0.1"
+              />
+            </div>
+
+            <div class="color-picker">
+              <input
+                type="color"
+                [value]="watermarkColor()"
+                (input)="updateWatermarkValue($event, 'color')"
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </div>
   </div>
 
   <!-- Khu vực kéo thả -->

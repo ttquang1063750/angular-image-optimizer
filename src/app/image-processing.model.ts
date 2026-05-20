@@ -15,6 +15,23 @@ export interface FileNamePattern {
   startIndex: number;
 }
 
+// Định nghĩa vị trí watermark
+export type WatermarkPosition =
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'top-right'
+  | 'top-left'
+  | 'center';
+
+// Định nghĩa cấu hình watermark
+export interface WatermarkConfig {
+  text: string;
+  fontSize: number; // Theo tỷ lệ % so với chiều rộng ảnh hoặc pixel
+  color: string; // Hex hoặc RGBA
+  opacity: number; // 0 to 1
+  position: WatermarkPosition;
+}
+
 // Định nghĩa các tùy chọn sẽ truyền vào service
 export interface CompressionOptions {
   quality: number; // Tỷ lệ chất lượng từ 0 đến 1
@@ -25,6 +42,7 @@ export interface CompressionOptions {
   resizeHeight?: number;
   resizePercent?: number;
   namePattern?: FileNamePattern;
+  watermark?: WatermarkConfig;
 }
 
 // Định nghĩa cấu trúc dữ liệu trả về cho mỗi file sau khi nén
