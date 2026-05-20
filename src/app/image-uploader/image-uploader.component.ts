@@ -45,6 +45,9 @@ export class ImageUploaderComponent {
   readonly comparingFile = signal<ProcessedFile | null>(null);
   readonly comparisonSliderValue = signal<number>(50);
 
+  // Timer để debounce việc tự động nén lại
+  private recompressTimeout: ReturnType<typeof setTimeout> | null = null;
+
   // Tính toán số lượng file đã hoàn thành
   readonly completedCount = computed(
     () => this.processedFiles().filter((f) => f.status === 'done').length,
@@ -80,14 +83,17 @@ export class ImageUploaderComponent {
 
   setPreset(preset: CompressionPreset): void {
     this.selectedPreset.set(preset);
+    this.triggerRecompress();
   }
 
   setFormat(format: OutputFormat): void {
     this.selectedFormat.set(format);
+    this.triggerRecompress();
   }
 
   setResizeMode(mode: ResizeMode): void {
     this.selectedResizeMode.set(mode);
+    this.triggerRecompress();
   }
 
   updateResizeValue(event: Event, type: 'width' | 'height' | 'percent'): void {
@@ -98,6 +104,7 @@ export class ImageUploaderComponent {
     if (type === 'width') this.resizeWidth.set(value);
     if (type === 'height') this.resizeHeight.set(value);
     if (type === 'percent') this.resizePercent.set(value);
+    this.triggerRecompress();
   }
 
   updateNamingValue(event: Event, type: 'prefix' | 'suffix' | 'start'): void {
@@ -109,18 +116,22 @@ export class ImageUploaderComponent {
       if (type === 'prefix') this.namePrefix.set(input.value);
       if (type === 'suffix') this.nameSuffix.set(input.value);
     }
+    this.triggerRecompress();
   }
 
   toggleNumbering(): void {
     this.includeNumbering.update((v) => !v);
+    this.triggerRecompress();
   }
 
   toggleWatermark(): void {
     this.includeWatermark.update((v) => !v);
+    this.triggerRecompress();
   }
 
   setWatermarkPosition(pos: import('../image-processing.model').WatermarkPosition): void {
     this.watermarkPosition.set(pos);
+    this.triggerRecompress();
   }
 
   updateWatermarkValue(event: Event, type: 'text' | 'size' | 'opacity' | 'color'): void {
@@ -129,9 +140,142 @@ export class ImageUploaderComponent {
     if (type === 'color') this.watermarkColor.set(input.value);
 
     const val = input.valueAsNumber;
-    if (isNaN(val)) return;
-    if (type === 'size') this.watermarkFontSize.set(val);
-    if (type === 'opacity') this.watermarkOpacity.set(val);
+    if (!isNaN(val)) {
+      if (type === 'size') this.watermarkFontSize.set(val);
+      if (type === 'opacity') this.watermarkOpacity.set(val);
+    }
+    this.triggerRecompress();
+  }
+
+  private triggerRecompress(): void {
+    if (this.processedFiles().length === 0) return;
+
+    if (this.recompressTimeout) {
+      clearTimeout(this.recompressTimeout);
+    }
+
+    // Debounce 500ms để tránh nén liên tục khi kéo slider hoặc gõ phím
+    this.recompressTimeout = setTimeout(() => {
+      this.recompressAll();
+    }, 500);
+  }
+
+  private getCompressionOptions() {
+    const baseOptions = this.compressionService.getOptionsByPreset(this.selectedPreset());
+    return {
+      ...baseOptions,
+      format: this.selectedFormat(),
+      resizeMode: this.selectedResizeMode(),
+      resizeWidth: this.resizeWidth(),
+      resizeHeight: this.resizeHeight(),
+      resizePercent: this.resizePercent(),
+      namePattern: {
+        prefix: this.namePrefix(),
+        suffix: this.nameSuffix(),
+        includeNumbering: this.includeNumbering(),
+        startIndex: this.startNumberingIndex(),
+      },
+      watermark: this.includeWatermark()
+        ? {
+            text: this.watermarkText(),
+            position: this.watermarkPosition(),
+            fontSize: this.watermarkFontSize(),
+            opacity: this.watermarkOpacity(),
+            color: this.watermarkColor(),
+          }
+        : undefined,
+    };
+  }
+
+  private recompressAll(): void {
+    const currentFiles = this.processedFiles();
+    if (currentFiles.length === 0) return;
+
+    this.isCompressing.set(true);
+
+    // Đặt lại trạng thái cho các file hiện có
+    this.processedFiles.update((files) =>
+      files.map((f) => ({ ...f, status: 'queued', progress: 0 })),
+    );
+
+    const options = this.getCompressionOptions();
+
+    const compressionItems = currentFiles.map((f, index) => ({
+      file: f.file,
+      id: f.id,
+      index: index,
+    }));
+
+    this.runCompressionTask(compressionItems, options);
+  }
+
+  private runCompressionTask(
+    items: { file: File; id: string; index: number }[],
+    options: import('../image-processing.model').CompressionOptions,
+  ): void {
+    this.compressionService.compressImagesWithProgress(items, options, 3).subscribe({
+      next: (update: FileStatusUpdate) => {
+        this.processedFiles.update((currentFiles) =>
+          currentFiles.map((pf) => {
+            if (update.fileId === pf.id) {
+              return {
+                ...pf,
+                status: update.status,
+                progress: update.progress ?? pf.progress,
+                result: update.result ?? pf.result,
+                error: update.error ?? pf.error,
+              };
+            }
+            return pf;
+          }),
+        );
+      },
+      error: () => {
+        this.isCompressing.set(false);
+      },
+      complete: () => {
+        this.isCompressing.set(false);
+        this.cleanupBlobUrls();
+      },
+    });
+  }
+
+  private processFiles(files: File[]): void {
+    // Chỉ lọc các file ảnh (bao gồm cả HEIC/HEIF)
+    const imageFiles = files.filter(
+      (f) =>
+        f.type.startsWith('image/') ||
+        f.name.toLowerCase().endsWith('.heic') ||
+        f.name.toLowerCase().endsWith('.heif'),
+    );
+    if (imageFiles.length === 0) return;
+
+    this.isCompressing.set(true);
+
+    // 1. Khởi tạo trạng thái ban đầu cho các file mới
+    const newProcessedFiles: ProcessedFile[] = imageFiles.map((file) => ({
+      id: `${file.name}-${file.lastModified}-${Math.random()}`,
+      file: file,
+      status: 'queued',
+      progress: 0,
+    }));
+
+    // Thêm vào danh sách hiện có
+    this.processedFiles.update((current) => [...current, ...newProcessedFiles]);
+
+    const options = this.getCompressionOptions();
+
+    // Lấy index dựa trên toàn bộ danh sách để đánh số đúng
+    const currentTotal = this.processedFiles().length - newProcessedFiles.length;
+
+    const compressionItems = newProcessedFiles.map((f, index) => ({
+      file: f.file,
+      id: f.id,
+      index: currentTotal + index,
+    }));
+
+    // 2. Gọi logic nén chung
+    this.runCompressionTask(compressionItems, options);
   }
 
   openComparison(item: ProcessedFile): void {
@@ -177,90 +321,6 @@ export class ImageUploaderComponent {
     link.href = url;
     link.download = fileName;
     link.click();
-  }
-
-  private processFiles(files: File[]): void {
-    // Chỉ lọc các file ảnh (bao gồm cả HEIC/HEIF)
-    const imageFiles = files.filter(
-      (f) =>
-        f.type.startsWith('image/') ||
-        f.name.toLowerCase().endsWith('.heic') ||
-        f.name.toLowerCase().endsWith('.heif'),
-    );
-    if (imageFiles.length === 0) return;
-
-    this.isCompressing.set(true);
-
-    // 1. Khởi tạo trạng thái ban đầu cho tất cả các file trên UI
-    const initialFiles: ProcessedFile[] = imageFiles.map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random()}`,
-      file: file,
-      status: 'queued',
-      progress: 0,
-    }));
-
-    // Thêm vào danh sách hiện có thay vì thay thế hoàn toàn
-    this.processedFiles.update((current) => [...current, ...initialFiles]);
-
-    const baseOptions = this.compressionService.getOptionsByPreset(this.selectedPreset());
-    const options = {
-      ...baseOptions,
-      format: this.selectedFormat(),
-      resizeMode: this.selectedResizeMode(),
-      resizeWidth: this.resizeWidth(),
-      resizeHeight: this.resizeHeight(),
-      resizePercent: this.resizePercent(),
-      namePattern: {
-        prefix: this.namePrefix(),
-        suffix: this.nameSuffix(),
-        includeNumbering: this.includeNumbering(),
-        startIndex: this.startNumberingIndex(),
-      },
-      watermark: this.includeWatermark()
-        ? {
-            text: this.watermarkText(),
-            position: this.watermarkPosition(),
-            fontSize: this.watermarkFontSize(),
-            opacity: this.watermarkOpacity(),
-            color: this.watermarkColor(),
-          }
-        : undefined,
-    };
-
-    // Chuẩn bị dữ liệu để truyền vào service (bao gồm cả File, ID và Index để đánh số)
-    const compressionItems = initialFiles.map((f, index) => ({
-      file: f.file,
-      id: f.id,
-      index: index,
-    }));
-
-    // 2. Gọi service và bắt đầu lắng nghe các cập nhật
-    this.compressionService.compressImagesWithProgress(compressionItems, options, 3).subscribe({
-      next: (update: FileStatusUpdate) => {
-        // 3. Cập nhật trạng thái của từng file trong signal dựa trên ID duy nhất
-        this.processedFiles.update((currentFiles) =>
-          currentFiles.map((pf) => {
-            if (update.fileId === pf.id && pf.status !== 'done') {
-              return {
-                ...pf,
-                status: update.status,
-                progress: update.progress ?? pf.progress,
-                result: update.result ?? pf.result,
-                error: update.error ?? pf.error,
-              };
-            }
-            return pf;
-          }),
-        );
-      },
-      error: () => {
-        this.isCompressing.set(false);
-      },
-      complete: () => {
-        this.isCompressing.set(false);
-        this.cleanupBlobUrls();
-      },
-    });
   }
 
   formatBytes(bytes: number, decimals = 2): string {
