@@ -47,6 +47,73 @@
         </button>
       </div>
     </div>
+
+    <div class="control-group">
+      <span class="label">Kích thước đầu ra:</span>
+      <div class="preset-buttons">
+        <button
+          type="button"
+          [class.active]="selectedResizeMode() === 'auto'"
+          (click)="setResizeMode('auto')"
+        >
+          Tự động
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedResizeMode() === 'width'"
+          (click)="setResizeMode('width')"
+        >
+          Chiều ngang
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedResizeMode() === 'height'"
+          (click)="setResizeMode('height')"
+        >
+          Chiều cao
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedResizeMode() === 'percent'"
+          (click)="setResizeMode('percent')"
+        >
+          Phần trăm (%)
+        </button>
+      </div>
+
+      @if (selectedResizeMode() !== 'auto') {
+        <div class="resize-input">
+          @if (selectedResizeMode() === 'width') {
+            <input
+              type="number"
+              [value]="resizeWidth()"
+              (input)="updateResizeValue($event, 'width')"
+              min="1"
+              max="10000"
+            />
+            <span class="unit">px</span>
+          } @else if (selectedResizeMode() === 'height') {
+            <input
+              type="number"
+              [value]="resizeHeight()"
+              (input)="updateResizeValue($event, 'height')"
+              min="1"
+              max="10000"
+            />
+            <span class="unit">px</span>
+          } @else if (selectedResizeMode() === 'percent') {
+            <input
+              type="number"
+              [value]="resizePercent()"
+              (input)="updateResizeValue($event, 'percent')"
+              min="1"
+              max="100"
+            />
+            <span class="unit">%</span>
+          }
+        </div>
+      }
+    </div>
   </div>
 
   <!-- Khu vực kéo thả -->

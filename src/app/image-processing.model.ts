@@ -4,11 +4,18 @@ export type CompressionPreset = 'light' | 'medium' | 'max';
 // Định nghĩa định dạng đầu ra
 export type OutputFormat = 'image/jpeg' | 'image/webp';
 
+// Định nghĩa chế độ resize
+export type ResizeMode = 'auto' | 'width' | 'height' | 'percent';
+
 // Định nghĩa các tùy chọn sẽ truyền vào service
 export interface CompressionOptions {
   quality: number; // Tỷ lệ chất lượng từ 0 đến 1
-  maxWidthOrHeight: number;
+  maxWidthOrHeight: number; // Giới hạn tối đa trong chế độ auto
   format?: OutputFormat; // Định dạng đầu ra mong muốn (tùy chọn)
+  resizeMode: ResizeMode;
+  resizeWidth?: number;
+  resizeHeight?: number;
+  resizePercent?: number;
 }
 
 // Định nghĩa cấu trúc dữ liệu trả về cho mỗi file sau khi nén

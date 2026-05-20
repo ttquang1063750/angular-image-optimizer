@@ -23,13 +23,13 @@ export class ImageCompressionService {
   getOptionsByPreset(preset: CompressionPreset): CompressionOptions {
     switch (preset) {
       case 'light':
-        return { quality: 0.9, maxWidthOrHeight: 3840 }; // Giữ chất lượng cực cao
+        return { quality: 0.9, maxWidthOrHeight: 3840, resizeMode: 'auto' }; // Giữ chất lượng cực cao
       case 'medium':
-        return { quality: 0.6, maxWidthOrHeight: 1600 }; // Cân bằng, giảm độ phân giải xuống 1600px
+        return { quality: 0.6, maxWidthOrHeight: 1600, resizeMode: 'auto' }; // Cân bằng, giảm độ phân giải xuống 1600px
       case 'max':
-        return { quality: 0.2, maxWidthOrHeight: 1024 }; // Nén mạnh, 1024px
+        return { quality: 0.2, maxWidthOrHeight: 1024, resizeMode: 'auto' }; // Nén mạnh, 1024px
       default:
-        return { quality: 0.6, maxWidthOrHeight: 1600 };
+        return { quality: 0.6, maxWidthOrHeight: 1600, resizeMode: 'auto' };
     }
   }
 
@@ -116,11 +116,18 @@ export class ImageCompressionService {
   ): Observable<FileStatusUpdate> {
     return new Observable((subscriber) => {
       // Hàm xử lý nén chính sau khi đã đảm bảo file ở định dạng browser hiểu được
-      const runCompression = (targetFile: File | Blob, originalFileName: string) => {
+      const runCompression = (
+        targetFile: File | Blob,
+        originalFileName: string,
+        finalWidth?: number,
+        finalHeight?: number,
+      ) => {
         new Compressor(targetFile, {
           quality: options.quality,
-          maxWidth: options.maxWidthOrHeight,
-          maxHeight: options.maxWidthOrHeight,
+          width: finalWidth,
+          height: finalHeight,
+          maxWidth: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
+          maxHeight: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
           // Ép nén ngay cả khi dung lượng mới lớn hơn
           strict: false,
           // Sử dụng định dạng được yêu cầu (mặc định là jpeg)
@@ -177,6 +184,32 @@ export class ImageCompressionService {
         });
       };
 
+      // Xử lý thông số kích thước dựa trên resizeMode
+      const prepareAndRun = async (blob: File | Blob) => {
+        let targetW: number | undefined;
+        let targetH: number | undefined;
+
+        if (options.resizeMode === 'width') {
+          targetW = options.resizeWidth;
+        } else if (options.resizeMode === 'height') {
+          targetH = options.resizeHeight;
+        } else if (options.resizeMode === 'percent') {
+          // Cần đọc kích thước gốc để tính %
+          const img = new Image();
+          const url = URL.createObjectURL(blob);
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.src = url;
+          });
+          URL.revokeObjectURL(url);
+          const ratio = (options.resizePercent ?? 100) / 100;
+          targetW = Math.round(img.width * ratio);
+          targetH = Math.round(img.height * ratio);
+        }
+
+        runCompression(blob, file.name, targetW, targetH);
+      };
+
       // Kiểm tra nếu là file HEIC/HEIF thì convert sang JPEG trước
       const isHeic =
         file.type === 'image/heic' ||
@@ -192,13 +225,13 @@ export class ImageCompressionService {
         })
           .then((conversionResult) => {
             const blob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-            runCompression(blob, file.name);
+            prepareAndRun(blob);
           })
           .catch((err) => {
             subscriber.error(new Error(`Không thể chuyển đổi file HEIC: ${err.message}`));
           });
       } else {
-        runCompression(file, file.name);
+        prepareAndRun(file);
       }
     });
   }

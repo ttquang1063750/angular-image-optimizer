@@ -15,7 +15,9 @@ describe('ImageUploaderComponent', () => {
 
   beforeEach(async () => {
     compressionServiceMock = {
-      getOptionsByPreset: vi.fn().mockReturnValue({ quality: 0.6, maxWidthOrHeight: 1600 }),
+      getOptionsByPreset: vi
+        .fn()
+        .mockReturnValue({ quality: 0.6, maxWidthOrHeight: 1600, resizeMode: 'auto' }),
       compressImagesWithProgress: vi.fn(),
       generateZip: vi.fn(),
     };
@@ -98,6 +100,31 @@ describe('ImageUploaderComponent', () => {
     expect(spy).toHaveBeenCalledWith(
       expect.any(Array),
       expect.objectContaining({ format: 'image/webp' }),
+      expect.any(Number),
+    );
+  });
+
+  it('should update resize options and pass them to service', () => {
+    component.setResizeMode('width');
+    component.resizeWidth.set(800);
+
+    expect(component.selectedResizeMode()).toBe('width');
+    expect(component.resizeWidth()).toBe(800);
+
+    const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
+    const spy = vi
+      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
+      .mockReturnValue(of({} as FileStatusUpdate));
+
+    // Truy cập private method để test
+    (component as unknown as { processFiles: (files: File[]) => void }).processFiles([mockFile]);
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        resizeMode: 'width',
+        resizeWidth: 800,
+      }),
       expect.any(Number),
     );
   });

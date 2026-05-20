@@ -1,14 +1,15 @@
-# Current Task: Chuyển đổi sang WebP/AVIF (Ưu tiên 🔴)
+# Current Task: Tính năng Resize hàng loạt (Ưu tiên 🔴)
 
-Mục tiêu: Cho phép người dùng tùy chọn định dạng đầu ra là WebP để tối ưu hóa dung lượng tốt hơn cho web.
+Mục tiêu: Cho phép người dùng điều chỉnh kích thước ảnh (chiều rộng/cao) đồng loạt trước khi nén.
 
 ## 📋 Danh sách công việc
-- [x] **Giao diện:** Thêm tùy chọn "Định dạng đầu ra" (JPEG, WebP) vào phần cấu hình.
-- [x] **Service:** Cập nhật `ImageCompressionService` để xử lý chuyển đổi định dạng dựa trên lựa chọn của người dùng.
-- [x] **Logic:** Đảm bảo đặt tên file và phần mở rộng (.webp) chính xác khi chuyển đổi.
-- [x] **Kiểm thử:** Viết unit test cho việc chuyển đổi định dạng trong `image-uploader.component.spec.ts`.
-- [x] **Code Quality:** Chạy `npm run lint` và `npm run build` để đảm bảo chất lượng.
-- [x] **Hoàn tất:** Commit code và cập nhật trạng thái trong `BACKLOG.md`.
+- [x] **Model:** Cập nhật `CompressionOptions` để hỗ trợ `width`, `height` và `resizeMode`.
+- [x] **Giao diện:** Thêm bảng điều khiển "Kích thước đầu ra" (Auto, Fixed Width, Percentage).
+- [x] **Logic Component:** Xử lý việc bật/tắt các ô nhập liệu và tính toán kích thước dựa trên chế độ chọn.
+- [x] **Service:** Truyền các thông số resize vào `Compressor.js`.
+- [x] **Kiểm thử:** Viết unit test đảm bảo các thông số resize được gửi đúng đến service.
+- [x] **Xác nhận:** Chạy `npm run lint`, `npm test` và `npm run build`.
+- [x] **Hoàn tất:** Commit code và cập nhật `BACKLOG.md`.
 
 ---
 *Trạng thái: Hoàn thành ✅*

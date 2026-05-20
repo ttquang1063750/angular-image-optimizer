@@ -5,6 +5,7 @@ import {
   FileStatusUpdate,
   CompressionPreset,
   OutputFormat,
+  ResizeMode,
 } from '../image-processing.model';
 
 @Component({
@@ -21,6 +22,10 @@ export class ImageUploaderComponent {
   readonly processedFiles: WritableSignal<ProcessedFile[]> = signal<ProcessedFile[]>([]);
   readonly selectedPreset = signal<CompressionPreset>('medium');
   readonly selectedFormat = signal<OutputFormat>('image/jpeg');
+  readonly selectedResizeMode = signal<ResizeMode>('auto');
+  readonly resizeWidth = signal<number>(1200);
+  readonly resizeHeight = signal<number>(1200);
+  readonly resizePercent = signal<number>(50);
   readonly isDragging = signal<boolean>(false);
 
   // Tính toán số lượng file đã hoàn thành
@@ -62,6 +67,20 @@ export class ImageUploaderComponent {
 
   setFormat(format: OutputFormat): void {
     this.selectedFormat.set(format);
+  }
+
+  setResizeMode(mode: ResizeMode): void {
+    this.selectedResizeMode.set(mode);
+  }
+
+  updateResizeValue(event: Event, type: 'width' | 'height' | 'percent'): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.valueAsNumber;
+    if (isNaN(value) || value <= 0) return;
+
+    if (type === 'width') this.resizeWidth.set(value);
+    if (type === 'height') this.resizeHeight.set(value);
+    if (type === 'percent') this.resizePercent.set(value);
   }
 
   async downloadAll(): Promise<void> {
@@ -116,8 +135,15 @@ export class ImageUploaderComponent {
     // Thêm vào danh sách hiện có thay vì thay thế hoàn toàn
     this.processedFiles.update((current) => [...current, ...initialFiles]);
 
-    const options = this.compressionService.getOptionsByPreset(this.selectedPreset());
-    options.format = this.selectedFormat();
+    const baseOptions = this.compressionService.getOptionsByPreset(this.selectedPreset());
+    const options = {
+      ...baseOptions,
+      format: this.selectedFormat(),
+      resizeMode: this.selectedResizeMode(),
+      resizeWidth: this.resizeWidth(),
+      resizeHeight: this.resizeHeight(),
+      resizePercent: this.resizePercent(),
+    };
 
     // Chuẩn bị dữ liệu để truyền vào service (bao gồm cả File và ID duy nhất)
     const compressionItems = initialFiles.map((f) => ({ file: f.file, id: f.id }));

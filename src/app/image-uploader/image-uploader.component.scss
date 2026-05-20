@@ -23,7 +23,8 @@
     min-width: 130px;
   }
 
-  .preset-buttons {    display: flex;
+  .preset-buttons {
+    display: flex;
     background: #f0f0f0;
     padding: 4px;
     border-radius: 8px;
@@ -45,8 +46,51 @@
       &.active {
         background: #fff;
         color: #c3002f;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
+    }
+  }
+
+  .resize-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    padding: 4px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    &:focus-within {
+      border-color: #c3002f;
+      box-shadow: 0 0 0 2px rgba(195, 0, 47, 0.1);
+    }
+
+    input {
+      border: none;
+      width: 60px;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.95rem;
+      outline: none;
+      text-align: center;
+      background: transparent;
+
+      /* Remove arrows */
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      &[type='number'] {
+        -moz-appearance: textfield;
+      }
+    }
+
+    .unit {
+      color: #888;
+      font-weight: 500;
+      font-size: 0.9rem;
     }
   }
 }
