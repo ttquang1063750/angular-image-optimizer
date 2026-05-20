@@ -1,35 +1,42 @@
 <div class="uploader-container">
   <!-- Cấu hình nén -->
   <div class="controls">
+    <div class="control-header">
+      <div class="lang-switcher">
+        <button [class.active]="currentLang() === 'vi'" (click)="setLang('vi')">VI</button>
+        <button [class.active]="currentLang() === 'en'" (click)="setLang('en')">EN</button>
+      </div>
+    </div>
+
     <div class="control-group">
-      <span class="label">Mức độ nén:</span>
+      <span class="label">{{ t()['label_compression_level'] }}</span>
       <div class="preset-buttons">
         <button
           type="button"
           [class.active]="selectedPreset() === 'light'"
           (click)="setPreset('light')"
         >
-          Nén nhẹ
+          {{ t()['preset_light'] }}
         </button>
         <button
           type="button"
           [class.active]="selectedPreset() === 'medium'"
           (click)="setPreset('medium')"
         >
-          Nén vừa
+          {{ t()['preset_medium'] }}
         </button>
         <button
           type="button"
           [class.active]="selectedPreset() === 'max'"
           (click)="setPreset('max')"
         >
-          Nén tối đa
+          {{ t()['preset_max'] }}
         </button>
       </div>
     </div>
 
     <div class="control-group">
-      <span class="label">Định dạng đầu ra:</span>
+      <span class="label">{{ t()['label_output_format'] }}</span>
       <div class="preset-buttons">
         <button
           type="button"
@@ -49,35 +56,35 @@
     </div>
 
     <div class="control-group">
-      <span class="label">Kích thước đầu ra:</span>
+      <span class="label">{{ t()['label_output_size'] }}</span>
       <div class="preset-buttons">
         <button
           type="button"
           [class.active]="selectedResizeMode() === 'auto'"
           (click)="setResizeMode('auto')"
         >
-          Tự động
+          {{ t()['resize_auto'] }}
         </button>
         <button
           type="button"
           [class.active]="selectedResizeMode() === 'width'"
           (click)="setResizeMode('width')"
         >
-          Chiều ngang
+          {{ t()['resize_width'] }}
         </button>
         <button
           type="button"
           [class.active]="selectedResizeMode() === 'height'"
           (click)="setResizeMode('height')"
         >
-          Chiều cao
+          {{ t()['resize_height'] }}
         </button>
         <button
           type="button"
           [class.active]="selectedResizeMode() === 'percent'"
           (click)="setResizeMode('percent')"
         >
-          Phần trăm (%)
+          {{ t()['resize_percent'] }}
         </button>
       </div>
 
@@ -116,10 +123,10 @@
     </div>
 
     <div class="control-group">
-      <span class="label">Đặt tên file:</span>
+      <span class="label">{{ t()['label_file_naming'] }}</span>
       <div class="naming-controls">
         <div class="input-with-label">
-          <span class="sub-label">Tiền tố:</span>
+          <span class="sub-label">{{ t()['label_prefix'] }}</span>
           <input
             type="text"
             [value]="namePrefix()"
@@ -129,7 +136,7 @@
         </div>
 
         <div class="input-with-label">
-          <span class="sub-label">Hậu tố:</span>
+          <span class="sub-label">{{ t()['label_suffix'] }}</span>
           <input
             type="text"
             [value]="nameSuffix()"
@@ -141,11 +148,11 @@
         <div class="checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" [checked]="includeNumbering()" (change)="toggleNumbering()" />
-            Đánh số thứ tự
+            {{ t()['label_numbering'] }}
           </label>
           @if (includeNumbering()) {
             <div class="numbering-input">
-              <span class="sub-label">Bắt đầu từ:</span>
+              <span class="sub-label">{{ t()['label_start_index'] }}</span>
               <input
                 type="number"
                 [value]="startNumberingIndex()"
@@ -159,11 +166,11 @@
     </div>
 
     <div class="control-group">
-      <span class="label">Đóng dấu ảnh:</span>
+      <span class="label">{{ t()['label_watermark'] }}</span>
       <div class="watermark-controls">
         <label class="checkbox-label">
           <input type="checkbox" [checked]="includeWatermark()" (change)="toggleWatermark()" />
-          Chèn Text Watermark
+          {{ t()['watermark_toggle'] }}
         </label>
 
         @if (includeWatermark()) {
@@ -172,26 +179,26 @@
               type="text"
               [value]="watermarkText()"
               (input)="updateWatermarkValue($event, 'text')"
-              placeholder="Nội dung đóng dấu..."
+              [placeholder]="t()['watermark_placeholder']"
               class="input-text"
             />
 
             <div class="select-group">
-              <span class="sub-label">Vị trí:</span>
+              <span class="sub-label">{{ t()['watermark_pos'] }}</span>
               <select
                 [value]="watermarkPosition()"
                 (change)="setWatermarkPosition($any($event.target).value)"
               >
-                <option value="bottom-right">Dưới - Phải</option>
-                <option value="bottom-left">Dưới - Trái</option>
-                <option value="top-right">Trên - Phải</option>
-                <option value="top-left">Trên - Trái</option>
-                <option value="center">Chính giữa</option>
+                <option value="bottom-right">{{ t()['pos_bottom_right'] }}</option>
+                <option value="bottom-left">{{ t()['pos_bottom_left'] }}</option>
+                <option value="top-right">{{ t()['pos_top_right'] }}</option>
+                <option value="top-left">{{ t()['pos_top_left'] }}</option>
+                <option value="center">{{ t()['pos_center'] }}</option>
               </select>
             </div>
 
             <div class="input-with-label">
-              <span class="sub-label">Cỡ (%):</span>
+              <span class="sub-label">{{ t()['watermark_size'] }}</span>
               <input
                 type="number"
                 [value]="watermarkFontSize()"
@@ -202,7 +209,7 @@
             </div>
 
             <div class="input-with-label">
-              <span class="sub-label">Mờ:</span>
+              <span class="sub-label">{{ t()['watermark_opacity'] }}</span>
               <input
                 type="number"
                 [value]="watermarkOpacity()"
@@ -232,18 +239,19 @@
       <div class="warning-content">
         <span class="warning-icon">⚠️</span>
         <div class="warning-text">
-          <p><strong>Thông số đã thay đổi!</strong></p>
           <p>
-            Các thiết lập mới chưa được áp dụng cho danh sách ảnh hiện tại. Quá trình xử lý lại có
-            thể mất thời gian tùy thuộc vào số lượng ảnh, vui lòng kiên nhẫn.
+            <strong>{{ t()['warning_settings_changed'] }}</strong>
+          </p>
+          <p>
+            {{ t()['warning_settings_desc'] }}
           </p>
         </div>
       </div>
       <button class="btn-apply-changes" (click)="recompressAll()" [disabled]="isCompressing()">
         @if (isCompressing()) {
-          Đang xử lý...
+          {{ t()['status_compressing'] }}
         } @else {
-          Áp dụng cho tất cả ảnh
+          {{ t()['btn_apply_changes'] }}
         }
       </button>
     </div>
@@ -261,12 +269,12 @@
     (keydown.space)="fileInput.click()"
     tabindex="0"
     role="button"
-    aria-label="Kéo thả ảnh vào đây hoặc click để chọn file"
+    [attr.aria-label]="t()['drop_zone_text']"
   >
     <div class="drop-content">
       <span class="icon">📁</span>
-      <p>Kéo thả ảnh vào đây hoặc click để chọn file</p>
-      <span class="hint">(Hỗ trợ JPG, PNG, HEIC - Nén đồng thời 3 ảnh)</span>
+      <p>{{ t()['drop_zone_text'] }}</p>
+      <span class="hint">{{ t()['drop_zone_hint'] }}</span>
     </div>
 
     <input
@@ -283,12 +291,13 @@
   @if (processedFiles().length > 0) {
     <div class="batch-actions">
       <div class="stats">
-        Đã xong: <strong>{{ completedCount() }}/{{ processedFiles().length }}</strong>
+        {{ t()['done_count'] }}:
+        <strong>{{ completedCount() }}/{{ processedFiles().length }}</strong>
       </div>
       <div class="buttons">
-        <button class="btn-clear" (click)="clearAll()">Xóa hết</button>
+        <button class="btn-clear" (click)="clearAll()">{{ t()['btn_clear'] }}</button>
         <button class="btn-download" [disabled]="completedCount() === 0" (click)="downloadAll()">
-          Tải về toàn bộ (.zip)
+          {{ t()['btn_download_zip'] }}
         </button>
       </div>
     </div>
@@ -323,7 +332,7 @@
           <div class="status-content">
             @switch (item.status) {
               @case ('queued') {
-                <div class="status-msg">Đang chờ xử lý...</div>
+                <div class="status-msg">{{ t()['status_queued'] }}</div>
               }
               @case ('compressing') {
                 <div class="progress-container">
@@ -349,14 +358,14 @@
                     <button
                       class="btn-compare"
                       (click)="openComparison(item)"
-                      title="So sánh chất lượng"
+                      [title]="t()['btn_compare']"
                     >
                       👁️
                     </button>
                     <button
                       class="btn-download-single"
                       (click)="downloadSingle(item)"
-                      title="Tải ảnh này"
+                      [title]="t()['btn_download']"
                     >
                       📥
                     </button>
@@ -364,14 +373,14 @@
                 </div>
               }
               @case ('error') {
-                <div class="error-msg">Lỗi: {{ item.error }}</div>
+                <div class="error-msg">{{ t()['status_error'] }} {{ item.error }}</div>
               }
             }
           </div>
         </div>
       </div>
     } @empty {
-      <div class="empty-state">Chưa có file nào được chọn.</div>
+      <div class="empty-state">{{ t()['empty_state'] }}</div>
     }
   </div>
 
@@ -380,7 +389,7 @@
     <div class="comparison-overlay" (click)="closeComparison()">
       <div class="comparison-modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>So sánh chất lượng: {{ item.file.name }}</h3>
+          <h3>{{ t()['modal_compare_title'] }} {{ item.file.name }}</h3>
           <button class="btn-close" (click)="closeComparison()">✕</button>
         </div>
 
@@ -389,7 +398,7 @@
           <div class="image-wrapper original">
             <img [src]="createBlobUrl(item.file)" alt="Original" />
             <span class="label-tag tag-left"
-              >Gốc ({{ formatBytes(item.result!.originalSize) }})</span
+              >{{ t()['tag_original'] }} ({{ formatBytes(item.result!.originalSize) }})</span
             >
           </div>
 
@@ -397,7 +406,7 @@
           <div class="image-wrapper compressed" [style.width.%]="comparisonSliderValue()">
             <img [src]="item.result!.compressedUrl" alt="Compressed" />
             <span class="label-tag tag-right"
-              >Nén ({{ formatBytes(item.result!.compressedSize) }})</span
+              >{{ t()['tag_compressed'] }} ({{ formatBytes(item.result!.compressedSize) }})</span
             >
           </div>
 
@@ -419,8 +428,7 @@
 
         <div class="modal-footer">
           <p>
-            Kéo thanh trượt để so sánh ảnh <strong>Gốc</strong> (phải) và
-            <strong>Nén</strong> (trái)
+            {{ t()['modal_compare_hint'] }}
           </p>
         </div>
       </div>

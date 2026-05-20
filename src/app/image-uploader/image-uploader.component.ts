@@ -1,5 +1,6 @@
 import { Component, inject, signal, WritableSignal, computed } from '@angular/core';
 import { ImageCompressionService } from '../image-compression.service';
+import { TranslationService, Lang } from '../translation.service';
 import {
   ProcessedFile,
   FileStatusUpdate,
@@ -17,6 +18,10 @@ import {
 })
 export class ImageUploaderComponent {
   private readonly compressionService = inject(ImageCompressionService);
+  private readonly translationService = inject(TranslationService);
+
+  readonly t = this.translationService.t;
+  readonly currentLang = this.translationService.currentLang;
 
   readonly isCompressing = signal<boolean>(false);
   readonly processedFiles: WritableSignal<ProcessedFile[]> = signal<ProcessedFile[]>([]);
@@ -55,6 +60,10 @@ export class ImageUploaderComponent {
 
   // Cache URL để tránh gọi createObjectURL nhiều lần
   private readonly blobUrlCache = new Map<File, string>();
+
+  setLang(lang: Lang): void {
+    this.translationService.setLang(lang);
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
