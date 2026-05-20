@@ -2,6 +2,21 @@
   <!-- Cấu hình nén -->
   <div class="controls">
     <div class="control-header">
+      <button
+        type="button"
+        class="theme-toggle"
+        (click)="toggleTheme()"
+        [attr.aria-label]="
+          currentTheme() === 'dark' ? t()['btn_theme_light'] : t()['btn_theme_dark']
+        "
+        [attr.title]="currentTheme() === 'dark' ? t()['btn_theme_light'] : t()['btn_theme_dark']"
+      >
+        @if (currentTheme() === 'dark') {
+          ☀️
+        } @else {
+          🌙
+        }
+      </button>
       <div class="lang-switcher">
         <button [class.active]="currentLang() === 'vi'" (click)="setLang('vi')">VI</button>
         <button [class.active]="currentLang() === 'en'" (click)="setLang('en')">EN</button>

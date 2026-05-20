@@ -52,7 +52,6 @@ export interface CompressedImageResult {
   originalSize: number;
   compressedSize: number;
   savedPercentage: number;
-  originalUrl: string;
   compressedUrl: string;
 }
 

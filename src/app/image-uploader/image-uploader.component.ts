@@ -1,13 +1,17 @@
 import { Component, inject, signal, WritableSignal, computed } from '@angular/core';
 import { ImageCompressionService } from '../image-compression.service';
 import { TranslationService, Lang } from '../translation.service';
+import { ThemeService } from '../theme.service';
 import {
   ProcessedFile,
   FileStatusUpdate,
   CompressionPreset,
   OutputFormat,
   ResizeMode,
+  WatermarkPosition,
+  CompressionOptions,
 } from '../image-processing.model';
+import { DEFAULT_RESIZE, DEFAULT_WATERMARK } from '../image-processing.constants';
 
 @Component({
   selector: 'app-image-uploader',
@@ -19,18 +23,20 @@ import {
 export class ImageUploaderComponent {
   private readonly compressionService = inject(ImageCompressionService);
   private readonly translationService = inject(TranslationService);
+  private readonly themeService = inject(ThemeService);
 
   readonly t = this.translationService.t;
   readonly currentLang = this.translationService.currentLang;
+  readonly currentTheme = this.themeService.currentTheme;
 
   readonly isCompressing = signal<boolean>(false);
   readonly processedFiles: WritableSignal<ProcessedFile[]> = signal<ProcessedFile[]>([]);
   readonly selectedPreset = signal<CompressionPreset>('medium');
   readonly selectedFormat = signal<OutputFormat>('image/jpeg');
   readonly selectedResizeMode = signal<ResizeMode>('auto');
-  readonly resizeWidth = signal<number>(1200);
-  readonly resizeHeight = signal<number>(1200);
-  readonly resizePercent = signal<number>(50);
+  readonly resizeWidth = signal<number>(DEFAULT_RESIZE.width);
+  readonly resizeHeight = signal<number>(DEFAULT_RESIZE.height);
+  readonly resizePercent = signal<number>(DEFAULT_RESIZE.percent);
   readonly namePrefix = signal<string>('');
   readonly nameSuffix = signal<string>('');
   readonly includeNumbering = signal<boolean>(false);
@@ -39,12 +45,11 @@ export class ImageUploaderComponent {
 
   // Watermark
   readonly includeWatermark = signal<boolean>(false);
-  readonly watermarkText = signal<string>('Image Optimizer');
-  readonly watermarkPosition =
-    signal<import('../image-processing.model').WatermarkPosition>('bottom-right');
-  readonly watermarkFontSize = signal<number>(3); // 3%
-  readonly watermarkOpacity = signal<number>(0.5);
-  readonly watermarkColor = signal<string>('#ffffff');
+  readonly watermarkText = signal<string>(DEFAULT_WATERMARK.text);
+  readonly watermarkPosition = signal<WatermarkPosition>('bottom-right');
+  readonly watermarkFontSize = signal<number>(DEFAULT_WATERMARK.fontSizePercent);
+  readonly watermarkOpacity = signal<number>(DEFAULT_WATERMARK.opacity);
+  readonly watermarkColor = signal<string>(DEFAULT_WATERMARK.color);
 
   // So sánh ảnh
   readonly comparingFile = signal<ProcessedFile | null>(null);
@@ -63,6 +68,10 @@ export class ImageUploaderComponent {
 
   setLang(lang: Lang): void {
     this.translationService.setLang(lang);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
   }
 
   onFileSelected(event: Event): void {
@@ -138,7 +147,7 @@ export class ImageUploaderComponent {
     this.markSettingsAsChanged();
   }
 
-  setWatermarkPosition(pos: import('../image-processing.model').WatermarkPosition): void {
+  setWatermarkPosition(pos: WatermarkPosition): void {
     this.watermarkPosition.set(pos);
     this.markSettingsAsChanged();
   }
@@ -196,9 +205,12 @@ export class ImageUploaderComponent {
     this.isCompressing.set(true);
     this.settingsChanged.set(false);
 
+    // Revoke URL của kết quả nén cũ trước khi tạo kết quả mới
+    currentFiles.forEach((f) => this.revokeResultUrl(f));
+
     // Đặt lại trạng thái cho các file hiện có
     this.processedFiles.update((files) =>
-      files.map((f) => ({ ...f, status: 'queued', progress: 0 })),
+      files.map((f) => ({ ...f, status: 'queued', progress: 0, result: undefined })),
     );
 
     const options = this.getCompressionOptions();
@@ -214,9 +226,9 @@ export class ImageUploaderComponent {
 
   private runCompressionTask(
     items: { file: File; id: string; index: number }[],
-    options: import('../image-processing.model').CompressionOptions,
+    options: CompressionOptions,
   ): void {
-    this.compressionService.compressImagesWithProgress(items, options, 3).subscribe({
+    this.compressionService.compressImagesWithProgress(items, options).subscribe({
       next: (update: FileStatusUpdate) => {
         this.processedFiles.update((currentFiles) =>
           currentFiles.map((pf) => {
@@ -257,7 +269,7 @@ export class ImageUploaderComponent {
 
     // 1. Khởi tạo trạng thái ban đầu cho các file mới
     const newProcessedFiles: ProcessedFile[] = imageFiles.map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random()}`,
+      id: crypto.randomUUID(),
       file: file,
       status: 'queued',
       progress: 0,
@@ -353,13 +365,24 @@ export class ImageUploaderComponent {
   }
 
   removeFile(id: string): void {
-    this.processedFiles.update((files) => files.filter((f) => f.id !== id));
+    this.processedFiles.update((files) => {
+      const target = files.find((f) => f.id === id);
+      if (target) this.revokeResultUrl(target);
+      return files.filter((f) => f.id !== id);
+    });
   }
 
   clearAll(): void {
+    this.processedFiles().forEach((f) => this.revokeResultUrl(f));
     this.processedFiles.set([]);
     this.settingsChanged.set(false);
     this.cleanupBlobUrls();
+  }
+
+  private revokeResultUrl(file: ProcessedFile): void {
+    if (file.result?.compressedUrl) {
+      URL.revokeObjectURL(file.result.compressedUrl);
+    }
   }
 
   private cleanupBlobUrls(): void {

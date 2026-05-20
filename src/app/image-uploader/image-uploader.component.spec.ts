@@ -55,7 +55,6 @@ describe('ImageUploaderComponent', () => {
         originalSize: 100,
         compressedSize: 50,
         savedPercentage: 50,
-        originalUrl: 'blob:orig',
         compressedUrl: 'blob:compressed',
       },
     };
@@ -100,7 +99,6 @@ describe('ImageUploaderComponent', () => {
     expect(spy).toHaveBeenCalledWith(
       expect.any(Array),
       expect.objectContaining({ format: 'image/webp' }),
-      expect.any(Number),
     );
   });
 
@@ -125,7 +123,6 @@ describe('ImageUploaderComponent', () => {
         resizeMode: 'width',
         resizeWidth: 800,
       }),
-      expect.any(Number),
     );
   });
 
@@ -153,7 +150,6 @@ describe('ImageUploaderComponent', () => {
           startIndex: 10,
         }),
       }),
-      expect.any(Number),
     );
   });
 
@@ -207,7 +203,6 @@ describe('ImageUploaderComponent', () => {
         originalSize: 100,
         compressedSize: 50,
         savedPercentage: 50,
-        originalUrl: 'blob:orig',
         compressedUrl: 'blob:compressed',
       },
     };

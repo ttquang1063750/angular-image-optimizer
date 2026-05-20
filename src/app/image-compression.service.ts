@@ -10,56 +10,39 @@ import {
   CompressedImageResult,
   FileStatusUpdate,
   CompressionPreset,
+  FileNamePattern,
   ProcessedFile,
+  WatermarkConfig,
 } from './image-processing.model';
+import {
+  COMPRESSION_PRESETS,
+  CONVERT_SIZE_THRESHOLD,
+  DEFAULT_CONCURRENCY,
+  FORCE_REENCODE_QUALITY,
+  HEIC_CONVERT_QUALITY,
+  WATERMARK_OUTPUT_QUALITY,
+} from './image-processing.constants';
+
+interface ResizeDimensions {
+  width?: number;
+  height?: number;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ImageCompressionService {
-  /**
-   * Chuyển đổi Preset thành CompressionOptions cụ thể.
-   */
   getOptionsByPreset(preset: CompressionPreset): CompressionOptions {
-    switch (preset) {
-      case 'light':
-        return { quality: 0.9, maxWidthOrHeight: 3840, resizeMode: 'auto' }; // Giữ chất lượng cực cao
-      case 'medium':
-        return { quality: 0.6, maxWidthOrHeight: 1600, resizeMode: 'auto' }; // Cân bằng, giảm độ phân giải xuống 1600px
-      case 'max':
-        return { quality: 0.2, maxWidthOrHeight: 1024, resizeMode: 'auto' }; // Nén mạnh, 1024px
-      default:
-        return { quality: 0.6, maxWidthOrHeight: 1600, resizeMode: 'auto' };
-    }
+    return COMPRESSION_PRESETS[preset] ?? COMPRESSION_PRESETS.medium;
   }
 
-  /**
-   * Tạo file Zip từ danh sách các file đã nén thành công.
-   * Đảm bảo không có file nào bị ghi đè nếu trùng tên.
-   */
   async generateZip(processedFiles: ProcessedFile[]): Promise<Blob> {
     const zip = new JSZip();
     const usedNames = new Set<string>();
 
     processedFiles.forEach((pf) => {
       if (pf.status === 'done' && pf.result) {
-        const originalName = pf.result.compressedFile.name;
-        let finalName = originalName;
-        let counter = 1;
-
-        // Xử lý trùng tên trong file Zip
-        while (usedNames.has(finalName)) {
-          const lastDotIndex = originalName.lastIndexOf('.');
-          if (lastDotIndex === -1) {
-            finalName = `${originalName}_${counter}`;
-          } else {
-            const namePart = originalName.substring(0, lastDotIndex);
-            const extPart = originalName.substring(lastDotIndex);
-            finalName = `${namePart}_${counter}${extPart}`;
-          }
-          counter++;
-        }
-
+        const finalName = this.deduplicateName(pf.result.compressedFile.name, usedNames);
         usedNames.add(finalName);
         zip.file(finalName, pf.result.compressedFile);
       }
@@ -68,30 +51,23 @@ export class ImageCompressionService {
     return await zip.generateAsync({ type: 'blob' });
   }
 
-  /**
-   * Nén một danh sách các file ảnh với khả năng kiểm soát đồng thời.
-   * @param items Danh sách các đối tượng chứa file và ID duy nhất.
-   * @param options Cấu hình nén.
-   * @param concurrency Số lượng file nén đồng thời (mặc định là 3).
-   * @returns Một Observable phát ra các cập nhật trạng thái (FileStatusUpdate) cho từng file.
-   */
   compressImagesWithProgress(
     items: { file: File; id: string; index?: number }[],
     options: CompressionOptions,
-    concurrency = 3,
+    concurrency = DEFAULT_CONCURRENCY,
   ): Observable<FileStatusUpdate> {
     return from(items).pipe(
       mergeMap((item) => {
         const fileId = item.id;
 
         return this.compressSingleImage(item.file, fileId, options, item.index).pipe(
-          catchError((error) => {
-            return of({
+          catchError((error) =>
+            of({
               fileId,
               status: 'error' as const,
               error: error.message || 'Unknown error',
-            });
-          }),
+            }),
+          ),
           startWith({
             fileId,
             status: 'compressing' as const,
@@ -102,14 +78,6 @@ export class ImageCompressionService {
     );
   }
 
-  /**
-   * Logic nén cho một file duy nhất bằng Compressor.js.
-   * @param file File ảnh cần nén.
-   * @param fileId ID duy nhất của file.
-   * @param options Cấu hình nén.
-   * @param index Thứ tự của file trong lô (để đánh số).
-   * @returns Một Observable phát ra kết quả nén.
-   */
   private compressSingleImage(
     file: File,
     fileId: string,
@@ -117,168 +85,210 @@ export class ImageCompressionService {
     index = 0,
   ): Observable<FileStatusUpdate> {
     return new Observable((subscriber) => {
-      // Hàm xử lý nén chính sau khi đã đảm bảo file ở định dạng browser hiểu được
-      const runCompression = (
-        targetFile: File | Blob,
-        originalFileName: string,
-        finalWidth?: number,
-        finalHeight?: number,
-      ) => {
-        new Compressor(targetFile, {
-          quality: options.quality,
-          width: finalWidth,
-          height: finalHeight,
-          maxWidth: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
-          maxHeight: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
-          // Ép nén ngay cả khi dung lượng mới lớn hơn
-          strict: false,
-          // Sử dụng định dạng được yêu cầu (mặc định là jpeg)
-          mimeType: options.format ?? 'image/jpeg',
-          // Tự động chuyển đổi sang định dạng đích nếu cần thiết
-          convertSize: options.quality < 0.8 || options.format === 'image/webp' ? 0 : 5000000,
-          success: async (result: Blob) => {
-            let finalBlob = result;
-
-            // Nếu có cấu hình watermark, thực hiện đóng dấu
-            if (options.watermark && options.watermark.text) {
-              try {
-                finalBlob = await this.applyWatermark(result, options.watermark);
-              } catch {
-                // Vẫn tiếp tục với ảnh đã nén nếu lỗi đóng dấu
-              }
-            }
-
-            let fileName = originalFileName;
-
-            // Áp dụng đặt tên file theo pattern nếu có
-            if (options.namePattern) {
-              const p = options.namePattern;
-              const lastDotIndex = originalFileName.lastIndexOf('.');
-              const nameWithoutExt =
-                lastDotIndex !== -1
-                  ? originalFileName.substring(0, lastDotIndex)
-                  : originalFileName;
-
-              let newName = nameWithoutExt;
-
-              if (p.includeNumbering) {
-                newName = `${p.prefix ?? ''}${newName}${p.suffix ?? ''}_${p.startIndex + index}`;
-              } else {
-                newName = `${p.prefix ?? ''}${newName}${p.suffix ?? ''}`;
-              }
-              fileName = newName;
-            }
-
-            // Đảm bảo extension đúng với định dạng đầu ra
-            const targetExt = finalBlob.type === 'image/webp' ? '.webp' : '.jpg';
-            const isTargetJpeg = finalBlob.type === 'image/jpeg';
-
-            const hasCorrectExt = isTargetJpeg
-              ? fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg')
-              : fileName.toLowerCase().endsWith('.webp');
-
-            if (!hasCorrectExt) {
-              // Nếu tên đã đổi ở trên thì fileName chưa có extension
-              const lastDotIndex = fileName.lastIndexOf('.');
-              const namePart =
-                options.namePattern || lastDotIndex === -1
-                  ? fileName
-                  : fileName.substring(0, lastDotIndex);
-              fileName = `${namePart}${targetExt}`;
-            }
-
-            const compressedFile = new File([finalBlob], fileName, {
-              type: finalBlob.type,
-              lastModified: Date.now(),
-            });
-
-            const originalSize = file.size; // Luôn so sánh với file gốc ban đầu
-            const compressedSize = compressedFile.size;
-            const savedPercentage = ((originalSize - compressedSize) / originalSize) * 100;
-
-            const compressionResult: CompressedImageResult = {
-              originalFile: file,
-              compressedFile: compressedFile,
-              originalSize: originalSize,
-              compressedSize: compressedSize,
-              savedPercentage: parseFloat(savedPercentage.toFixed(2)),
-              originalUrl: URL.createObjectURL(file),
-              compressedUrl: URL.createObjectURL(compressedFile),
-            };
-
-            subscriber.next({
-              fileId,
-              status: 'done',
-              progress: 100,
-              result: compressionResult,
-            });
-            subscriber.complete();
-          },
-          error: (err) => {
-            subscriber.error(err);
-          },
-        });
-      };
-
-      // Xử lý thông số kích thước dựa trên resizeMode
-      const prepareAndRun = async (blob: File | Blob) => {
-        let targetW: number | undefined;
-        let targetH: number | undefined;
-
-        if (options.resizeMode === 'width') {
-          targetW = options.resizeWidth;
-        } else if (options.resizeMode === 'height') {
-          targetH = options.resizeHeight;
-        } else if (options.resizeMode === 'percent') {
-          // Cần đọc kích thước gốc để tính %
-          const img = new Image();
-          const url = URL.createObjectURL(blob);
-          await new Promise((resolve) => {
-            img.onload = resolve;
-            img.src = url;
-          });
-          URL.revokeObjectURL(url);
-          const ratio = (options.resizePercent ?? 100) / 100;
-          targetW = Math.round(img.width * ratio);
-          targetH = Math.round(img.height * ratio);
-        }
-
-        runCompression(blob, file.name, targetW, targetH);
-      };
-
-      // Kiểm tra nếu là file HEIC/HEIF thì convert sang JPEG trước
-      const isHeic =
-        file.type === 'image/heic' ||
-        file.type === 'image/heif' ||
-        file.name.toLowerCase().endsWith('.heic') ||
-        file.name.toLowerCase().endsWith('.heif');
-
-      if (isHeic) {
-        heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.9,
+      this.runPipeline(file, options, index)
+        .then((result) => {
+          subscriber.next({ fileId, status: 'done', progress: 100, result });
+          subscriber.complete();
         })
-          .then((conversionResult) => {
-            const blob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-            prepareAndRun(blob);
-          })
-          .catch((err) => {
-            subscriber.error(new Error(`Không thể chuyển đổi file HEIC: ${err.message}`));
-          });
-      } else {
-        prepareAndRun(file);
-      }
+        .catch((err: Error) => subscriber.error(err));
     });
   }
 
-  /**
-   * Đóng dấu watermark lên ảnh sử dụng Canvas.
-   */
-  private applyWatermark(
-    blob: Blob,
-    config: import('./image-processing.model').WatermarkConfig,
+  private async runPipeline(
+    file: File,
+    options: CompressionOptions,
+    index: number,
+  ): Promise<CompressedImageResult> {
+    const sourceBlob = await this.prepareSource(file);
+    const dimensions = await this.resolveResizeDimensions(sourceBlob, options);
+    const compressed = await this.runCompressor(sourceBlob, options, dimensions);
+    const watermarked = await this.applyWatermarkIfNeeded(compressed, options.watermark);
+    const fileName = this.buildFileName(file.name, watermarked.type, options.namePattern, index);
+    return this.buildResult(file, watermarked, fileName);
+  }
+
+  // --- Pipeline steps ---
+
+  private isHeic(file: File): boolean {
+    const name = file.name.toLowerCase();
+    return (
+      file.type === 'image/heic' ||
+      file.type === 'image/heif' ||
+      name.endsWith('.heic') ||
+      name.endsWith('.heif')
+    );
+  }
+
+  private async prepareSource(file: File): Promise<File | Blob> {
+    if (!this.isHeic(file)) return file;
+    try {
+      const conversion = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: HEIC_CONVERT_QUALITY,
+      });
+      return Array.isArray(conversion) ? conversion[0] : conversion;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'unknown error';
+      throw new Error(`Không thể chuyển đổi file HEIC: ${message}`, { cause: err });
+    }
+  }
+
+  private async resolveResizeDimensions(
+    blob: File | Blob,
+    options: CompressionOptions,
+  ): Promise<ResizeDimensions> {
+    switch (options.resizeMode) {
+      case 'width':
+        return { width: options.resizeWidth };
+      case 'height':
+        return { height: options.resizeHeight };
+      case 'percent': {
+        const { width, height } = await this.readImageSize(blob);
+        const ratio = (options.resizePercent ?? 100) / 100;
+        return {
+          width: Math.round(width * ratio),
+          height: Math.round(height * ratio),
+        };
+      }
+      default:
+        return {};
+    }
+  }
+
+  private readImageSize(blob: File | Blob): Promise<{ width: number; height: number }> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(blob);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Không thể đọc kích thước ảnh'));
+      };
+      img.src = url;
+    });
+  }
+
+  private runCompressor(
+    blob: File | Blob,
+    options: CompressionOptions,
+    dimensions: ResizeDimensions,
   ): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      new Compressor(blob, {
+        quality: options.quality,
+        width: dimensions.width,
+        height: dimensions.height,
+        maxWidth: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
+        maxHeight: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
+        strict: false,
+        mimeType: options.format ?? 'image/jpeg',
+        convertSize:
+          options.quality < FORCE_REENCODE_QUALITY || options.format === 'image/webp'
+            ? 0
+            : CONVERT_SIZE_THRESHOLD,
+        success: (result: Blob) => resolve(result),
+        error: (err) => reject(err),
+      });
+    });
+  }
+
+  private async applyWatermarkIfNeeded(
+    blob: Blob,
+    watermark: WatermarkConfig | undefined,
+  ): Promise<Blob> {
+    if (!watermark?.text) return blob;
+    try {
+      return await this.applyWatermark(blob, watermark);
+    } catch {
+      // Vẫn tiếp tục với ảnh đã nén nếu lỗi đóng dấu
+      return blob;
+    }
+  }
+
+  private buildFileName(
+    originalName: string,
+    blobType: string,
+    pattern: FileNamePattern | undefined,
+    index: number,
+  ): string {
+    const baseName = pattern ? this.applyNamePattern(originalName, pattern, index) : originalName;
+    return this.ensureCorrectExtension(baseName, blobType, !!pattern);
+  }
+
+  private applyNamePattern(originalName: string, pattern: FileNamePattern, index: number): string {
+    const nameWithoutExt = this.stripExtension(originalName);
+    const core = `${pattern.prefix ?? ''}${nameWithoutExt}${pattern.suffix ?? ''}`;
+    return pattern.includeNumbering ? `${core}_${pattern.startIndex + index}` : core;
+  }
+
+  private ensureCorrectExtension(
+    fileName: string,
+    blobType: string,
+    nameAlreadyStripped: boolean,
+  ): string {
+    const targetExt = blobType === 'image/webp' ? '.webp' : '.jpg';
+    const lower = fileName.toLowerCase();
+    const isJpeg = blobType === 'image/jpeg';
+
+    const hasCorrectExt = isJpeg
+      ? lower.endsWith('.jpg') || lower.endsWith('.jpeg')
+      : lower.endsWith('.webp');
+
+    if (hasCorrectExt) return fileName;
+
+    const base = nameAlreadyStripped ? fileName : this.stripExtension(fileName);
+    return `${base}${targetExt}`;
+  }
+
+  private stripExtension(name: string): string {
+    const lastDot = name.lastIndexOf('.');
+    return lastDot === -1 ? name : name.substring(0, lastDot);
+  }
+
+  private buildResult(
+    originalFile: File,
+    finalBlob: Blob,
+    fileName: string,
+  ): CompressedImageResult {
+    const compressedFile = new File([finalBlob], fileName, {
+      type: finalBlob.type,
+      lastModified: Date.now(),
+    });
+    const originalSize = originalFile.size;
+    const compressedSize = compressedFile.size;
+    const savedPercentage = ((originalSize - compressedSize) / originalSize) * 100;
+
+    return {
+      originalFile,
+      compressedFile,
+      originalSize,
+      compressedSize,
+      savedPercentage: parseFloat(savedPercentage.toFixed(2)),
+      compressedUrl: URL.createObjectURL(compressedFile),
+    };
+  }
+
+  private deduplicateName(originalName: string, usedNames: Set<string>): string {
+    if (!usedNames.has(originalName)) return originalName;
+
+    const lastDot = originalName.lastIndexOf('.');
+    const namePart = lastDot === -1 ? originalName : originalName.substring(0, lastDot);
+    const extPart = lastDot === -1 ? '' : originalName.substring(lastDot);
+
+    let counter = 1;
+    let candidate = `${namePart}_${counter}${extPart}`;
+    while (usedNames.has(candidate)) {
+      counter++;
+      candidate = `${namePart}_${counter}${extPart}`;
+    }
+    return candidate;
+  }
+
+  private applyWatermark(blob: Blob, config: WatermarkConfig): Promise<Blob> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(blob);
@@ -287,7 +297,6 @@ export class ImageCompressionService {
         URL.revokeObjectURL(url);
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-
         if (!ctx) {
           reject(new Error('Không thể khởi tạo Canvas Context'));
           return;
@@ -295,65 +304,17 @@ export class ImageCompressionService {
 
         canvas.width = img.width;
         canvas.height = img.height;
-
-        // Vẽ ảnh gốc lên canvas
         ctx.drawImage(img, 0, 0);
 
-        // Cấu hình font
-        // Font size dựa trên % chiều rộng ảnh (mặc định 3%) hoặc giá trị pixel nếu truyền vào lớn
-        const fontSize = (img.width * config.fontSize) / 100;
-        ctx.font = `bold ${fontSize}px Inter, Roboto, sans-serif`;
-        ctx.globalAlpha = config.opacity;
-        ctx.fillStyle = config.color;
-        ctx.textBaseline = 'middle';
+        this.drawWatermarkText(ctx, canvas.width, canvas.height, config);
 
-        const padding = fontSize;
-        let x = 0;
-        let y = 0;
-
-        // Tính toán vị trí
-        switch (config.position) {
-          case 'top-left':
-            x = padding;
-            y = padding;
-            ctx.textAlign = 'left';
-            break;
-          case 'top-right':
-            x = canvas.width - padding;
-            y = padding;
-            ctx.textAlign = 'right';
-            break;
-          case 'bottom-left':
-            x = padding;
-            y = canvas.height - padding;
-            ctx.textAlign = 'left';
-            break;
-          case 'bottom-right':
-            x = canvas.width - padding;
-            y = canvas.height - padding;
-            ctx.textAlign = 'right';
-            break;
-          case 'center':
-            x = canvas.width / 2;
-            y = canvas.height / 2;
-            ctx.textAlign = 'center';
-            break;
-        }
-
-        // Vẽ text
-        ctx.fillText(config.text, x, y);
-
-        // Xuất ra Blob
         canvas.toBlob(
           (result) => {
-            if (result) {
-              resolve(result);
-            } else {
-              reject(new Error('Lỗi khi xuất Canvas sang Blob'));
-            }
+            if (result) resolve(result);
+            else reject(new Error('Lỗi khi xuất Canvas sang Blob'));
           },
           blob.type,
-          0.95, // Giữ chất lượng cao cho bước đóng dấu
+          WATERMARK_OUTPUT_QUALITY,
         );
       };
 
@@ -364,5 +325,48 @@ export class ImageCompressionService {
 
       img.src = url;
     });
+  }
+
+  private drawWatermarkText(
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+    config: WatermarkConfig,
+  ): void {
+    const fontSize = (canvasWidth * config.fontSize) / 100;
+    ctx.font = `bold ${fontSize}px Inter, Roboto, sans-serif`;
+    ctx.globalAlpha = config.opacity;
+    ctx.fillStyle = config.color;
+    ctx.textBaseline = 'middle';
+
+    const padding = fontSize;
+    const { x, y, align } = this.computeWatermarkAnchor(
+      config.position,
+      canvasWidth,
+      canvasHeight,
+      padding,
+    );
+    ctx.textAlign = align;
+    ctx.fillText(config.text, x, y);
+  }
+
+  private computeWatermarkAnchor(
+    position: WatermarkConfig['position'],
+    canvasWidth: number,
+    canvasHeight: number,
+    padding: number,
+  ): { x: number; y: number; align: CanvasTextAlign } {
+    switch (position) {
+      case 'top-left':
+        return { x: padding, y: padding, align: 'left' };
+      case 'top-right':
+        return { x: canvasWidth - padding, y: padding, align: 'right' };
+      case 'bottom-left':
+        return { x: padding, y: canvasHeight - padding, align: 'left' };
+      case 'bottom-right':
+        return { x: canvasWidth - padding, y: canvasHeight - padding, align: 'right' };
+      case 'center':
+        return { x: canvasWidth / 2, y: canvasHeight / 2, align: 'center' };
+    }
   }
 }

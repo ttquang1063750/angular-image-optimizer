@@ -1,22 +1,140 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles và theme tokens. Dark Mode sẽ override các biến này. */
 
 :root {
-  --primary-color: #c3002f;
-  --bg-color: #f5f7fa;
-  --text-color: #333;
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  /* Brand */
+  --color-primary: #c3002f;
+  --color-primary-hover: #a00026;
+  --color-primary-soft: rgba(195, 0, 47, 0.1);
+  --color-primary-shadow: rgba(195, 0, 47, 0.3);
+
+  /* Surfaces */
+  --color-bg: #f5f7fa;
+  --color-surface: #fff;
+  --color-surface-muted: #f8f9fa;
+  --color-surface-muted-2: #f9f9f9;
+  --color-surface-alt: #f0f0f0;
+  --color-surface-alt-2: #fafafa;
+
+  /* Borders */
+  --color-border: #ddd;
+  --color-border-soft: #eee;
+
+  /* Text */
+  --color-text: #333;
+  --color-text-strong: #000;
+  --color-text-secondary: #444;
+  --color-text-muted: #555;
+  --color-text-muted-2: #666;
+  --color-text-subtle: #888;
+  --color-text-disabled: #999;
+  --color-text-faint: #bbb;
+  --color-text-on-primary: #fff;
+
+  /* Status colors */
+  --color-info: #1890ff;
+  --color-info-soft: #bae7ff;
+  --color-info-bg: #e6f7ff;
+  --color-info-shadow: rgba(24, 144, 255, 0.3);
+  --color-success: #52c41a;
+  --color-success-soft: #d9f7be;
+  --color-success-bg: #f6ffed;
+  --color-success-shadow: rgba(82, 196, 26, 0.3);
+  --color-warning: #faad14;
+  --color-warning-strong: #d48806;
+  --color-warning-soft: #ffe58f;
+  --color-warning-bg: #fffbe6;
+  --color-warning-text: #856404;
+  --color-warning-shadow: rgba(250, 173, 20, 0.3);
+  --color-danger: #ff4d4f;
+  --color-danger-soft: #fff1f0;
+  --color-danger-bg: #fff5f5;
+
+  /* Overlays / shadows */
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-overlay-strong: rgba(0, 0, 0, 0.85);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+  /* Typography */
+  --font-family:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-html, body {
+:root[data-theme='dark'] {
+  /* Brand — sáng hơn một chút để giữ contrast trên nền tối */
+  --color-primary: #ff5577;
+  --color-primary-hover: #ff7a93;
+  --color-primary-soft: rgba(255, 85, 119, 0.18);
+  --color-primary-shadow: rgba(255, 85, 119, 0.35);
+
+  /* Surfaces */
+  --color-bg: #14161a;
+  --color-surface: #1e2128;
+  --color-surface-muted: #1a1d23;
+  --color-surface-muted-2: #20232b;
+  --color-surface-alt: #262a33;
+  --color-surface-alt-2: #2a2e38;
+
+  /* Borders */
+  --color-border: #3a3f4a;
+  --color-border-soft: #2c303a;
+
+  /* Text */
+  --color-text: #e6e8eb;
+  --color-text-strong: #fff;
+  --color-text-secondary: #d0d3d8;
+  --color-text-muted: #b8bcc4;
+  --color-text-muted-2: #a0a4ad;
+  --color-text-subtle: #888d97;
+  --color-text-disabled: #6d717a;
+  --color-text-faint: #555962;
+  --color-text-on-primary: #fff;
+
+  /* Status colors — đậm hơn để vẫn nổi trên nền tối */
+  --color-info: #40a9ff;
+  --color-info-soft: rgba(64, 169, 255, 0.25);
+  --color-info-bg: rgba(64, 169, 255, 0.12);
+  --color-info-shadow: rgba(24, 144, 255, 0.45);
+  --color-success: #73d13d;
+  --color-success-soft: rgba(115, 209, 61, 0.25);
+  --color-success-bg: rgba(115, 209, 61, 0.12);
+  --color-success-shadow: rgba(82, 196, 26, 0.45);
+  --color-warning: #ffc53d;
+  --color-warning-strong: #ffa940;
+  --color-warning-soft: rgba(250, 173, 20, 0.4);
+  --color-warning-bg: rgba(250, 173, 20, 0.12);
+  --color-warning-text: #ffd666;
+  --color-warning-shadow: rgba(250, 173, 20, 0.45);
+  --color-danger: #ff7875;
+  --color-danger-soft: rgba(255, 120, 117, 0.2);
+  --color-danger-bg: rgba(255, 120, 117, 0.1);
+
+  /* Overlays / shadows — đậm hơn ở dark mode */
+  --color-overlay: rgba(0, 0, 0, 0.75);
+  --color-overlay-strong: rgba(0, 0, 0, 0.92);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+html,
+body {
   height: 100%;
   margin: 0;
 }
 
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   font-family: var(--font-family);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
