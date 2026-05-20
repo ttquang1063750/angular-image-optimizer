@@ -462,21 +462,231 @@
     font-weight: bold;
   }
 
-  .btn-download-single {
+  .item-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-download-single,
+  .btn-compare {
     background: transparent;
-    border: 1px solid #d9f7be;
-    color: #52c41a;
     padding: 4px 8px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 1.1rem;
     transition: all 0.2s;
+  }
+
+  .btn-download-single {
+    border: 1px solid #d9f7be;
+    color: #52c41a;
 
     &:hover {
       background: #52c41a;
       color: #fff;
       border-color: #52c41a;
       box-shadow: 0 2px 4px rgba(82, 196, 26, 0.3);
+    }
+  }
+
+  .btn-compare {
+    border: 1px solid #bae7ff;
+    color: #1890ff;
+
+    &:hover {
+      background: #1890ff;
+      color: #fff;
+      border-color: #1890ff;
+      box-shadow: 0 2px 4px rgba(24, 144, 255, 0.3);
+    }
+  }
+}
+
+/* Modal So Sánh */
+.comparison-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+.comparison-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #eee;
+
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #333;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 12px 24px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  }
+}
+
+.comparison-container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  background: #222;
+  overflow: hidden;
+  user-select: none;
+
+  .image-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+  }
+
+  .original {
+    z-index: 1;
+  }
+
+  .compressed {
+    z-index: 2;
+    overflow: hidden;
+    /* Hiển thị ảnh nén từ trái sang */
+    img {
+      width: 1000px; /* Khớp với max-width modal hoặc dùng container width */
+      max-width: none;
+    }
+  }
+
+  /* Cố định kích thước ảnh trong wrapper để không bị bóp méo khi slider kéo */
+  .compressed img,
+  .original img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .label-tag {
+    position: absolute;
+    top: 20px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 10;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-left {
+    right: 20px; /* Nhãn ảnh gốc ở bên phải */
+    border-right: 3px solid #1890ff;
+  }
+
+  .tag-right {
+    left: 20px; /* Nhãn ảnh nén ở bên trái */
+    border-left: 3px solid #c3002f;
+  }
+
+  .comparison-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    z-index: 100;
+    cursor: col-resize;
+  }
+
+  .slider-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #fff;
+    z-index: 50;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+    .slider-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: #fff;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
   }
 }

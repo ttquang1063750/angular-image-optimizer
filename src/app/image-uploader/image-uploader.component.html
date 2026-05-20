@@ -255,13 +255,22 @@
                     </span>
                     <span class="saved-badge">-{{ item.result!.savedPercentage }}%</span>
                   </div>
-                  <button
-                    class="btn-download-single"
-                    (click)="downloadSingle(item)"
-                    title="Tải ảnh này"
-                  >
-                    📥
-                  </button>
+                  <div class="item-actions">
+                    <button
+                      class="btn-compare"
+                      (click)="openComparison(item)"
+                      title="So sánh chất lượng"
+                    >
+                      👁️
+                    </button>
+                    <button
+                      class="btn-download-single"
+                      (click)="downloadSingle(item)"
+                      title="Tải ảnh này"
+                    >
+                      📥
+                    </button>
+                  </div>
                 </div>
               }
               @case ('error') {
@@ -275,4 +284,56 @@
       <div class="empty-state">Chưa có file nào được chọn.</div>
     }
   </div>
+
+  <!-- Modal so sánh ảnh -->
+  @if (comparingFile(); as item) {
+    <div class="comparison-overlay" (click)="closeComparison()">
+      <div class="comparison-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>So sánh chất lượng: {{ item.file.name }}</h3>
+          <button class="btn-close" (click)="closeComparison()">✕</button>
+        </div>
+
+        <div class="comparison-container">
+          <!-- Ảnh Gốc (Bên dưới) -->
+          <div class="image-wrapper original">
+            <img [src]="createBlobUrl(item.file)" alt="Original" />
+            <span class="label-tag tag-left"
+              >Gốc ({{ formatBytes(item.result!.originalSize) }})</span
+            >
+          </div>
+
+          <!-- Ảnh Nén (Bên trên, bị clip) -->
+          <div class="image-wrapper compressed" [style.width.%]="comparisonSliderValue()">
+            <img [src]="item.result!.compressedUrl" alt="Compressed" />
+            <span class="label-tag tag-right"
+              >Nén ({{ formatBytes(item.result!.compressedSize) }})</span
+            >
+          </div>
+
+          <!-- Thanh trượt Slider -->
+          <input
+            type="range"
+            min="0"
+            max="100"
+            [value]="comparisonSliderValue()"
+            (input)="updateComparisonSlider($event)"
+            class="comparison-slider"
+          />
+
+          <!-- Đường kẻ chia đôi -->
+          <div class="slider-divider" [style.left.%]="comparisonSliderValue()">
+            <div class="slider-handle">↔</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <p>
+            Kéo thanh trượt để so sánh ảnh <strong>Gốc</strong> (phải) và
+            <strong>Nén</strong> (trái)
+          </p>
+        </div>
+      </div>
+    </div>
+  }
 </div>

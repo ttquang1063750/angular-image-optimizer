@@ -32,6 +32,10 @@ export class ImageUploaderComponent {
   readonly startNumberingIndex = signal<number>(1);
   readonly isDragging = signal<boolean>(false);
 
+  // So sánh ảnh
+  readonly comparingFile = signal<ProcessedFile | null>(null);
+  readonly comparisonSliderValue = signal<number>(50);
+
   // Tính toán số lượng file đã hoàn thành
   readonly completedCount = computed(
     () => this.processedFiles().filter((f) => f.status === 'done').length,
@@ -100,6 +104,22 @@ export class ImageUploaderComponent {
 
   toggleNumbering(): void {
     this.includeNumbering.update((v) => !v);
+  }
+
+  openComparison(item: ProcessedFile): void {
+    if (item.status === 'done' && item.result) {
+      this.comparingFile.set(item);
+      this.comparisonSliderValue.set(50);
+    }
+  }
+
+  closeComparison(): void {
+    this.comparingFile.set(null);
+  }
+
+  updateComparisonSlider(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.comparisonSliderValue.set(input.valueAsNumber);
   }
 
   async downloadAll(): Promise<void> {

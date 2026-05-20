@@ -156,4 +156,36 @@ describe('ImageUploaderComponent', () => {
       expect.any(Number),
     );
   });
+
+  it('should open and close comparison modal', () => {
+    const mockFile = new File([''], 'test.png', { type: 'image/png' });
+    const mockItem: ProcessedFile = {
+      id: '1',
+      file: mockFile,
+      status: 'done',
+      progress: 100,
+      result: {
+        originalFile: mockFile,
+        compressedFile: new File([''], 'test_compressed.png', { type: 'image/png' }),
+        originalSize: 100,
+        compressedSize: 50,
+        savedPercentage: 50,
+        originalUrl: 'blob:orig',
+        compressedUrl: 'blob:compressed',
+      },
+    };
+
+    component.openComparison(mockItem);
+    expect(component.comparingFile()).toBe(mockItem);
+    expect(component.comparisonSliderValue()).toBe(50);
+
+    component.closeComparison();
+    expect(component.comparingFile()).toBeNull();
+  });
+
+  it('should update comparison slider value', () => {
+    const event = { target: { valueAsNumber: 75 } } as unknown as Event;
+    component.updateComparisonSlider(event);
+    expect(component.comparisonSliderValue()).toBe(75);
+  });
 });
