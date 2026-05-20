@@ -1,13 +1,13 @@
-# Current Task: Tính năng Resize hàng loạt (Ưu tiên 🔴)
+# Current Task: Đổi tên file hàng loạt (Ưu tiên 🔴)
 
-Mục tiêu: Cho phép người dùng điều chỉnh kích thước ảnh (chiều rộng/cao) đồng loạt trước khi nén.
+Mục tiêu: Cho phép người dùng tùy chỉnh tên file đầu ra bằng cách thêm tiền tố, hậu tố hoặc đánh số thứ tự.
 
 ## 📋 Danh sách công việc
-- [x] **Model:** Cập nhật `CompressionOptions` để hỗ trợ `width`, `height` và `resizeMode`.
-- [x] **Giao diện:** Thêm bảng điều khiển "Kích thước đầu ra" (Auto, Fixed Width, Percentage).
-- [x] **Logic Component:** Xử lý việc bật/tắt các ô nhập liệu và tính toán kích thước dựa trên chế độ chọn.
-- [x] **Service:** Truyền các thông số resize vào `Compressor.js`.
-- [x] **Kiểm thử:** Viết unit test đảm bảo các thông số resize được gửi đúng đến service.
+- [x] **Model:** Cập nhật `CompressionOptions` để hỗ trợ `fileNamePattern` (prefix, suffix, startingIndex).
+- [x] **Giao diện:** Thêm bảng điều khiển "Đặt tên file" với các ô nhập Prefix, Suffix và tùy chọn đánh số.
+- [x] **Logic Component:** Cập nhật phương thức `processFiles` để áp dụng tên mới cho từng file trong danh sách.
+- [x] **Logic Service:** Đảm bảo `generateZip` và `downloadSingle` sử dụng tên đã được tùy chỉnh.
+- [x] **Kiểm thử:** Viết unit test đảm bảo tên file được tạo ra đúng theo pattern yêu cầu.
 - [x] **Xác nhận:** Chạy `npm run lint`, `npm test` và `npm run build`.
 - [x] **Hoàn tất:** Commit code và cập nhật `BACKLOG.md`.
 

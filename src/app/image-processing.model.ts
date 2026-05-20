@@ -7,6 +7,14 @@ export type OutputFormat = 'image/jpeg' | 'image/webp';
 // Định nghĩa chế độ resize
 export type ResizeMode = 'auto' | 'width' | 'height' | 'percent';
 
+// Định nghĩa pattern đặt tên file
+export interface FileNamePattern {
+  prefix?: string;
+  suffix?: string;
+  includeNumbering: boolean;
+  startIndex: number;
+}
+
 // Định nghĩa các tùy chọn sẽ truyền vào service
 export interface CompressionOptions {
   quality: number; // Tỷ lệ chất lượng từ 0 đến 1
@@ -16,6 +24,7 @@ export interface CompressionOptions {
   resizeWidth?: number;
   resizeHeight?: number;
   resizePercent?: number;
+  namePattern?: FileNamePattern;
 }
 
 // Định nghĩa cấu trúc dữ liệu trả về cho mỗi file sau khi nén

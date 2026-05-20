@@ -76,7 +76,7 @@ export class ImageCompressionService {
    * @returns Một Observable phát ra các cập nhật trạng thái (FileStatusUpdate) cho từng file.
    */
   compressImagesWithProgress(
-    items: { file: File; id: string }[],
+    items: { file: File; id: string; index?: number }[],
     options: CompressionOptions,
     concurrency = 3,
   ): Observable<FileStatusUpdate> {
@@ -84,7 +84,7 @@ export class ImageCompressionService {
       mergeMap((item) => {
         const fileId = item.id;
 
-        return this.compressSingleImage(item.file, fileId, options).pipe(
+        return this.compressSingleImage(item.file, fileId, options, item.index).pipe(
           catchError((error) => {
             return of({
               fileId,
@@ -107,12 +107,14 @@ export class ImageCompressionService {
    * @param file File ảnh cần nén.
    * @param fileId ID duy nhất của file.
    * @param options Cấu hình nén.
+   * @param index Thứ tự của file trong lô (để đánh số).
    * @returns Một Observable phát ra kết quả nén.
    */
   private compressSingleImage(
     file: File,
     fileId: string,
     options: CompressionOptions,
+    index = 0,
   ): Observable<FileStatusUpdate> {
     return new Observable((subscriber) => {
       // Hàm xử lý nén chính sau khi đã đảm bảo file ở định dạng browser hiểu được
@@ -136,6 +138,26 @@ export class ImageCompressionService {
           convertSize: options.quality < 0.8 || options.format === 'image/webp' ? 0 : 5000000,
           success: (result: Blob) => {
             let fileName = originalFileName;
+
+            // Áp dụng đặt tên file theo pattern nếu có
+            if (options.namePattern) {
+              const p = options.namePattern;
+              const lastDotIndex = originalFileName.lastIndexOf('.');
+              const nameWithoutExt =
+                lastDotIndex !== -1
+                  ? originalFileName.substring(0, lastDotIndex)
+                  : originalFileName;
+
+              let newName = nameWithoutExt;
+
+              if (p.includeNumbering) {
+                newName = `${p.prefix ?? ''}${newName}${p.suffix ?? ''}_${p.startIndex + index}`;
+              } else {
+                newName = `${p.prefix ?? ''}${newName}${p.suffix ?? ''}`;
+              }
+              fileName = newName;
+            }
+
             // Đảm bảo extension đúng với định dạng đầu ra
             const targetExt = result.type === 'image/webp' ? '.webp' : '.jpg';
             const isTargetJpeg = result.type === 'image/jpeg';
@@ -145,10 +167,13 @@ export class ImageCompressionService {
               : fileName.toLowerCase().endsWith('.webp');
 
             if (!hasCorrectExt) {
+              // Nếu tên đã đổi ở trên thì fileName chưa có extension
               const lastDotIndex = fileName.lastIndexOf('.');
-              const nameWithoutExt =
-                lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
-              fileName = `${nameWithoutExt}${targetExt}`;
+              const namePart =
+                options.namePattern || lastDotIndex === -1
+                  ? fileName
+                  : fileName.substring(0, lastDotIndex);
+              fileName = `${namePart}${targetExt}`;
             }
 
             const compressedFile = new File([result], fileName, {

@@ -26,6 +26,10 @@ export class ImageUploaderComponent {
   readonly resizeWidth = signal<number>(1200);
   readonly resizeHeight = signal<number>(1200);
   readonly resizePercent = signal<number>(50);
+  readonly namePrefix = signal<string>('');
+  readonly nameSuffix = signal<string>('');
+  readonly includeNumbering = signal<boolean>(false);
+  readonly startNumberingIndex = signal<number>(1);
   readonly isDragging = signal<boolean>(false);
 
   // Tính toán số lượng file đã hoàn thành
@@ -81,6 +85,21 @@ export class ImageUploaderComponent {
     if (type === 'width') this.resizeWidth.set(value);
     if (type === 'height') this.resizeHeight.set(value);
     if (type === 'percent') this.resizePercent.set(value);
+  }
+
+  updateNamingValue(event: Event, type: 'prefix' | 'suffix' | 'start'): void {
+    const input = event.target as HTMLInputElement;
+    if (type === 'start') {
+      const val = input.valueAsNumber;
+      if (!isNaN(val)) this.startNumberingIndex.set(val);
+    } else {
+      if (type === 'prefix') this.namePrefix.set(input.value);
+      if (type === 'suffix') this.nameSuffix.set(input.value);
+    }
+  }
+
+  toggleNumbering(): void {
+    this.includeNumbering.update((v) => !v);
   }
 
   async downloadAll(): Promise<void> {
@@ -143,10 +162,20 @@ export class ImageUploaderComponent {
       resizeWidth: this.resizeWidth(),
       resizeHeight: this.resizeHeight(),
       resizePercent: this.resizePercent(),
+      namePattern: {
+        prefix: this.namePrefix(),
+        suffix: this.nameSuffix(),
+        includeNumbering: this.includeNumbering(),
+        startIndex: this.startNumberingIndex(),
+      },
     };
 
-    // Chuẩn bị dữ liệu để truyền vào service (bao gồm cả File và ID duy nhất)
-    const compressionItems = initialFiles.map((f) => ({ file: f.file, id: f.id }));
+    // Chuẩn bị dữ liệu để truyền vào service (bao gồm cả File, ID và Index để đánh số)
+    const compressionItems = initialFiles.map((f, index) => ({
+      file: f.file,
+      id: f.id,
+      index: index,
+    }));
 
     // 2. Gọi service và bắt đầu lắng nghe các cập nhật
     this.compressionService.compressImagesWithProgress(compressionItems, options, 3).subscribe({

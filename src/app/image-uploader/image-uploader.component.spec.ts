@@ -128,4 +128,32 @@ describe('ImageUploaderComponent', () => {
       expect.any(Number),
     );
   });
+
+  it('should update naming options and pass them to service', () => {
+    component.namePrefix.set('pre-');
+    component.nameSuffix.set('-post');
+    component.includeNumbering.set(true);
+    component.startNumberingIndex.set(10);
+
+    const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
+    const spy = vi
+      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
+      .mockReturnValue(of({} as FileStatusUpdate));
+
+    // Truy cập private method để test
+    (component as unknown as { processFiles: (files: File[]) => void }).processFiles([mockFile]);
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({
+        namePattern: expect.objectContaining({
+          prefix: 'pre-',
+          suffix: '-post',
+          includeNumbering: true,
+          startIndex: 10,
+        }),
+      }),
+      expect.any(Number),
+    );
+  });
 });

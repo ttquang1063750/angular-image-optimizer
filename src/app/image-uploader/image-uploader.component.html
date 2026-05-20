@@ -114,6 +114,49 @@
         </div>
       }
     </div>
+
+    <div class="control-group">
+      <span class="label">Đặt tên file:</span>
+      <div class="naming-controls">
+        <div class="input-with-label">
+          <span class="sub-label">Tiền tố:</span>
+          <input
+            type="text"
+            [value]="namePrefix()"
+            (input)="updateNamingValue($event, 'prefix')"
+            placeholder="Ví dụ: san-pham-"
+          />
+        </div>
+
+        <div class="input-with-label">
+          <span class="sub-label">Hậu tố:</span>
+          <input
+            type="text"
+            [value]="nameSuffix()"
+            (input)="updateNamingValue($event, 'suffix')"
+            placeholder="Ví dụ: -min"
+          />
+        </div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="includeNumbering()" (change)="toggleNumbering()" />
+            Đánh số thứ tự
+          </label>
+          @if (includeNumbering()) {
+            <div class="numbering-input">
+              <span class="sub-label">Bắt đầu từ:</span>
+              <input
+                type="number"
+                [value]="startNumberingIndex()"
+                (input)="updateNamingValue($event, 'start')"
+                min="0"
+              />
+            </div>
+          }
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Khu vực kéo thả -->
