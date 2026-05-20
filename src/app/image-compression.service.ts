@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
 import { mergeMap, catchError, startWith } from 'rxjs/operators';
-import imageCompression from 'browser-image-compression';
+import Compressor from 'compressorjs';
 import JSZip from 'jszip';
+import heic2any from 'heic2any';
 
 import {
   CompressionOptions,
@@ -22,13 +23,13 @@ export class ImageCompressionService {
   getOptionsByPreset(preset: CompressionPreset): CompressionOptions {
     switch (preset) {
       case 'light':
-        return { maxSizeMB: 2, maxWidthOrHeight: 2560 };
+        return { quality: 0.9, maxWidthOrHeight: 3840 }; // Giữ chất lượng cực cao
       case 'medium':
-        return { maxSizeMB: 1, maxWidthOrHeight: 1920 };
+        return { quality: 0.6, maxWidthOrHeight: 1600 }; // Cân bằng, giảm độ phân giải xuống 1600px
       case 'max':
-        return { maxSizeMB: 0.5, maxWidthOrHeight: 1280 };
+        return { quality: 0.2, maxWidthOrHeight: 1024 }; // Nén mạnh, 1024px
       default:
-        return { maxSizeMB: 1, maxWidthOrHeight: 1920 };
+        return { quality: 0.6, maxWidthOrHeight: 1600 };
     }
   }
 
@@ -68,8 +69,7 @@ export class ImageCompressionService {
   }
 
   /**
-   * Nén một danh sách các file ảnh với khả năng kiểm soát đồng thời và cập nhật tiến trình.
-...
+   * Nén một danh sách các file ảnh với khả năng kiểm soát đồng thời.
    * @param items Danh sách các đối tượng chứa file và ID duy nhất.
    * @param options Cấu hình nén.
    * @param concurrency Số lượng file nén đồng thời (mặc định là 3).
@@ -80,12 +80,10 @@ export class ImageCompressionService {
     options: CompressionOptions,
     concurrency = 3,
   ): Observable<FileStatusUpdate> {
-    // Chuyển mảng file thành một stream, mỗi file là một emission
     return from(items).pipe(
       mergeMap((item) => {
         const fileId = item.id;
 
-        // Gọi hàm nén và trả về một Observable cho mỗi file
         return this.compressSingleImage(item.file, fileId, options).pipe(
           catchError((error) => {
             return of({
@@ -105,61 +103,103 @@ export class ImageCompressionService {
   }
 
   /**
-   * Logic nén cho một file duy nhất, trả về một Observable có cập nhật tiến trình.
+   * Logic nén cho một file duy nhất bằng Compressor.js.
    * @param file File ảnh cần nén.
    * @param fileId ID duy nhất của file.
    * @param options Cấu hình nén.
-   * @returns Một Observable phát ra các cập nhật tiến trình và kết quả cuối cùng.
+   * @returns Một Observable phát ra kết quả nén.
    */
   private compressSingleImage(
     file: File,
     fileId: string,
     options: CompressionOptions,
   ): Observable<FileStatusUpdate> {
-    // Tạo một Observable mới để bao bọc logic nén bất đồng bộ
     return new Observable((subscriber) => {
-      imageCompression(file, {
-        ...options,
-        useWebWorker: true,
-        // Callback `onProgress` của thư viện là chìa khóa để cập nhật UI
-        onProgress: (progress: number) => {
-          subscriber.next({
-            fileId,
-            status: 'compressing',
-            progress: Math.round(progress),
-          });
-        },
-      })
-        .then((compressedFile) => {
-          const originalSize = file.size;
-          const compressedSize = compressedFile.size;
-          const savedPercentage = ((originalSize - compressedSize) / originalSize) * 100;
+      // Hàm xử lý nén chính sau khi đã đảm bảo file ở định dạng browser hiểu được
+      const runCompression = (targetFile: File | Blob, originalFileName: string) => {
+        new Compressor(targetFile, {
+          quality: options.quality,
+          maxWidth: options.maxWidthOrHeight,
+          maxHeight: options.maxWidthOrHeight,
+          // Ép nén ngay cả khi dung lượng mới lớn hơn
+          strict: false,
+          // Sử dụng định dạng được yêu cầu (mặc định là jpeg)
+          mimeType: options.format ?? 'image/jpeg',
+          // Tự động chuyển đổi sang định dạng đích nếu cần thiết
+          convertSize: options.quality < 0.8 || options.format === 'image/webp' ? 0 : 5000000,
+          success: (result: Blob) => {
+            let fileName = originalFileName;
+            // Đảm bảo extension đúng với định dạng đầu ra
+            const targetExt = result.type === 'image/webp' ? '.webp' : '.jpg';
+            const isTargetJpeg = result.type === 'image/jpeg';
 
-          const result: CompressedImageResult = {
-            originalFile: file,
-            compressedFile: compressedFile,
-            originalSize: originalSize,
-            compressedSize: compressedSize,
-            savedPercentage: parseFloat(savedPercentage.toFixed(2)),
-            originalUrl: URL.createObjectURL(file),
-            compressedUrl: URL.createObjectURL(compressedFile),
-          };
+            const hasCorrectExt = isTargetJpeg
+              ? fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg')
+              : fileName.toLowerCase().endsWith('.webp');
 
-          // Phát ra kết quả cuối cùng khi hoàn thành
-          subscriber.next({
-            fileId,
-            status: 'done',
-            progress: 100,
-            result: result,
-          });
+            if (!hasCorrectExt) {
+              const lastDotIndex = fileName.lastIndexOf('.');
+              const nameWithoutExt =
+                lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+              fileName = `${nameWithoutExt}${targetExt}`;
+            }
 
-          // Hoàn thành Observable cho file này
-          subscriber.complete();
-        })
-        .catch((error) => {
-          // Gửi lỗi nếu có sự cố
-          subscriber.error(error);
+            const compressedFile = new File([result], fileName, {
+              type: result.type,
+              lastModified: Date.now(),
+            });
+
+            const originalSize = file.size; // Luôn so sánh với file gốc ban đầu
+            const compressedSize = compressedFile.size;
+            const savedPercentage = ((originalSize - compressedSize) / originalSize) * 100;
+
+            const compressionResult: CompressedImageResult = {
+              originalFile: file,
+              compressedFile: compressedFile,
+              originalSize: originalSize,
+              compressedSize: compressedSize,
+              savedPercentage: parseFloat(savedPercentage.toFixed(2)),
+              originalUrl: URL.createObjectURL(file),
+              compressedUrl: URL.createObjectURL(compressedFile),
+            };
+
+            subscriber.next({
+              fileId,
+              status: 'done',
+              progress: 100,
+              result: compressionResult,
+            });
+            subscriber.complete();
+          },
+          error: (err) => {
+            subscriber.error(err);
+          },
         });
+      };
+
+      // Kiểm tra nếu là file HEIC/HEIF thì convert sang JPEG trước
+      const isHeic =
+        file.type === 'image/heic' ||
+        file.type === 'image/heif' ||
+        file.name.toLowerCase().endsWith('.heic') ||
+        file.name.toLowerCase().endsWith('.heif');
+
+      if (isHeic) {
+        heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.9,
+        })
+          .then((conversionResult) => {
+            const blob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
+            runCompression(blob, file.name);
+          })
+          .catch((err) => {
+            subscriber.error(new Error(`Không thể chuyển đổi file HEIC: ${err.message}`));
+          });
+      } else {
+        runCompression(file, file.name);
+      }
     });
   }
 }

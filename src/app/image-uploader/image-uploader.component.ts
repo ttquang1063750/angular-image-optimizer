@@ -1,6 +1,11 @@
 import { Component, inject, signal, WritableSignal, computed } from '@angular/core';
 import { ImageCompressionService } from '../image-compression.service';
-import { ProcessedFile, FileStatusUpdate, CompressionPreset } from '../image-processing.model';
+import {
+  ProcessedFile,
+  FileStatusUpdate,
+  CompressionPreset,
+  OutputFormat,
+} from '../image-processing.model';
 
 @Component({
   selector: 'app-image-uploader',
@@ -15,6 +20,7 @@ export class ImageUploaderComponent {
   readonly isCompressing = signal<boolean>(false);
   readonly processedFiles: WritableSignal<ProcessedFile[]> = signal<ProcessedFile[]>([]);
   readonly selectedPreset = signal<CompressionPreset>('medium');
+  readonly selectedFormat = signal<OutputFormat>('image/jpeg');
   readonly isDragging = signal<boolean>(false);
 
   // Tính toán số lượng file đã hoàn thành
@@ -54,6 +60,10 @@ export class ImageUploaderComponent {
     this.selectedPreset.set(preset);
   }
 
+  setFormat(format: OutputFormat): void {
+    this.selectedFormat.set(format);
+  }
+
   async downloadAll(): Promise<void> {
     const doneFiles = this.processedFiles().filter((f) => f.status === 'done');
     if (doneFiles.length === 0) return;
@@ -84,8 +94,13 @@ export class ImageUploaderComponent {
   }
 
   private processFiles(files: File[]): void {
-    // Chỉ lọc các file ảnh
-    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
+    // Chỉ lọc các file ảnh (bao gồm cả HEIC/HEIF)
+    const imageFiles = files.filter(
+      (f) =>
+        f.type.startsWith('image/') ||
+        f.name.toLowerCase().endsWith('.heic') ||
+        f.name.toLowerCase().endsWith('.heif'),
+    );
     if (imageFiles.length === 0) return;
 
     this.isCompressing.set(true);
@@ -102,6 +117,7 @@ export class ImageUploaderComponent {
     this.processedFiles.update((current) => [...current, ...initialFiles]);
 
     const options = this.compressionService.getOptionsByPreset(this.selectedPreset());
+    options.format = this.selectedFormat();
 
     // Chuẩn bị dữ liệu để truyền vào service (bao gồm cả File và ID duy nhất)
     const compressionItems = initialFiles.map((f) => ({ file: f.file, id: f.id }));

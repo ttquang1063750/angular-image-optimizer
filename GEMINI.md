@@ -3,6 +3,8 @@
 ## Project Overview
 **Angular Image Optimizer** là một ứng dụng web hiện đại được xây dựng để tối ưu hóa và nén hình ảnh trực tiếp trên trình duyệt của người dùng. Ứng dụng tập trung vào hiệu suất, tính riêng tư và trải nghiệm người dùng mượt mà.
 
+**Chi tiết lộ trình phát triển:** Xem tại [BACKLOG.md](./BACKLOG.md)
+
 ### Key Features
 - **Client-Side Processing:** Xử lý 100% tại trình duyệt, không upload file lên server, đảm bảo tính riêng tư tuyệt đối và chi phí vận hành thấp.
 - **Drag & Drop Zone:** Giao diện kéo thả file hiện đại, trực quan.
@@ -17,7 +19,7 @@
 - **State Management:** Angular Signals
 - **Asynchronous Logic:** RxJS (Pipeable operators)
 - **Key Libraries:** 
-  - `browser-image-compression`: Thư viện lõi để nén ảnh.
+  - `compressorjs`: Thư viện lõi để nén ảnh (Nhẹ, ổn định, phổ biến).
   - `jszip`: Đóng gói file Zip để tải về hàng loạt.
   - `@angular/material`: (Tùy chọn) Cho các UI components.
 - **Testing:** Vitest

@@ -11,4 +11,9 @@ import { ImageUploaderComponent } from './image-uploader/image-uploader.componen
 })
 export class App {
   protected readonly title = signal('Image Optimizer');
+  protected readonly isSupportModalOpen = signal(false);
+
+  toggleSupportModal(open: boolean): void {
+    this.isSupportModalOpen.set(open);
+  }
 }

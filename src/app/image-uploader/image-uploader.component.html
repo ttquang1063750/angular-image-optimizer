@@ -1,25 +1,51 @@
 <div class="uploader-container">
   <!-- Cấu hình nén -->
   <div class="controls">
-    <span class="label">Mức độ nén:</span>
-    <div class="preset-buttons">
-      <button
-        type="button"
-        [class.active]="selectedPreset() === 'light'"
-        (click)="setPreset('light')"
-      >
-        Nén nhẹ
-      </button>
-      <button
-        type="button"
-        [class.active]="selectedPreset() === 'medium'"
-        (click)="setPreset('medium')"
-      >
-        Nén vừa
-      </button>
-      <button type="button" [class.active]="selectedPreset() === 'max'" (click)="setPreset('max')">
-        Nén tối đa
-      </button>
+    <div class="control-group">
+      <span class="label">Mức độ nén:</span>
+      <div class="preset-buttons">
+        <button
+          type="button"
+          [class.active]="selectedPreset() === 'light'"
+          (click)="setPreset('light')"
+        >
+          Nén nhẹ
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedPreset() === 'medium'"
+          (click)="setPreset('medium')"
+        >
+          Nén vừa
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedPreset() === 'max'"
+          (click)="setPreset('max')"
+        >
+          Nén tối đa
+        </button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <span class="label">Định dạng đầu ra:</span>
+      <div class="preset-buttons">
+        <button
+          type="button"
+          [class.active]="selectedFormat() === 'image/jpeg'"
+          (click)="setFormat('image/jpeg')"
+        >
+          JPEG
+        </button>
+        <button
+          type="button"
+          [class.active]="selectedFormat() === 'image/webp'"
+          (click)="setFormat('image/webp')"
+        >
+          WebP
+        </button>
+      </div>
     </div>
   </div>
 
@@ -40,14 +66,14 @@
     <div class="drop-content">
       <span class="icon">📁</span>
       <p>Kéo thả ảnh vào đây hoặc click để chọn file</p>
-      <span class="hint">(Hỗ trợ JPG, PNG - Nén đồng thời 3 ảnh)</span>
+      <span class="hint">(Hỗ trợ JPG, PNG, HEIC - Nén đồng thời 3 ảnh)</span>
     </div>
 
     <input
       #fileInput
       type="file"
       multiple
-      accept="image/png, image/jpeg"
+      accept="image/png, image/jpeg, image/heic, image/heif, .heic, .heif"
       (change)="onFileSelected($event)"
       style="display: none"
     />
@@ -72,11 +98,20 @@
   <div class="file-list">
     @for (item of processedFiles(); track item.id) {
       <div class="file-item" [class]="item.status">
-        <div class="preview">
+        <div
+          class="preview"
+          [class.processing]="item.status === 'compressing' || item.status === 'queued'"
+        >
           <img
             [src]="item.result?.compressedUrl ?? createBlobUrl(item.file)"
             [alt]="item.file.name"
+            [class.loaded]="item.status === 'done'"
           />
+          @if (item.status === 'compressing' || item.status === 'queued') {
+            <div class="loader-overlay">
+              <span class="spinner"></span>
+            </div>
+          }
         </div>
 
         <div class="details">

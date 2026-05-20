@@ -1,7 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImageUploaderComponent } from './image-uploader.component';
 import { ImageCompressionService } from '../image-compression.service';
-import { ProcessedFile } from '../image-processing.model';
+import { FileStatusUpdate, OutputFormat, ProcessedFile } from '../image-processing.model';
+import { of } from 'rxjs';
+
+vi.mock('heic2any', () => ({
+  default: vi.fn(),
+}));
 
 describe('ImageUploaderComponent', () => {
   let component: ImageUploaderComponent;
@@ -10,7 +15,7 @@ describe('ImageUploaderComponent', () => {
 
   beforeEach(async () => {
     compressionServiceMock = {
-      getOptionsByPreset: vi.fn(),
+      getOptionsByPreset: vi.fn().mockReturnValue({ quality: 0.6, maxWidthOrHeight: 1600 }),
       compressImagesWithProgress: vi.fn(),
       generateZip: vi.fn(),
     };
@@ -75,5 +80,25 @@ describe('ImageUploaderComponent', () => {
     component.downloadSingle(mockItem);
 
     expect(downloadFileSpy).not.toHaveBeenCalled();
+  });
+
+  it('should update selectedFormat and pass it to service', () => {
+    const format: OutputFormat = 'image/webp';
+    component.setFormat(format);
+    expect(component.selectedFormat()).toBe(format);
+
+    const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
+    const spy = vi
+      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
+      .mockReturnValue(of({} as FileStatusUpdate));
+
+    // Truy cập private method để test
+    (component as unknown as { processFiles: (files: File[]) => void }).processFiles([mockFile]);
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ format: 'image/webp' }),
+      expect.any(Number),
+    );
   });
 });

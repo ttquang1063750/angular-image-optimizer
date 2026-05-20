@@ -1,10 +1,14 @@
 // Định nghĩa các mức độ nén
 export type CompressionPreset = 'light' | 'medium' | 'max';
 
+// Định nghĩa định dạng đầu ra
+export type OutputFormat = 'image/jpeg' | 'image/webp';
+
 // Định nghĩa các tùy chọn sẽ truyền vào service
 export interface CompressionOptions {
-  maxSizeMB: number;
+  quality: number; // Tỷ lệ chất lượng từ 0 đến 1
   maxWidthOrHeight: number;
+  format?: OutputFormat; // Định dạng đầu ra mong muốn (tùy chọn)
 }
 
 // Định nghĩa cấu trúc dữ liệu trả về cho mỗi file sau khi nén

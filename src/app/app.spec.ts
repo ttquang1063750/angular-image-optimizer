@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
+vi.mock('heic2any', () => ({
+  default: vi.fn(),
+}));
+
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
