@@ -1,0 +1,133 @@
+<div class="uploader-container">
+  <!-- Cấu hình nén -->
+  <div class="controls">
+    <span class="label">Mức độ nén:</span>
+    <div class="preset-buttons">
+      <button
+        type="button"
+        [class.active]="selectedPreset() === 'light'"
+        (click)="setPreset('light')"
+      >
+        Nén nhẹ
+      </button>
+      <button
+        type="button"
+        [class.active]="selectedPreset() === 'medium'"
+        (click)="setPreset('medium')"
+      >
+        Nén vừa
+      </button>
+      <button type="button" [class.active]="selectedPreset() === 'max'" (click)="setPreset('max')">
+        Nén tối đa
+      </button>
+    </div>
+  </div>
+
+  <!-- Khu vực kéo thả -->
+  <div
+    class="drop-zone"
+    [class.dragging]="isDragging()"
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (click)="fileInput.click()"
+    (keydown.enter)="fileInput.click()"
+    (keydown.space)="fileInput.click()"
+    tabindex="0"
+    role="button"
+    aria-label="Kéo thả ảnh vào đây hoặc click để chọn file"
+  >
+    <div class="drop-content">
+      <span class="icon">📁</span>
+      <p>Kéo thả ảnh vào đây hoặc click để chọn file</p>
+      <span class="hint">(Hỗ trợ JPG, PNG - Nén đồng thời 3 ảnh)</span>
+    </div>
+
+    <input
+      #fileInput
+      type="file"
+      multiple
+      accept="image/png, image/jpeg"
+      (change)="onFileSelected($event)"
+      style="display: none"
+    />
+  </div>
+
+  <!-- Hành động chung -->
+  @if (processedFiles().length > 0) {
+    <div class="batch-actions">
+      <div class="stats">
+        Đã xong: <strong>{{ completedCount() }}/{{ processedFiles().length }}</strong>
+      </div>
+      <div class="buttons">
+        <button class="btn-clear" (click)="clearAll()">Xóa hết</button>
+        <button class="btn-download" [disabled]="completedCount() === 0" (click)="downloadAll()">
+          Tải về toàn bộ (.zip)
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Danh sách hàng đợi và kết quả -->
+  <div class="file-list">
+    @for (item of processedFiles(); track item.id) {
+      <div class="file-item" [class]="item.status">
+        <div class="preview">
+          <img
+            [src]="item.result?.compressedUrl ?? createBlobUrl(item.file)"
+            [alt]="item.file.name"
+          />
+        </div>
+
+        <div class="details">
+          <div class="file-header">
+            <span class="name">{{ item.file.name }}</span>
+            <button class="btn-remove" (click)="removeFile(item.id)">✕</button>
+          </div>
+
+          <div class="status-content">
+            @switch (item.status) {
+              @case ('queued') {
+                <div class="status-msg">Đang chờ xử lý...</div>
+              }
+              @case ('compressing') {
+                <div class="progress-container">
+                  <div class="progress-bar" [style.width.%]="item.progress"></div>
+                  <span class="progress-text">{{ item.progress }}%</span>
+                </div>
+              }
+              @case ('done') {
+                <div class="result-info">
+                  <div class="stats-data">
+                    <span class="size-change">
+                      <span [title]="formatExactBytes(item.result!.originalSize)">{{
+                        formatBytes(item.result!.originalSize)
+                      }}</span>
+                      →
+                      <strong [title]="formatExactBytes(item.result!.compressedSize)">{{
+                        formatBytes(item.result!.compressedSize)
+                      }}</strong>
+                    </span>
+                    <span class="saved-badge">-{{ item.result!.savedPercentage }}%</span>
+                  </div>
+                  <button
+                    class="btn-download-single"
+                    (click)="downloadSingle(item)"
+                    title="Tải ảnh này"
+                  >
+                    📥
+                  </button>
+                </div>
+              }
+              @case ('error') {
+                <div class="error-msg">Lỗi: {{ item.error }}</div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">Chưa có file nào được chọn.</div>
+    }
+  </div>
+</div>
