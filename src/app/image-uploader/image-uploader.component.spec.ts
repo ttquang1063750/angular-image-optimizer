@@ -157,6 +157,43 @@ describe('ImageUploaderComponent', () => {
     );
   });
 
+  it('should set settingsChanged to true when a setting is updated and reset it after recompressAll', () => {
+    // 1. Giả lập đã có file được xử lý
+    const mockFile = new File([''], 'test.png', { type: 'image/png' });
+    component.processedFiles.set([
+      {
+        id: '1',
+        file: mockFile,
+        status: 'done',
+        progress: 100,
+      },
+    ]);
+
+    // 2. Thay đổi cấu hình
+    component.setFormat('image/webp');
+    expect(component.settingsChanged()).toBe(true);
+
+    // 3. Gọi nén lại thủ công
+    vi.spyOn(
+      compressionServiceMock as ImageCompressionService,
+      'compressImagesWithProgress',
+    ).mockReturnValue(of({} as import('../image-processing.model').FileStatusUpdate));
+
+    const runSpy = vi.spyOn(
+      component as unknown as {
+        runCompressionTask: (
+          items: { file: File; id: string; index: number }[],
+          options: import('../image-processing.model').CompressionOptions,
+        ) => void;
+      },
+      'runCompressionTask',
+    );
+    component.recompressAll();
+
+    expect(component.settingsChanged()).toBe(false);
+    expect(runSpy).toHaveBeenCalled();
+  });
+
   it('should open and close comparison modal', () => {
     const mockFile = new File([''], 'test.png', { type: 'image/png' });
     const mockItem: ProcessedFile = {

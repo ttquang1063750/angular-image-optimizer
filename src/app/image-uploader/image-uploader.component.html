@@ -226,6 +226,29 @@
     </div>
   </div>
 
+  <!-- Thông báo thay đổi cấu hình -->
+  @if (settingsChanged() && processedFiles().length > 0) {
+    <div class="settings-warning-banner">
+      <div class="warning-content">
+        <span class="warning-icon">⚠️</span>
+        <div class="warning-text">
+          <p><strong>Thông số đã thay đổi!</strong></p>
+          <p>
+            Các thiết lập mới chưa được áp dụng cho danh sách ảnh hiện tại. Quá trình xử lý lại có
+            thể mất thời gian tùy thuộc vào số lượng ảnh, vui lòng kiên nhẫn.
+          </p>
+        </div>
+      </div>
+      <button class="btn-apply-changes" (click)="recompressAll()" [disabled]="isCompressing()">
+        @if (isCompressing()) {
+          Đang xử lý...
+        } @else {
+          Áp dụng cho tất cả ảnh
+        }
+      </button>
+    </div>
+  }
+
   <!-- Khu vực kéo thả -->
   <div
     class="drop-zone"

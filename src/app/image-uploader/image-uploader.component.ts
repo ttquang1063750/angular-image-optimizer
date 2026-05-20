@@ -45,8 +45,8 @@ export class ImageUploaderComponent {
   readonly comparingFile = signal<ProcessedFile | null>(null);
   readonly comparisonSliderValue = signal<number>(50);
 
-  // Timer để debounce việc tự động nén lại
-  private recompressTimeout: ReturnType<typeof setTimeout> | null = null;
+  // Trạng thái theo dõi thay đổi cấu hình
+  readonly settingsChanged = signal<boolean>(false);
 
   // Tính toán số lượng file đã hoàn thành
   readonly completedCount = computed(
@@ -83,17 +83,17 @@ export class ImageUploaderComponent {
 
   setPreset(preset: CompressionPreset): void {
     this.selectedPreset.set(preset);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   setFormat(format: OutputFormat): void {
     this.selectedFormat.set(format);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   setResizeMode(mode: ResizeMode): void {
     this.selectedResizeMode.set(mode);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   updateResizeValue(event: Event, type: 'width' | 'height' | 'percent'): void {
@@ -104,7 +104,7 @@ export class ImageUploaderComponent {
     if (type === 'width') this.resizeWidth.set(value);
     if (type === 'height') this.resizeHeight.set(value);
     if (type === 'percent') this.resizePercent.set(value);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   updateNamingValue(event: Event, type: 'prefix' | 'suffix' | 'start'): void {
@@ -116,22 +116,22 @@ export class ImageUploaderComponent {
       if (type === 'prefix') this.namePrefix.set(input.value);
       if (type === 'suffix') this.nameSuffix.set(input.value);
     }
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   toggleNumbering(): void {
     this.includeNumbering.update((v) => !v);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   toggleWatermark(): void {
     this.includeWatermark.update((v) => !v);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   setWatermarkPosition(pos: import('../image-processing.model').WatermarkPosition): void {
     this.watermarkPosition.set(pos);
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
   updateWatermarkValue(event: Event, type: 'text' | 'size' | 'opacity' | 'color'): void {
@@ -144,20 +144,13 @@ export class ImageUploaderComponent {
       if (type === 'size') this.watermarkFontSize.set(val);
       if (type === 'opacity') this.watermarkOpacity.set(val);
     }
-    this.triggerRecompress();
+    this.markSettingsAsChanged();
   }
 
-  private triggerRecompress(): void {
-    if (this.processedFiles().length === 0) return;
-
-    if (this.recompressTimeout) {
-      clearTimeout(this.recompressTimeout);
+  private markSettingsAsChanged(): void {
+    if (this.processedFiles().length > 0) {
+      this.settingsChanged.set(true);
     }
-
-    // Debounce 500ms để tránh nén liên tục khi kéo slider hoặc gõ phím
-    this.recompressTimeout = setTimeout(() => {
-      this.recompressAll();
-    }, 500);
   }
 
   private getCompressionOptions() {
@@ -187,11 +180,12 @@ export class ImageUploaderComponent {
     };
   }
 
-  private recompressAll(): void {
+  recompressAll(): void {
     const currentFiles = this.processedFiles();
     if (currentFiles.length === 0) return;
 
     this.isCompressing.set(true);
+    this.settingsChanged.set(false);
 
     // Đặt lại trạng thái cho các file hiện có
     this.processedFiles.update((files) =>
@@ -355,6 +349,7 @@ export class ImageUploaderComponent {
 
   clearAll(): void {
     this.processedFiles.set([]);
+    this.settingsChanged.set(false);
     this.cleanupBlobUrls();
   }
 
