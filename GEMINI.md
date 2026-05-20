@@ -21,7 +21,6 @@
 - **Key Libraries:** 
   - `compressorjs`: Thư viện lõi để nén ảnh (Nhẹ, ổn định, phổ biến).
   - `jszip`: Đóng gói file Zip để tải về hàng loạt.
-  - `@angular/material`: (Tùy chọn) Cho các UI components.
 - **Testing:** Vitest
 - **Styles:** SCSS (Tách biệt file `.scss`)
 
