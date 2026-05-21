@@ -58,6 +58,28 @@ describe('FileListComponent', () => {
     expect(setData).toHaveBeenCalledWith('text/plain', '2');
   });
 
+  it('onDragStart capture row height từ currentTarget.offsetHeight', () => {
+    const setData = vi.fn();
+    const dt = { effectAllowed: 'none', setData } as unknown as DataTransfer;
+    const currentTarget = { offsetHeight: 96 } as unknown as HTMLElement;
+    const event = { dataTransfer: dt, currentTarget } as unknown as DragEvent;
+
+    component.onDragStart(event, 0);
+
+    expect(component.draggedRowHeight()).toBe(96);
+  });
+
+  it('onDragStart giữ default height khi currentTarget không có offsetHeight', () => {
+    const setData = vi.fn();
+    const dt = { effectAllowed: 'none', setData } as unknown as DataTransfer;
+    const event = { dataTransfer: dt } as unknown as DragEvent;
+    const before = component.draggedRowHeight();
+
+    component.onDragStart(event, 0);
+
+    expect(component.draggedRowHeight()).toBe(before);
+  });
+
   it('onDragOver set dragOverIndex và preventDefault', () => {
     const preventDefault = vi.fn();
     const dt = { dropEffect: 'none' } as unknown as DataTransfer;

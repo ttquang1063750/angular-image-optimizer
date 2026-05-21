@@ -19,9 +19,14 @@ export class FileListComponent {
 
   readonly draggedIndex = signal<number | null>(null);
   readonly dragOverIndex = signal<number | null>(null);
+  readonly draggedRowHeight = signal<number>(80);
 
   onDragStart(event: DragEvent, index: number): void {
     this.draggedIndex.set(index);
+    const target = event.currentTarget as HTMLElement | null;
+    if (target?.offsetHeight) {
+      this.draggedRowHeight.set(target.offsetHeight);
+    }
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', String(index));

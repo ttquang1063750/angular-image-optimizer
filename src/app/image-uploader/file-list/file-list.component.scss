@@ -11,12 +11,7 @@
   border-radius: 10px;
   position: relative;
   border: 2px solid transparent;
-  max-height: 200px;
-  overflow: visible;
   transition:
-    max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    padding 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    margin 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.2s ease,
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -28,16 +23,14 @@
     min-width: 0;
   }
 
-  // Item đang được kéo → collapse thành placeholder bar
+  // Item đang được kéo — giữ full height, hide content, show as ghost slot
   &.dragging {
-    max-height: 10px;
-    opacity: 0.6;
+    opacity: 0.5;
     background: var(--color-primary-soft);
     border-color: var(--color-primary);
     border-style: dashed;
-    overflow: hidden;
     pointer-events: none;
-    animation: placeholderPulse 1.4s ease-in-out infinite;
+    animation: ghostPulse 1.4s ease-in-out infinite;
 
     .drag-handle,
     app-file-item {
@@ -45,33 +38,23 @@
     }
   }
 
-  // Target row khi đang hover (không phải item đang kéo)
+  // Hover target — subtle highlight
   &.drag-over:not(.dragging) {
     background: var(--color-surface-muted);
   }
+}
 
-  // Drop indicator: line bar phía trên khi kéo từ dưới lên
-  &.drop-above::before,
-  &.drop-below::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--color-primary);
-    border-radius: 2px;
-    box-shadow: 0 0 8px var(--color-primary);
-    animation: dropIndicatorPulse 0.9s ease-in-out infinite;
-    z-index: 2;
-  }
-
-  &.drop-above::before {
-    top: -8px;
-  }
-
-  &.drop-below::after {
-    bottom: -8px;
-  }
+// Drop slot: ghost row có cùng chiều cao item gốc, pulse animation
+.drop-slot {
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+  border: 2px dashed var(--color-primary);
+  box-sizing: border-box;
+  box-shadow: 0 0 12px var(--color-primary-shadow);
+  animation:
+    dropSlotEnter 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    dropSlotPulse 1.2s ease-in-out infinite 0.22s;
+  transform-origin: center;
 }
 
 .drag-handle {
@@ -108,26 +91,37 @@
   font-style: italic;
 }
 
-@keyframes placeholderPulse {
+@keyframes ghostPulse {
   0%,
   100% {
     background: var(--color-primary-soft);
-    opacity: 0.6;
+    opacity: 0.5;
   }
   50% {
     background: var(--color-surface-muted);
-    opacity: 0.4;
+    opacity: 0.35;
   }
 }
 
-@keyframes dropIndicatorPulse {
+@keyframes dropSlotPulse {
   0%,
   100% {
-    opacity: 1;
-    transform: scaleX(1);
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary);
   }
   50% {
-    opacity: 0.7;
-    transform: scaleX(0.95);
+    background: var(--color-surface-muted);
+    border-color: var(--color-primary-hover);
+  }
+}
+
+@keyframes dropSlotEnter {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
   }
 }
