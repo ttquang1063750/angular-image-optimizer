@@ -34,6 +34,20 @@ export class FileListComponent {
     if (this.dragOverIndex() !== index) this.dragOverIndex.set(index);
   }
 
+  isDropAbove(index: number): boolean {
+    const from = this.draggedIndex();
+    const over = this.dragOverIndex();
+    if (from === null || over === null || index !== over || from === over) return false;
+    return from > over;
+  }
+
+  isDropBelow(index: number): boolean {
+    const from = this.draggedIndex();
+    const over = this.dragOverIndex();
+    if (from === null || over === null || index !== over || from === over) return false;
+    return from < over;
+  }
+
   onDragLeave(index: number): void {
     if (this.dragOverIndex() === index) this.dragOverIndex.set(null);
   }

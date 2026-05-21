@@ -104,4 +104,25 @@ describe('FileListComponent', () => {
     expect(component.draggedIndex()).toBeNull();
     expect(component.dragOverIndex()).toBeNull();
   });
+
+  it('isDropAbove/isDropBelow chỉ ra hướng drop dựa vào from/over', () => {
+    // Drag DOWN (from < over) → indicator BELOW target
+    component.draggedIndex.set(0);
+    component.dragOverIndex.set(3);
+    expect(component.isDropBelow(3)).toBe(true);
+    expect(component.isDropAbove(3)).toBe(false);
+    expect(component.isDropBelow(2)).toBe(false);
+
+    // Drag UP (from > over) → indicator ABOVE target
+    component.draggedIndex.set(4);
+    component.dragOverIndex.set(1);
+    expect(component.isDropAbove(1)).toBe(true);
+    expect(component.isDropBelow(1)).toBe(false);
+
+    // from === over → cả hai false
+    component.draggedIndex.set(2);
+    component.dragOverIndex.set(2);
+    expect(component.isDropAbove(2)).toBe(false);
+    expect(component.isDropBelow(2)).toBe(false);
+  });
 });

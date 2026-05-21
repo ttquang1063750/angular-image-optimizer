@@ -9,24 +9,68 @@
   align-items: stretch;
   gap: 8px;
   border-radius: 10px;
+  position: relative;
+  border: 2px solid transparent;
+  max-height: 200px;
+  overflow: visible;
   transition:
-    opacity 0.2s,
-    background-color 0.2s,
-    box-shadow 0.2s;
-
-  &.dragging {
-    opacity: 0.5;
-  }
-
-  &.drag-over {
-    background: var(--color-primary-soft);
-    box-shadow: 0 0 0 2px var(--color-primary);
-  }
+    max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    margin 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   app-file-item {
     display: block;
     flex-grow: 1;
     min-width: 0;
+  }
+
+  // Item đang được kéo → collapse thành placeholder bar
+  &.dragging {
+    max-height: 10px;
+    opacity: 0.6;
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary);
+    border-style: dashed;
+    overflow: hidden;
+    pointer-events: none;
+    animation: placeholderPulse 1.4s ease-in-out infinite;
+
+    .drag-handle,
+    app-file-item {
+      visibility: hidden;
+    }
+  }
+
+  // Target row khi đang hover (không phải item đang kéo)
+  &.drag-over:not(.dragging) {
+    background: var(--color-surface-muted);
+  }
+
+  // Drop indicator: line bar phía trên khi kéo từ dưới lên
+  &.drop-above::before,
+  &.drop-below::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--color-primary);
+    animation: dropIndicatorPulse 0.9s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  &.drop-above::before {
+    top: -8px;
+  }
+
+  &.drop-below::after {
+    bottom: -8px;
   }
 }
 
@@ -62,4 +106,28 @@
   padding: 40px;
   color: var(--color-text-disabled);
   font-style: italic;
+}
+
+@keyframes placeholderPulse {
+  0%,
+  100% {
+    background: var(--color-primary-soft);
+    opacity: 0.6;
+  }
+  50% {
+    background: var(--color-surface-muted);
+    opacity: 0.4;
+  }
+}
+
+@keyframes dropIndicatorPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scaleX(0.95);
+  }
 }

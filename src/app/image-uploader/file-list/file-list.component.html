@@ -4,6 +4,8 @@
       class="file-row"
       [class.dragging]="draggedIndex() === idx"
       [class.drag-over]="dragOverIndex() === idx && draggedIndex() !== idx"
+      [class.drop-above]="isDropAbove(idx)"
+      [class.drop-below]="isDropBelow(idx)"
       draggable="true"
       (dragstart)="onDragStart($event, idx)"
       (dragover)="onDragOver($event, idx)"
