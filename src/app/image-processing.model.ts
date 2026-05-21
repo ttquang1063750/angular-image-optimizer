@@ -23,12 +23,26 @@ export type WatermarkPosition =
   | 'top-left'
   | 'center';
 
-// Định nghĩa cấu hình watermark
-export interface WatermarkConfig {
+export type WatermarkType = 'text' | 'image';
+
+// Discriminated union để TypeScript narrow type tự động dựa trên `type`.
+// Watermark có 2 chế độ: text (chèn chữ) hoặc image (chèn logo).
+export type WatermarkConfig = TextWatermarkConfig | ImageWatermarkConfig;
+
+export interface TextWatermarkConfig {
+  type: 'text';
   text: string;
-  fontSize: number; // Theo tỷ lệ % so với chiều rộng ảnh hoặc pixel
-  color: string; // Hex hoặc RGBA
-  opacity: number; // 0 to 1
+  fontSize: number; // % so với chiều rộng base image
+  color: string;
+  opacity: number; // 0..1
+  position: WatermarkPosition;
+}
+
+export interface ImageWatermarkConfig {
+  type: 'image';
+  image: Blob;
+  size: number; // % so với chiều rộng base image
+  opacity: number; // 0..1
   position: WatermarkPosition;
 }
 

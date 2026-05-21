@@ -5,7 +5,9 @@ import {
   CompressionPreset,
   OutputFormat,
   ResizeMode,
+  WatermarkConfig,
   WatermarkPosition,
+  WatermarkType,
 } from './image-processing.model';
 import { DEFAULT_RESIZE, DEFAULT_WATERMARK } from './image-processing.constants';
 
@@ -28,11 +30,15 @@ export class SettingsStateService {
   readonly startNumberingIndex = signal<number>(1);
 
   readonly includeWatermark = signal<boolean>(false);
+  readonly watermarkType = signal<WatermarkType>('text');
   readonly watermarkText = signal<string>(DEFAULT_WATERMARK.text);
   readonly watermarkPosition = signal<WatermarkPosition>('bottom-right');
   readonly watermarkFontSize = signal<number>(DEFAULT_WATERMARK.fontSizePercent);
   readonly watermarkOpacity = signal<number>(DEFAULT_WATERMARK.opacity);
   readonly watermarkColor = signal<string>(DEFAULT_WATERMARK.color);
+  readonly watermarkImage = signal<Blob | null>(null);
+  readonly watermarkImageSize = signal<number>(DEFAULT_WATERMARK.imageSizePercent);
+  readonly watermarkImagePreviewUrl = signal<string | null>(null);
 
   readonly currentOptions = computed<CompressionOptions>(() => {
     const base = this.compressionService.getOptionsByPreset(this.selectedPreset());
@@ -49,15 +55,41 @@ export class SettingsStateService {
         includeNumbering: this.includeNumbering(),
         startIndex: this.startNumberingIndex(),
       },
-      watermark: this.includeWatermark()
-        ? {
-            text: this.watermarkText(),
-            position: this.watermarkPosition(),
-            fontSize: this.watermarkFontSize(),
-            opacity: this.watermarkOpacity(),
-            color: this.watermarkColor(),
-          }
-        : undefined,
+      watermark: this.buildWatermarkConfig(),
     };
   });
+
+  setWatermarkImage(blob: Blob | null): void {
+    // Revoke preview URL cũ trước khi tạo URL mới
+    const oldUrl = this.watermarkImagePreviewUrl();
+    if (oldUrl) URL.revokeObjectURL(oldUrl);
+
+    this.watermarkImage.set(blob);
+    this.watermarkImagePreviewUrl.set(blob ? URL.createObjectURL(blob) : null);
+  }
+
+  private buildWatermarkConfig(): WatermarkConfig | undefined {
+    if (!this.includeWatermark()) return undefined;
+
+    if (this.watermarkType() === 'image') {
+      const image = this.watermarkImage();
+      if (!image) return undefined;
+      return {
+        type: 'image',
+        image,
+        size: this.watermarkImageSize(),
+        opacity: this.watermarkOpacity(),
+        position: this.watermarkPosition(),
+      };
+    }
+
+    return {
+      type: 'text',
+      text: this.watermarkText(),
+      fontSize: this.watermarkFontSize(),
+      opacity: this.watermarkOpacity(),
+      color: this.watermarkColor(),
+      position: this.watermarkPosition(),
+    };
+  }
 }

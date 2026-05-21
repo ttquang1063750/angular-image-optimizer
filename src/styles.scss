@@ -139,6 +139,29 @@ body {
     color 0.2s ease;
 }
 
+/* Form validation utility classes (shared across components).
+   Bypass Angular view encapsulation nên có thể dùng trực tiếp trong
+   template của bất kỳ component nào. */
+
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+// Modifier áp dụng lên bất kỳ wrapper input nào (input-with-label, numbering-input,
+// resize-input, ...). Dùng !important vì wrapper có border/bg riêng cần override.
+.has-error {
+  border-color: var(--color-danger) !important;
+  background: var(--color-danger-soft) !important;
+}
+
 /* Global keyframes (shared across components) */
 
 @keyframes spin {

@@ -67,14 +67,44 @@ describe('SettingsStateService', () => {
     expect(service.currentOptions().watermark).toBeUndefined();
   });
 
-  it('currentOptions watermark có giá trị khi enabled', () => {
+  it('currentOptions text watermark khi enabled + type text', () => {
     service.includeWatermark.set(true);
+    service.watermarkType.set('text');
     service.watermarkText.set('hello');
     service.watermarkPosition.set('center');
 
     const opts = service.currentOptions();
     expect(opts.watermark).toBeDefined();
-    expect(opts.watermark?.text).toBe('hello');
-    expect(opts.watermark?.position).toBe('center');
+    expect(opts.watermark?.type).toBe('text');
+    if (opts.watermark?.type === 'text') {
+      expect(opts.watermark.text).toBe('hello');
+      expect(opts.watermark.position).toBe('center');
+    }
+  });
+
+  it('currentOptions image watermark khi đã chọn ảnh', () => {
+    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:logo');
+    const logo = new File([''], 'logo.png', { type: 'image/png' });
+
+    service.includeWatermark.set(true);
+    service.watermarkType.set('image');
+    service.setWatermarkImage(logo);
+    service.watermarkImageSize.set(20);
+
+    const opts = service.currentOptions();
+    expect(opts.watermark?.type).toBe('image');
+    if (opts.watermark?.type === 'image') {
+      expect(opts.watermark.image).toBe(logo);
+      expect(opts.watermark.size).toBe(20);
+    }
+
+    createObjectURLSpy.mockRestore();
+  });
+
+  it('currentOptions watermark = undefined khi type=image nhưng chưa chọn ảnh', () => {
+    service.includeWatermark.set(true);
+    service.watermarkType.set('image');
+    // watermarkImage vẫn là null
+    expect(service.currentOptions().watermark).toBeUndefined();
   });
 });

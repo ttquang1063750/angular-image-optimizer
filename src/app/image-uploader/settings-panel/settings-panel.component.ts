@@ -1,19 +1,17 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { TranslationService } from '../../translation.service';
 import { SettingsStateService } from '../../settings-state.service';
 import { UploaderStateService } from '../../uploader-state.service';
-import {
-  CompressionPreset,
-  OutputFormat,
-  ResizeMode,
-  WatermarkPosition,
-} from '../../image-processing.model';
-import { getInputValue, getNumberValue, getSelectValue } from '../../utils/dom-event';
+import { CompressionPreset, OutputFormat, ResizeMode } from '../../image-processing.model';
+import { INPUT_RANGES, NumberRange } from '../../image-processing.constants';
+import { validateNumberInput } from '../../utils/dom-event';
+import { NamingConfigComponent } from './naming-config/naming-config.component';
+import { WatermarkConfigComponent } from './watermark-config/watermark-config.component';
 
 @Component({
   selector: 'app-settings-panel',
   standalone: true,
-  imports: [],
+  imports: [NamingConfigComponent, WatermarkConfigComponent],
   templateUrl: './settings-panel.component.html',
   styleUrl: './settings-panel.component.scss',
 })
@@ -23,24 +21,15 @@ export class SettingsPanelComponent {
   private readonly state = inject(UploaderStateService);
 
   readonly t = this.translationService.t;
-
-  // Settings signals (re-expose từ SettingsStateService cho template)
   readonly selectedPreset = this.settings.selectedPreset;
   readonly selectedFormat = this.settings.selectedFormat;
   readonly selectedResizeMode = this.settings.selectedResizeMode;
   readonly resizeWidth = this.settings.resizeWidth;
   readonly resizeHeight = this.settings.resizeHeight;
   readonly resizePercent = this.settings.resizePercent;
-  readonly namePrefix = this.settings.namePrefix;
-  readonly nameSuffix = this.settings.nameSuffix;
-  readonly includeNumbering = this.settings.includeNumbering;
-  readonly startNumberingIndex = this.settings.startNumberingIndex;
-  readonly includeWatermark = this.settings.includeWatermark;
-  readonly watermarkText = this.settings.watermarkText;
-  readonly watermarkPosition = this.settings.watermarkPosition;
-  readonly watermarkFontSize = this.settings.watermarkFontSize;
-  readonly watermarkOpacity = this.settings.watermarkOpacity;
-  readonly watermarkColor = this.settings.watermarkColor;
+
+  readonly ranges = INPUT_RANGES;
+  readonly errors = signal<Record<string, string>>({});
 
   setPreset(preset: CompressionPreset): void {
     this.settings.selectedPreset.set(preset);
@@ -58,8 +47,9 @@ export class SettingsPanelComponent {
   }
 
   updateResizeValue(event: Event, type: 'width' | 'height' | 'percent'): void {
-    const value = getNumberValue(event);
-    if (isNaN(value) || value <= 0) return;
+    const range = type === 'percent' ? this.ranges.resizePercent : this.ranges.resizePx;
+    const value = this.validate(type, event, range);
+    if (value === null) return;
 
     if (type === 'width') this.settings.resizeWidth.set(value);
     if (type === 'height') this.settings.resizeHeight.set(value);
@@ -67,44 +57,33 @@ export class SettingsPanelComponent {
     this.state.markSettingsChanged();
   }
 
-  updateNamingValue(event: Event, type: 'prefix' | 'suffix' | 'start'): void {
-    if (type === 'start') {
-      const val = getNumberValue(event);
-      if (!isNaN(val)) this.settings.startNumberingIndex.set(val);
-    } else {
-      const value = getInputValue(event);
-      if (type === 'prefix') this.settings.namePrefix.set(value);
-      if (type === 'suffix') this.settings.nameSuffix.set(value);
+  errorFor(field: string): string | undefined {
+    return this.errors()[field];
+  }
+
+  private validate(field: string, event: Event, range: NumberRange): number | null {
+    const result = validateNumberInput(event, range.min, range.max);
+    if (result.valid) {
+      this.clearError(field);
+      return result.value;
     }
-    this.state.markSettingsChanged();
+    const dict = this.t();
+    const msg =
+      result.reason === 'nan'
+        ? dict['error_value_nan']
+        : dict['error_value_range']
+            .replace('{min}', String(range.min))
+            .replace('{max}', String(range.max));
+    this.errors.update((e) => ({ ...e, [field]: msg }));
+    return null;
   }
 
-  toggleNumbering(): void {
-    this.settings.includeNumbering.update((v) => !v);
-    this.state.markSettingsChanged();
-  }
-
-  toggleWatermark(): void {
-    this.settings.includeWatermark.update((v) => !v);
-    this.state.markSettingsChanged();
-  }
-
-  onWatermarkPositionChange(event: Event): void {
-    this.settings.watermarkPosition.set(getSelectValue<WatermarkPosition>(event));
-    this.state.markSettingsChanged();
-  }
-
-  updateWatermarkValue(event: Event, type: 'text' | 'size' | 'opacity' | 'color'): void {
-    if (type === 'text') this.settings.watermarkText.set(getInputValue(event));
-    if (type === 'color') this.settings.watermarkColor.set(getInputValue(event));
-
-    if (type === 'size' || type === 'opacity') {
-      const val = getNumberValue(event);
-      if (!isNaN(val)) {
-        if (type === 'size') this.settings.watermarkFontSize.set(val);
-        if (type === 'opacity') this.settings.watermarkOpacity.set(val);
-      }
-    }
-    this.state.markSettingsChanged();
+  private clearError(field: string): void {
+    this.errors.update((e) => {
+      if (!(field in e)) return e;
+      const next = { ...e };
+      delete next[field];
+      return next;
+    });
   }
 }

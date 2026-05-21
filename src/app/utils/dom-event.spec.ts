@@ -1,4 +1,10 @@
-import { getInputFiles, getInputValue, getNumberValue, getSelectValue } from './dom-event';
+import {
+  getInputFiles,
+  getInputValue,
+  getNumberValue,
+  getSelectValue,
+  validateNumberInput,
+} from './dom-event';
 
 describe('dom-event utils', () => {
   it('getInputValue trả về value của input', () => {
@@ -27,5 +33,39 @@ describe('dom-event utils', () => {
   it('getInputFiles trả về null khi không có file', () => {
     const event = { target: { files: null } } as unknown as Event;
     expect(getInputFiles(event)).toBeNull();
+  });
+
+  describe('validateNumberInput', () => {
+    function evt(valueAsNumber: number): Event {
+      return { target: { valueAsNumber } } as unknown as Event;
+    }
+
+    it('valid khi giá trị trong khoảng', () => {
+      expect(validateNumberInput(evt(50), 1, 100)).toEqual({ value: 50, valid: true });
+    });
+
+    it('reason=below_min khi giá trị < min', () => {
+      const r = validateNumberInput(evt(-5), 1, 100);
+      expect(r.valid).toBe(false);
+      expect(r.reason).toBe('below_min');
+      expect(r.value).toBe(-5);
+    });
+
+    it('reason=above_max khi giá trị > max', () => {
+      const r = validateNumberInput(evt(101), 1, 100);
+      expect(r.valid).toBe(false);
+      expect(r.reason).toBe('above_max');
+    });
+
+    it('reason=nan khi không phải số', () => {
+      const r = validateNumberInput(evt(NaN), 1, 100);
+      expect(r.valid).toBe(false);
+      expect(r.reason).toBe('nan');
+    });
+
+    it('biên min và max được chấp nhận (inclusive)', () => {
+      expect(validateNumberInput(evt(1), 1, 100).valid).toBe(true);
+      expect(validateNumberInput(evt(100), 1, 100).valid).toBe(true);
+    });
   });
 });

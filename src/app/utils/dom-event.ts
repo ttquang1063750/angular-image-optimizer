@@ -19,3 +19,23 @@ export function getSelectValue<T extends string = string>(event: Event): T {
 export function getInputFiles(event: Event): FileList | null {
   return (event.target as HTMLInputElement).files;
 }
+
+export type ValidationReason = 'nan' | 'below_min' | 'above_max';
+
+export interface ValidationResult {
+  value: number;
+  valid: boolean;
+  reason?: ValidationReason;
+}
+
+/**
+ * Kiểm tra giá trị số từ input event. Trả về `valid: false` kèm `reason`
+ * (nan / below_min / above_max) để caller có thể hiển thị thông báo phù hợp.
+ */
+export function validateNumberInput(event: Event, min: number, max: number): ValidationResult {
+  const value = getNumberValue(event);
+  if (isNaN(value)) return { value, valid: false, reason: 'nan' };
+  if (value < min) return { value, valid: false, reason: 'below_min' };
+  if (value > max) return { value, valid: false, reason: 'above_max' };
+  return { value, valid: true };
+}

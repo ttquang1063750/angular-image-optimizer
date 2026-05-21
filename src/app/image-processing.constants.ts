@@ -30,9 +30,27 @@ export const DEFAULT_RESIZE = {
 export const DEFAULT_WATERMARK = {
   text: 'Image Optimizer',
   fontSizePercent: 3,
+  imageSizePercent: 15,
   opacity: 0.5,
   color: '#ffffff',
 };
 
 // Ngưỡng quality dưới mức này thì luôn re-encode (không skip để giữ file gốc)
 export const FORCE_REENCODE_QUALITY = 0.8;
+
+// Khoảng giá trị hợp lệ cho từng ô nhập số. Dùng để vừa render `min`/`max`
+// trên input vừa kiểm tra trong handler.
+export interface NumberRange {
+  min: number;
+  max: number;
+  step?: number;
+}
+
+export const INPUT_RANGES = {
+  resizePx: { min: 1, max: 10000 } satisfies NumberRange,
+  resizePercent: { min: 1, max: 100 } satisfies NumberRange,
+  startNumberingIndex: { min: 0, max: 9999 } satisfies NumberRange,
+  watermarkFontSize: { min: 1, max: 20 } satisfies NumberRange,
+  watermarkOpacity: { min: 0.1, max: 1, step: 0.1 } satisfies NumberRange,
+  watermarkImageSize: { min: 1, max: 50 } satisfies NumberRange,
+} as const;

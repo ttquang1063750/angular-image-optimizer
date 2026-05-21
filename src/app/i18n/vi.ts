@@ -35,11 +35,20 @@ export const vi: TranslationDict = {
   label_start_index: 'Bắt đầu từ:',
 
   label_watermark: 'Đóng dấu ảnh:',
-  watermark_toggle: 'Chèn Text Watermark',
+  watermark_toggle: 'Bật đóng dấu',
+  watermark_type_text: 'Text',
+  watermark_type_image: 'Hình ảnh',
   watermark_placeholder: 'Nội dung đóng dấu...',
   watermark_pos: 'Vị trí:',
   watermark_size: 'Cỡ (%):',
   watermark_opacity: 'Mờ:',
+  watermark_upload_image: 'Chọn hình logo',
+  watermark_remove_image: 'Bỏ hình',
+  watermark_no_image: 'Chưa chọn hình',
+
+  // Validation
+  error_value_range: 'Giá trị phải từ {min} đến {max}',
+  error_value_nan: 'Vui lòng nhập một số hợp lệ',
 
   pos_bottom_right: 'Dưới - Phải',
   pos_bottom_left: 'Dưới - Trái',

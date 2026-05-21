@@ -57,53 +57,37 @@ describe('SettingsPanelComponent', () => {
     expect(settings.selectedResizeMode()).toBe('width');
   });
 
-  it('updateResizeValue bỏ qua giá trị <= 0', () => {
+  it('updateResizeValue set error khi giá trị <= 0', () => {
     const event = { target: { valueAsNumber: 0 } } as unknown as Event;
     component.updateResizeValue(event, 'width');
+    expect(component.errorFor('width')).toBeDefined();
     expect(settings.resizeWidth()).toBe(1200); // mặc định
   });
 
-  it('updateResizeValue chấp nhận giá trị hợp lệ', () => {
-    const event = { target: { valueAsNumber: 800 } } as unknown as Event;
+  it('updateResizeValue set error khi giá trị > max', () => {
+    const event = { target: { valueAsNumber: 99999 } } as unknown as Event;
     component.updateResizeValue(event, 'width');
+    expect(component.errorFor('width')).toBeDefined();
+  });
+
+  it('updateResizeValue chấp nhận giá trị hợp lệ và clear error', () => {
+    // gây error trước
+    component.updateResizeValue({ target: { valueAsNumber: -1 } } as unknown as Event, 'width');
+    expect(component.errorFor('width')).toBeDefined();
+
+    // giá trị đúng → clear error
+    component.updateResizeValue({ target: { valueAsNumber: 800 } } as unknown as Event, 'width');
+    expect(component.errorFor('width')).toBeUndefined();
     expect(settings.resizeWidth()).toBe(800);
   });
 
-  it('updateNamingValue prefix và start riêng biệt', () => {
-    const prefixEvent = { target: { value: 'pre-' } } as unknown as Event;
-    component.updateNamingValue(prefixEvent, 'prefix');
-    expect(settings.namePrefix()).toBe('pre-');
+  it('updateResizeValue percent có range riêng (1-100)', () => {
+    component.setResizeMode('percent');
+    component.updateResizeValue({ target: { valueAsNumber: 150 } } as unknown as Event, 'percent');
+    expect(component.errorFor('percent')).toBeDefined();
 
-    const startEvent = { target: { valueAsNumber: 10 } } as unknown as Event;
-    component.updateNamingValue(startEvent, 'start');
-    expect(settings.startNumberingIndex()).toBe(10);
-  });
-
-  it('toggleNumbering đảo bool', () => {
-    expect(settings.includeNumbering()).toBe(false);
-    component.toggleNumbering();
-    expect(settings.includeNumbering()).toBe(true);
-  });
-
-  it('toggleWatermark đảo bool', () => {
-    expect(settings.includeWatermark()).toBe(false);
-    component.toggleWatermark();
-    expect(settings.includeWatermark()).toBe(true);
-  });
-
-  it('onWatermarkPositionChange cập nhật position', () => {
-    const event = { target: { value: 'center' } } as unknown as Event;
-    component.onWatermarkPositionChange(event);
-    expect(settings.watermarkPosition()).toBe('center');
-  });
-
-  it('updateWatermarkValue text/opacity/size', () => {
-    const textEvent = { target: { value: 'hello', valueAsNumber: NaN } } as unknown as Event;
-    component.updateWatermarkValue(textEvent, 'text');
-    expect(settings.watermarkText()).toBe('hello');
-
-    const sizeEvent = { target: { valueAsNumber: 8 } } as unknown as Event;
-    component.updateWatermarkValue(sizeEvent, 'size');
-    expect(settings.watermarkFontSize()).toBe(8);
+    component.updateResizeValue({ target: { valueAsNumber: 75 } } as unknown as Event, 'percent');
+    expect(component.errorFor('percent')).toBeUndefined();
+    expect(settings.resizePercent()).toBe(75);
   });
 });

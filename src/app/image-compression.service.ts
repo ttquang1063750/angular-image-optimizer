@@ -11,7 +11,9 @@ import {
   FileStatusUpdate,
   CompressionPreset,
   FileNamePattern,
+  ImageWatermarkConfig,
   ProcessedFile,
+  TextWatermarkConfig,
   WatermarkConfig,
 } from './image-processing.model';
 import {
@@ -200,7 +202,9 @@ export class ImageCompressionService {
     blob: Blob,
     watermark: WatermarkConfig | undefined,
   ): Promise<Blob> {
-    if (!watermark?.text) return blob;
+    if (!watermark) return blob;
+    if (watermark.type === 'text' && !watermark.text) return blob;
+    if (watermark.type === 'image' && !watermark.image) return blob;
     try {
       return await this.applyWatermark(blob, watermark);
     } catch {
@@ -288,69 +292,99 @@ export class ImageCompressionService {
     return candidate;
   }
 
-  private applyWatermark(blob: Blob, config: WatermarkConfig): Promise<Blob> {
+  private async applyWatermark(blob: Blob, config: WatermarkConfig): Promise<Blob> {
+    const baseImg = await this.loadImage(blob);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Không thể khởi tạo Canvas Context');
+
+    canvas.width = baseImg.width;
+    canvas.height = baseImg.height;
+    ctx.drawImage(baseImg, 0, 0);
+    ctx.globalAlpha = config.opacity;
+
+    if (config.type === 'text') {
+      this.drawTextWatermark(ctx, canvas.width, canvas.height, config);
+    } else {
+      const logo = await this.loadImage(config.image);
+      this.drawImageWatermark(ctx, canvas.width, canvas.height, logo, config);
+    }
+
+    return this.canvasToBlob(canvas, blob.type);
+  }
+
+  private loadImage(blob: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(blob);
-
       img.onload = () => {
         URL.revokeObjectURL(url);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Không thể khởi tạo Canvas Context'));
-          return;
-        }
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        this.drawWatermarkText(ctx, canvas.width, canvas.height, config);
-
-        canvas.toBlob(
-          (result) => {
-            if (result) resolve(result);
-            else reject(new Error('Lỗi khi xuất Canvas sang Blob'));
-          },
-          blob.type,
-          WATERMARK_OUTPUT_QUALITY,
-        );
+        resolve(img);
       };
-
       img.onerror = () => {
         URL.revokeObjectURL(url);
-        reject(new Error('Không thể tải ảnh để đóng dấu'));
+        reject(new Error('Không thể tải ảnh'));
       };
-
       img.src = url;
     });
   }
 
-  private drawWatermarkText(
+  private canvasToBlob(canvas: HTMLCanvasElement, mimeType: string): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (result) resolve(result);
+          else reject(new Error('Lỗi khi xuất Canvas sang Blob'));
+        },
+        mimeType,
+        WATERMARK_OUTPUT_QUALITY,
+      );
+    });
+  }
+
+  private drawTextWatermark(
     ctx: CanvasRenderingContext2D,
     canvasWidth: number,
     canvasHeight: number,
-    config: WatermarkConfig,
+    config: TextWatermarkConfig,
   ): void {
     const fontSize = (canvasWidth * config.fontSize) / 100;
     ctx.font = `bold ${fontSize}px Inter, Roboto, sans-serif`;
-    ctx.globalAlpha = config.opacity;
     ctx.fillStyle = config.color;
     ctx.textBaseline = 'middle';
 
     const padding = fontSize;
-    const { x, y, align } = this.computeWatermarkAnchor(
-      config.position,
-      canvasWidth,
-      canvasHeight,
-      padding,
-    );
+    const { x, y, align } = this.computeAnchor(config.position, canvasWidth, canvasHeight, padding);
     ctx.textAlign = align;
     ctx.fillText(config.text, x, y);
   }
 
-  private computeWatermarkAnchor(
+  private drawImageWatermark(
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+    logo: HTMLImageElement,
+    config: ImageWatermarkConfig,
+  ): void {
+    const targetWidth = (canvasWidth * config.size) / 100;
+    const targetHeight = targetWidth * (logo.height / logo.width);
+    const padding = targetWidth * 0.05;
+
+    const { x, y, align } = this.computeAnchor(config.position, canvasWidth, canvasHeight, padding);
+
+    // Chuyển anchor sang góc trên-trái cho drawImage
+    let drawX = x;
+    let drawY = y - targetHeight / 2;
+    if (align === 'right') drawX = x - targetWidth;
+    else if (align === 'center') drawX = x - targetWidth / 2;
+
+    if (config.position.startsWith('top-')) drawY = padding;
+    else if (config.position.startsWith('bottom-')) drawY = canvasHeight - targetHeight - padding;
+
+    ctx.drawImage(logo, drawX, drawY, targetWidth, targetHeight);
+  }
+
+  private computeAnchor(
     position: WatermarkConfig['position'],
     canvasWidth: number,
     canvasHeight: number,

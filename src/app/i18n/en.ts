@@ -36,11 +36,20 @@ export const en: TranslationDict = {
   label_start_index: 'Start at:',
 
   label_watermark: 'Watermark:',
-  watermark_toggle: 'Add Text Watermark',
+  watermark_toggle: 'Enable watermark',
+  watermark_type_text: 'Text',
+  watermark_type_image: 'Image',
   watermark_placeholder: 'Watermark text...',
   watermark_pos: 'Position:',
   watermark_size: 'Size (%):',
   watermark_opacity: 'Opacity:',
+  watermark_upload_image: 'Choose logo image',
+  watermark_remove_image: 'Remove image',
+  watermark_no_image: 'No image selected',
+
+  // Validation
+  error_value_range: 'Value must be between {min} and {max}',
+  error_value_nan: 'Please enter a valid number',
 
   pos_bottom_right: 'Bottom Right',
   pos_bottom_left: 'Bottom Left',
