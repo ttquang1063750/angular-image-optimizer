@@ -73,6 +73,8 @@
             <button
               class="btn-download"
               [disabled]="completedCount() === 0"
+              aria-keyshortcuts="Control+S Meta+S"
+              [title]="t()['shortcut_download_all']"
               (click)="downloadAll()"
             >
               {{ t()['btn_download_zip'] }}

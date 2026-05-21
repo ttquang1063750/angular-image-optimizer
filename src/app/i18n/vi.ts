@@ -59,6 +59,8 @@ export const vi: TranslationDict = {
   // Drop zone
   drop_zone_text: 'Kéo thả ảnh vào đây hoặc click để chọn file',
   drop_zone_hint: '(Hỗ trợ JPG, PNG, HEIC - Nén đồng thời 3 ảnh)',
+  drop_zone_shortcut: 'hoặc nhấn Ctrl/⌘ + O',
+  shortcut_download_all: 'Ctrl/⌘ + S',
 
   // Item actions
   status_queued: 'Đang chờ xử lý...',
