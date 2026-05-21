@@ -1,4 +1,12 @@
-import { CompressionOptions, CompressionPreset } from './image-processing.model';
+import {
+  CompressionOptions,
+  CompressionPreset,
+  OutputFormat,
+  ResizeMode,
+  SavedPresetData,
+  WatermarkPosition,
+  WatermarkType,
+} from './image-processing.model';
 
 // Số lượng ảnh xử lý đồng thời tối đa
 export const DEFAULT_CONCURRENCY = 3;
@@ -54,3 +62,51 @@ export const INPUT_RANGES = {
   watermarkOpacity: { min: 0.1, max: 1, step: 0.1 } satisfies NumberRange,
   watermarkImageSize: { min: 1, max: 50 } satisfies NumberRange,
 } as const;
+
+// Cấu hình mặc định cho mọi settings — dùng cho cả signal initializer
+// và resetToDefaults() để giữ "one source of truth".
+export const DEFAULT_SETTINGS: SavedPresetData = {
+  selectedPreset: 'medium',
+  selectedFormat: 'image/jpeg',
+  selectedResizeMode: 'auto',
+  resizeWidth: DEFAULT_RESIZE.width,
+  resizeHeight: DEFAULT_RESIZE.height,
+  resizePercent: DEFAULT_RESIZE.percent,
+  namePrefix: '',
+  nameSuffix: '',
+  includeNumbering: false,
+  startNumberingIndex: 1,
+  includeWatermark: false,
+  watermarkType: 'text',
+  watermarkText: DEFAULT_WATERMARK.text,
+  watermarkPosition: 'bottom-right',
+  watermarkFontSize: DEFAULT_WATERMARK.fontSizePercent,
+  watermarkOpacity: DEFAULT_WATERMARK.opacity,
+  watermarkColor: DEFAULT_WATERMARK.color,
+  watermarkImageBase64: null,
+  watermarkImageSize: DEFAULT_WATERMARK.imageSizePercent,
+};
+
+// Preset feature: storage key, export filename, default id sentinel
+export const PRESET_STORAGE_KEY = 'angular_image_optimizer_presets';
+export const PRESET_EXPORT_FILENAME = 'angular_image_optimizer_presets.json';
+export const DEFAULT_PRESET_ID = 'default';
+
+// Thời gian hiển thị toast success (ms)
+export const TOAST_TIMEOUT_MS = 3000;
+
+// Giới hạn dung lượng file import (10 MB)
+export const PRESET_IMPORT_MAX_BYTES = 10 * 1024 * 1024;
+
+// Whitelist các giá trị enum cho validation khi import preset
+export const VALID_COMPRESSION_PRESETS: readonly CompressionPreset[] = ['light', 'medium', 'max'];
+export const VALID_OUTPUT_FORMATS: readonly OutputFormat[] = ['image/jpeg', 'image/webp'];
+export const VALID_RESIZE_MODES: readonly ResizeMode[] = ['auto', 'width', 'height', 'percent'];
+export const VALID_WATERMARK_TYPES: readonly WatermarkType[] = ['text', 'image'];
+export const VALID_WATERMARK_POSITIONS: readonly WatermarkPosition[] = [
+  'bottom-right',
+  'bottom-left',
+  'top-right',
+  'top-left',
+  'center',
+];

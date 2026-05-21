@@ -162,6 +162,20 @@ body {
   background: var(--color-danger-soft) !important;
 }
 
+// Ẩn element khỏi UI nhưng vẫn focusable + accessible. Dùng cho input file
+// ẩn (trigger qua button), hidden labels cho screen-reader, v.v.
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Global keyframes (shared across components) */
 
 @keyframes spin {

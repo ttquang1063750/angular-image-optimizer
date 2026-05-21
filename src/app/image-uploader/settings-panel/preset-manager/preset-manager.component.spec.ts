@@ -119,4 +119,27 @@ describe('PresetManagerComponent', () => {
     expect(component.activePresetId()).toBe(presetId);
     expect(component.showDeleteConfirm()).toBe(false);
   });
+
+  it('onFileImport: từ chối file vượt giới hạn 10MB', () => {
+    const oversized = new File([new ArrayBuffer(11 * 1024 * 1024)], 'big.json', {
+      type: 'application/json',
+    });
+    const inputEl = document.createElement('input');
+    inputEl.type = 'file';
+    Object.defineProperty(inputEl, 'files', { value: [oversized], configurable: true });
+    const evt = new Event('change');
+    Object.defineProperty(evt, 'target', { value: inputEl });
+
+    const importSpy = vi.spyOn(settings, 'importPresets');
+    component.onFileImport(evt);
+
+    expect(importSpy).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toBeDefined();
+  });
+
+  it('exportPresets: delegate xuống settings.exportPresets', () => {
+    const exportSpy = vi.spyOn(settings, 'exportPresets').mockImplementation(() => undefined);
+    component.exportPresets();
+    expect(exportSpy).toHaveBeenCalled();
+  });
 });

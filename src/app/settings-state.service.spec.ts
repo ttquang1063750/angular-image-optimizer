@@ -177,7 +177,7 @@ describe('SettingsStateService', () => {
       expect(service.customPresets()[0].name).toBe('Preset 2');
     });
 
-    it('importPresets: import danh sách preset từ JSON', () => {
+    it('importPresets: import danh sách preset từ JSON và re-issue UUID', () => {
       const presetsJson = JSON.stringify([
         {
           id: 'imported-id-1',
@@ -202,16 +202,19 @@ describe('SettingsStateService', () => {
             watermarkColor: '#ffffff',
             watermarkImageSize: 15,
           },
-          createdAt: Date.now(),
+          createdAt: 1700000000000,
         },
       ]);
 
       const imported = service.importPresets(presetsJson);
       expect(imported).toBe(true);
       expect(service.customPresets().length).toBe(1);
-      expect(service.customPresets()[0].id).toBe('imported-id-1');
+      // ID ngoại bị loại — luôn tạo UUID mới
+      expect(service.customPresets()[0].id).not.toBe('imported-id-1');
+      expect(service.customPresets()[0].id).toMatch(/^[0-9a-f-]{36}$/);
       expect(service.customPresets()[0].name).toBe('Imported Preset');
       expect(service.customPresets()[0].data.selectedPreset).toBe('max');
+      expect(service.customPresets()[0].createdAt).toBe(1700000000000);
     });
 
     it('importPresets: trả về false khi JSON không hợp lệ hoặc sai định dạng', () => {
@@ -220,6 +223,173 @@ describe('SettingsStateService', () => {
 
       const invalidFormat = service.importPresets(JSON.stringify([{ other: 'field' }]));
       expect(invalidFormat).toBe(false);
+
+      // Không phải array
+      const notArray = service.importPresets(JSON.stringify({ foo: 'bar' }));
+      expect(notArray).toBe(false);
+    });
+
+    it('importPresets: từ chối preset có enum field ngoài whitelist', () => {
+      const badEnum = service.importPresets(
+        JSON.stringify([
+          {
+            name: 'Malicious',
+            data: {
+              selectedPreset: 'arbitrary-preset', // không nằm trong whitelist
+              selectedFormat: 'image/jpeg',
+              selectedResizeMode: 'auto',
+              resizeWidth: 100,
+              resizeHeight: 100,
+              resizePercent: 50,
+              namePrefix: '',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: false,
+              watermarkType: 'text',
+              watermarkText: '',
+              watermarkPosition: 'bottom-right',
+              watermarkFontSize: 3,
+              watermarkOpacity: 0.5,
+              watermarkColor: '#ffffff',
+              watermarkImageSize: 15,
+            },
+          },
+        ]),
+      );
+      expect(badEnum).toBe(false);
+      expect(service.customPresets().length).toBe(0);
+    });
+
+    it('importPresets: clamp number ngoài range về fallback', () => {
+      const ok = service.importPresets(
+        JSON.stringify([
+          {
+            name: 'Out of range',
+            data: {
+              selectedPreset: 'medium',
+              selectedFormat: 'image/jpeg',
+              selectedResizeMode: 'auto',
+              resizeWidth: 999999, // clamp xuống max 10000
+              resizeHeight: -5, // clamp lên min 1
+              resizePercent: 50,
+              namePrefix: '',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: false,
+              watermarkType: 'text',
+              watermarkText: '',
+              watermarkPosition: 'bottom-right',
+              watermarkFontSize: 99,
+              watermarkOpacity: 5,
+              watermarkColor: '#000000',
+              watermarkImageSize: 15,
+            },
+          },
+        ]),
+      );
+      expect(ok).toBe(true);
+      const data = service.customPresets()[0].data;
+      expect(data.resizeWidth).toBe(10000);
+      expect(data.resizeHeight).toBe(1);
+      expect(data.watermarkFontSize).toBeLessThanOrEqual(20);
+      expect(data.watermarkOpacity).toBeLessThanOrEqual(1);
+    });
+
+    it('importPresets: trùng name ghi đè data nhưng giữ id cũ', async () => {
+      await service.saveCustomPreset('Shared Name');
+      const originalId = service.customPresets()[0].id;
+
+      const ok = service.importPresets(
+        JSON.stringify([
+          {
+            name: 'Shared Name',
+            data: {
+              selectedPreset: 'max',
+              selectedFormat: 'image/webp',
+              selectedResizeMode: 'auto',
+              resizeWidth: 100,
+              resizeHeight: 100,
+              resizePercent: 50,
+              namePrefix: 'over-',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: false,
+              watermarkType: 'text',
+              watermarkText: '',
+              watermarkPosition: 'bottom-right',
+              watermarkFontSize: 5,
+              watermarkOpacity: 0.5,
+              watermarkColor: '#ffffff',
+              watermarkImageSize: 15,
+            },
+          },
+        ]),
+      );
+      expect(ok).toBe(true);
+      expect(service.customPresets().length).toBe(1);
+      expect(service.customPresets()[0].id).toBe(originalId);
+      expect(service.customPresets()[0].data.namePrefix).toBe('over-');
+    });
+
+    it('exportPresets: tạo blob URL + revoke', () => {
+      const createSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:export-url');
+      const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+      const clickSpy = vi.fn();
+      const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue({
+        click: clickSpy,
+        href: '',
+        download: '',
+      } as unknown as HTMLAnchorElement);
+
+      service.exportPresets();
+
+      expect(createSpy).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
+      expect(revokeSpy).toHaveBeenCalledWith('blob:export-url');
+
+      createSpy.mockRestore();
+      revokeSpy.mockRestore();
+      createElementSpy.mockRestore();
+    });
+
+    it('loadPresetsFromStorage: bỏ qua preset corrupt trong localStorage', () => {
+      localStorage.setItem(
+        'angular_image_optimizer_presets',
+        JSON.stringify([
+          {
+            name: 'Valid',
+            data: {
+              selectedPreset: 'light',
+              selectedFormat: 'image/jpeg',
+              selectedResizeMode: 'auto',
+              resizeWidth: 100,
+              resizeHeight: 100,
+              resizePercent: 50,
+              namePrefix: '',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: false,
+              watermarkType: 'text',
+              watermarkText: '',
+              watermarkPosition: 'bottom-right',
+              watermarkFontSize: 3,
+              watermarkOpacity: 0.5,
+              watermarkColor: '#fff',
+              watermarkImageSize: 15,
+            },
+          },
+          { name: 'Bad', data: { selectedPreset: 'evil' } }, // sẽ bị reject
+        ]),
+      );
+
+      // Tạo instance mới để trigger constructor → loadPresetsFromStorage
+      const fresh = TestBed.runInInjectionContext(() => new SettingsStateService());
+      expect(fresh.customPresets().length).toBe(1);
+      expect(fresh.customPresets()[0].name).toBe('Valid');
     });
   });
 });

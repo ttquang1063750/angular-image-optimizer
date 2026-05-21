@@ -11,7 +11,17 @@ import {
   WatermarkPosition,
   WatermarkType,
 } from './image-processing.model';
-import { DEFAULT_RESIZE, DEFAULT_WATERMARK } from './image-processing.constants';
+import {
+  DEFAULT_SETTINGS,
+  INPUT_RANGES,
+  PRESET_EXPORT_FILENAME,
+  PRESET_STORAGE_KEY,
+  VALID_COMPRESSION_PRESETS,
+  VALID_OUTPUT_FORMATS,
+  VALID_RESIZE_MODES,
+  VALID_WATERMARK_POSITIONS,
+  VALID_WATERMARK_TYPES,
+} from './image-processing.constants';
 
 @Injectable({
   providedIn: 'root',
@@ -19,28 +29,30 @@ import { DEFAULT_RESIZE, DEFAULT_WATERMARK } from './image-processing.constants'
 export class SettingsStateService {
   private readonly compressionService = inject(ImageCompressionService);
 
-  readonly selectedPreset = signal<CompressionPreset>('medium');
-  readonly selectedFormat = signal<OutputFormat>('image/jpeg');
-  readonly selectedResizeMode = signal<ResizeMode>('auto');
-  readonly resizeWidth = signal<number>(DEFAULT_RESIZE.width);
-  readonly resizeHeight = signal<number>(DEFAULT_RESIZE.height);
-  readonly resizePercent = signal<number>(DEFAULT_RESIZE.percent);
+  readonly selectedPreset = signal<CompressionPreset>(DEFAULT_SETTINGS.selectedPreset);
+  readonly selectedFormat = signal<OutputFormat>(DEFAULT_SETTINGS.selectedFormat);
+  readonly selectedResizeMode = signal<ResizeMode>(DEFAULT_SETTINGS.selectedResizeMode);
+  readonly resizeWidth = signal<number>(DEFAULT_SETTINGS.resizeWidth);
+  readonly resizeHeight = signal<number>(DEFAULT_SETTINGS.resizeHeight);
+  readonly resizePercent = signal<number>(DEFAULT_SETTINGS.resizePercent);
 
-  readonly namePrefix = signal<string>('');
-  readonly nameSuffix = signal<string>('');
-  readonly includeNumbering = signal<boolean>(false);
-  readonly startNumberingIndex = signal<number>(1);
+  readonly namePrefix = signal<string>(DEFAULT_SETTINGS.namePrefix);
+  readonly nameSuffix = signal<string>(DEFAULT_SETTINGS.nameSuffix);
+  readonly includeNumbering = signal<boolean>(DEFAULT_SETTINGS.includeNumbering);
+  readonly startNumberingIndex = signal<number>(DEFAULT_SETTINGS.startNumberingIndex);
 
-  readonly includeWatermark = signal<boolean>(false);
-  readonly watermarkType = signal<WatermarkType>('text');
-  readonly watermarkText = signal<string>(DEFAULT_WATERMARK.text);
-  readonly watermarkPosition = signal<WatermarkPosition>('bottom-right');
-  readonly watermarkFontSize = signal<number>(DEFAULT_WATERMARK.fontSizePercent);
-  readonly watermarkOpacity = signal<number>(DEFAULT_WATERMARK.opacity);
-  readonly watermarkColor = signal<string>(DEFAULT_WATERMARK.color);
+  readonly includeWatermark = signal<boolean>(DEFAULT_SETTINGS.includeWatermark);
+  readonly watermarkType = signal<WatermarkType>(DEFAULT_SETTINGS.watermarkType);
+  readonly watermarkText = signal<string>(DEFAULT_SETTINGS.watermarkText);
+  readonly watermarkPosition = signal<WatermarkPosition>(DEFAULT_SETTINGS.watermarkPosition);
+  readonly watermarkFontSize = signal<number>(DEFAULT_SETTINGS.watermarkFontSize);
+  readonly watermarkOpacity = signal<number>(DEFAULT_SETTINGS.watermarkOpacity);
+  readonly watermarkColor = signal<string>(DEFAULT_SETTINGS.watermarkColor);
   readonly watermarkImage = signal<Blob | null>(null);
-  readonly watermarkImageSize = signal<number>(DEFAULT_WATERMARK.imageSizePercent);
+  readonly watermarkImageSize = signal<number>(DEFAULT_SETTINGS.watermarkImageSize);
   readonly watermarkImagePreviewUrl = signal<string | null>(null);
+
+  readonly customPresets = signal<UserPreset[]>([]);
 
   readonly currentOptions = computed<CompressionOptions>(() => {
     const base = this.compressionService.getOptionsByPreset(this.selectedPreset());
@@ -61,6 +73,10 @@ export class SettingsStateService {
     };
   });
 
+  constructor() {
+    this.loadPresetsFromStorage();
+  }
+
   setWatermarkImage(blob: Blob | null): void {
     // Revoke preview URL cũ trước khi tạo URL mới
     const oldUrl = this.watermarkImagePreviewUrl();
@@ -70,71 +86,127 @@ export class SettingsStateService {
     this.watermarkImagePreviewUrl.set(blob ? URL.createObjectURL(blob) : null);
   }
 
-  private buildWatermarkConfig(): WatermarkConfig | undefined {
-    if (!this.includeWatermark()) return undefined;
+  async saveCustomPreset(name: string): Promise<boolean> {
+    const trimmed = name.trim();
+    if (!trimmed) return false;
+    const exists = this.customPresets().some((p) => p.name.toLowerCase() === trimmed.toLowerCase());
+    if (exists) return false;
 
-    if (this.watermarkType() === 'image') {
-      const image = this.watermarkImage();
-      if (!image) return undefined;
-      return {
-        type: 'image',
-        image,
-        size: this.watermarkImageSize(),
-        opacity: this.watermarkOpacity(),
-        position: this.watermarkPosition(),
-      };
+    const data = await this.buildSavedPresetData();
+    const newPreset: UserPreset = {
+      id: crypto.randomUUID(),
+      name: trimmed,
+      data,
+      createdAt: Date.now(),
+    };
+
+    const updated = [...this.customPresets(), newPreset];
+    this.savePresetsToStorage(updated);
+    return true;
+  }
+
+  loadCustomPreset(id: string): void {
+    const preset = this.customPresets().find((p) => p.id === id);
+    if (!preset) return;
+    this.applyPresetData(preset.data);
+  }
+
+  deleteCustomPreset(id: string): void {
+    const updated = this.customPresets().filter((p) => p.id !== id);
+    this.savePresetsToStorage(updated);
+  }
+
+  resetToDefaults(): void {
+    this.applyPresetData(DEFAULT_SETTINGS);
+  }
+
+  exportPresets(): void {
+    const dataStr = JSON.stringify(this.customPresets(), null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = PRESET_EXPORT_FILENAME;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  importPresets(jsonText: string): boolean {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch {
+      return false;
+    }
+    if (!Array.isArray(parsed)) return false;
+
+    const validPresets: UserPreset[] = [];
+    for (const item of parsed) {
+      const validated = this.validateImportedPreset(item);
+      if (validated) validPresets.push(validated);
+    }
+    if (validPresets.length === 0) return false;
+
+    const current = [...this.customPresets()];
+    for (const imported of validPresets) {
+      const indexByName = current.findIndex(
+        (p) => p.name.toLowerCase() === imported.name.toLowerCase(),
+      );
+
+      if (indexByName > -1) {
+        // Trùng tên: ghi đè data nhưng giữ id hiện hữu
+        current[indexByName] = { ...imported, id: current[indexByName].id };
+      } else {
+        current.push(imported);
+      }
     }
 
-    return {
-      type: 'text',
-      text: this.watermarkText(),
-      fontSize: this.watermarkFontSize(),
-      opacity: this.watermarkOpacity(),
-      color: this.watermarkColor(),
-      position: this.watermarkPosition(),
-    };
+    this.savePresetsToStorage(current);
+    return true;
   }
 
-  readonly customPresets = signal<UserPreset[]>([]);
-
-  constructor() {
-    this.loadPresetsFromStorage();
-  }
-
+  // Corrupt/invalid storage được im lặng bỏ qua — user trải nghiệm sạch
+  // (signal vẫn ở giá trị mặc định empty array). Mọi item failed validation
+  // bị filter; partial recovery vẫn hữu ích nếu chỉ một entry lỗi.
   private loadPresetsFromStorage(): void {
+    let stored: string | null;
     try {
-      const stored = localStorage.getItem('angular_image_optimizer_presets');
-      if (stored) {
-        this.customPresets.set(JSON.parse(stored));
-      }
+      stored = localStorage.getItem(PRESET_STORAGE_KEY);
     } catch {
-      // Ignore
+      return;
+    }
+    if (!stored) return;
+    try {
+      const parsed: unknown = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return;
+      const valid: UserPreset[] = [];
+      for (const item of parsed) {
+        const v = this.validateImportedPreset(item);
+        if (v) valid.push(v);
+      }
+      this.customPresets.set(valid);
+    } catch {
+      // JSON corrupt: giữ state mặc định
     }
   }
 
   private savePresetsToStorage(presets: UserPreset[]): void {
-    localStorage.setItem('angular_image_optimizer_presets', JSON.stringify(presets));
+    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
     this.customPresets.set(presets);
   }
 
-  async saveCustomPreset(name: string): Promise<boolean> {
-    if (!name.trim()) return false;
-    const exists = this.customPresets().some(
-      (p) => p.name.toLowerCase() === name.trim().toLowerCase(),
-    );
-    if (exists) return false;
-
+  private async buildSavedPresetData(): Promise<SavedPresetData> {
     let watermarkImageBase64: string | null = null;
     const wmImage = this.watermarkImage();
     if (wmImage && this.includeWatermark() && this.watermarkType() === 'image') {
       try {
         watermarkImageBase64 = await this.blobToBase64(wmImage);
       } catch {
-        // Ignore
+        // Encode fail: preset vẫn save được nhưng không có watermark image
       }
     }
 
-    const data: SavedPresetData = {
+    return {
       selectedPreset: this.selectedPreset(),
       selectedFormat: this.selectedFormat(),
       selectedResizeMode: this.selectedResizeMode(),
@@ -155,24 +227,9 @@ export class SettingsStateService {
       watermarkImageBase64,
       watermarkImageSize: this.watermarkImageSize(),
     };
-
-    const newPreset: UserPreset = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      data,
-      createdAt: Date.now(),
-    };
-
-    const updated = [...this.customPresets(), newPreset];
-    this.savePresetsToStorage(updated);
-    return true;
   }
 
-  loadCustomPreset(id: string): void {
-    const preset = this.customPresets().find((p) => p.id === id);
-    if (!preset) return;
-
-    const data = preset.data;
+  private applyPresetData(data: SavedPresetData): void {
     this.selectedPreset.set(data.selectedPreset);
     this.selectedFormat.set(data.selectedFormat);
     this.selectedResizeMode.set(data.selectedResizeMode);
@@ -204,84 +261,149 @@ export class SettingsStateService {
     }
   }
 
-  deleteCustomPreset(id: string): void {
-    const updated = this.customPresets().filter((p) => p.id !== id);
-    this.savePresetsToStorage(updated);
-  }
+  private buildWatermarkConfig(): WatermarkConfig | undefined {
+    if (!this.includeWatermark()) return undefined;
 
-  resetToDefaults(): void {
-    this.selectedPreset.set('medium');
-    this.selectedFormat.set('image/jpeg');
-    this.selectedResizeMode.set('auto');
-    this.resizeWidth.set(DEFAULT_RESIZE.width);
-    this.resizeHeight.set(DEFAULT_RESIZE.height);
-    this.resizePercent.set(DEFAULT_RESIZE.percent);
-    this.namePrefix.set('');
-    this.nameSuffix.set('');
-    this.includeNumbering.set(false);
-    this.startNumberingIndex.set(1);
-    this.includeWatermark.set(false);
-    this.watermarkType.set('text');
-    this.watermarkText.set(DEFAULT_WATERMARK.text);
-    this.watermarkPosition.set('bottom-right');
-    this.watermarkFontSize.set(DEFAULT_WATERMARK.fontSizePercent);
-    this.watermarkOpacity.set(DEFAULT_WATERMARK.opacity);
-    this.watermarkColor.set(DEFAULT_WATERMARK.color);
-    this.watermarkImageSize.set(DEFAULT_WATERMARK.imageSizePercent);
-    this.setWatermarkImage(null);
-  }
-
-  exportPresets(): void {
-    const dataStr = JSON.stringify(this.customPresets(), null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'angular_image_optimizer_presets.json';
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  importPresets(jsonText: string): boolean {
-    try {
-      const parsed = JSON.parse(jsonText);
-      if (!Array.isArray(parsed)) return false;
-
-      const validPresets: UserPreset[] = [];
-      for (const item of parsed) {
-        if (item && typeof item === 'object' && item.id && item.name && item.data) {
-          validPresets.push({
-            id: item.id,
-            name: item.name,
-            data: item.data,
-            createdAt: item.createdAt || Date.now(),
-          });
-        }
-      }
-
-      if (validPresets.length === 0) return false;
-
-      const current = [...this.customPresets()];
-      for (const imported of validPresets) {
-        const indexById = current.findIndex((p) => p.id === imported.id);
-        const indexByName = current.findIndex(
-          (p) => p.name.toLowerCase() === imported.name.toLowerCase(),
-        );
-
-        if (indexById > -1) {
-          current[indexById] = imported;
-        } else if (indexByName > -1) {
-          current[indexByName] = { ...imported, id: current[indexByName].id };
-        } else {
-          current.push(imported);
-        }
-      }
-
-      this.savePresetsToStorage(current);
-      return true;
-    } catch {
-      return false;
+    if (this.watermarkType() === 'image') {
+      const image = this.watermarkImage();
+      if (!image) return undefined;
+      return {
+        type: 'image',
+        image,
+        size: this.watermarkImageSize(),
+        opacity: this.watermarkOpacity(),
+        position: this.watermarkPosition(),
+      };
     }
+
+    return {
+      type: 'text',
+      text: this.watermarkText(),
+      fontSize: this.watermarkFontSize(),
+      opacity: this.watermarkOpacity(),
+      color: this.watermarkColor(),
+      position: this.watermarkPosition(),
+    };
+  }
+
+  /**
+   * Validate một item từ JSON ngoại lai và normalize về `UserPreset`. Re-issue
+   * `id` mới (không tin id từ file ngoại) và clamp/whitelist mọi field.
+   * Trả về `null` nếu cấu trúc tối thiểu không hợp lệ.
+   */
+  private validateImportedPreset(item: unknown): UserPreset | null {
+    if (!item || typeof item !== 'object') return null;
+    const rec = item as Record<string, unknown>;
+    if (typeof rec['name'] !== 'string' || !rec['name'].trim()) return null;
+    const rawData = rec['data'];
+    if (!rawData || typeof rawData !== 'object') return null;
+
+    const data = this.sanitizePresetData(rawData as Record<string, unknown>);
+    if (!data) return null;
+
+    return {
+      id: crypto.randomUUID(),
+      name: (rec['name'] as string).trim(),
+      data,
+      createdAt: typeof rec['createdAt'] === 'number' ? rec['createdAt'] : Date.now(),
+    };
+  }
+
+  private sanitizePresetData(raw: Record<string, unknown>): SavedPresetData | null {
+    const selectedPreset = this.pickEnum(raw['selectedPreset'], VALID_COMPRESSION_PRESETS);
+    const selectedFormat = this.pickEnum(raw['selectedFormat'], VALID_OUTPUT_FORMATS);
+    const selectedResizeMode = this.pickEnum(raw['selectedResizeMode'], VALID_RESIZE_MODES);
+    const watermarkType = this.pickEnum(raw['watermarkType'], VALID_WATERMARK_TYPES);
+    const watermarkPosition = this.pickEnum(raw['watermarkPosition'], VALID_WATERMARK_POSITIONS);
+
+    if (!selectedPreset || !selectedFormat || !selectedResizeMode) return null;
+    if (!watermarkType || !watermarkPosition) return null;
+
+    const wmBase64 = raw['watermarkImageBase64'];
+    const watermarkImageBase64 =
+      typeof wmBase64 === 'string' && wmBase64.startsWith('data:') ? wmBase64 : null;
+
+    return {
+      selectedPreset,
+      selectedFormat,
+      selectedResizeMode,
+      resizeWidth: this.clampNumber(
+        raw['resizeWidth'],
+        INPUT_RANGES.resizePx.min,
+        INPUT_RANGES.resizePx.max,
+        DEFAULT_SETTINGS.resizeWidth,
+      ),
+      resizeHeight: this.clampNumber(
+        raw['resizeHeight'],
+        INPUT_RANGES.resizePx.min,
+        INPUT_RANGES.resizePx.max,
+        DEFAULT_SETTINGS.resizeHeight,
+      ),
+      resizePercent: this.clampNumber(
+        raw['resizePercent'],
+        INPUT_RANGES.resizePercent.min,
+        INPUT_RANGES.resizePercent.max,
+        DEFAULT_SETTINGS.resizePercent,
+      ),
+      namePrefix: this.pickString(raw['namePrefix'], DEFAULT_SETTINGS.namePrefix),
+      nameSuffix: this.pickString(raw['nameSuffix'], DEFAULT_SETTINGS.nameSuffix),
+      includeNumbering: this.pickBoolean(
+        raw['includeNumbering'],
+        DEFAULT_SETTINGS.includeNumbering,
+      ),
+      startNumberingIndex: this.clampNumber(
+        raw['startNumberingIndex'],
+        INPUT_RANGES.startNumberingIndex.min,
+        INPUT_RANGES.startNumberingIndex.max,
+        DEFAULT_SETTINGS.startNumberingIndex,
+      ),
+      includeWatermark: this.pickBoolean(
+        raw['includeWatermark'],
+        DEFAULT_SETTINGS.includeWatermark,
+      ),
+      watermarkType,
+      watermarkText: this.pickString(raw['watermarkText'], DEFAULT_SETTINGS.watermarkText),
+      watermarkPosition,
+      watermarkFontSize: this.clampNumber(
+        raw['watermarkFontSize'],
+        INPUT_RANGES.watermarkFontSize.min,
+        INPUT_RANGES.watermarkFontSize.max,
+        DEFAULT_SETTINGS.watermarkFontSize,
+      ),
+      watermarkOpacity: this.clampNumber(
+        raw['watermarkOpacity'],
+        INPUT_RANGES.watermarkOpacity.min,
+        INPUT_RANGES.watermarkOpacity.max,
+        DEFAULT_SETTINGS.watermarkOpacity,
+      ),
+      watermarkColor: this.pickString(raw['watermarkColor'], DEFAULT_SETTINGS.watermarkColor),
+      watermarkImageBase64,
+      watermarkImageSize: this.clampNumber(
+        raw['watermarkImageSize'],
+        INPUT_RANGES.watermarkImageSize.min,
+        INPUT_RANGES.watermarkImageSize.max,
+        DEFAULT_SETTINGS.watermarkImageSize,
+      ),
+    };
+  }
+
+  private pickEnum<T extends string>(value: unknown, whitelist: readonly T[]): T | null {
+    return typeof value === 'string' && (whitelist as readonly string[]).includes(value)
+      ? (value as T)
+      : null;
+  }
+
+  private pickString(value: unknown, fallback: string): string {
+    return typeof value === 'string' ? value : fallback;
+  }
+
+  private pickBoolean(value: unknown, fallback: boolean): boolean {
+    return typeof value === 'boolean' ? value : fallback;
+  }
+
+  private clampNumber(value: unknown, min: number, max: number, fallback: number): number {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+    return Math.min(Math.max(value, min), max);
   }
 
   private blobToBase64(blob: Blob): Promise<string> {
@@ -295,7 +417,8 @@ export class SettingsStateService {
 
   private base64ToBlob(base64: string): Blob {
     const parts = base64.split(';base64,');
-    const contentType = parts[0].split(':')[1];
+    if (parts.length !== 2) throw new Error('Invalid base64 data URL');
+    const contentType = parts[0].split(':')[1] ?? 'application/octet-stream';
     const raw = window.atob(parts[1]);
     const rawLength = raw.length;
     const uInt8Array = new Uint8Array(rawLength);

@@ -1,7 +1,13 @@
 import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import {
+  DEFAULT_PRESET_ID,
+  PRESET_IMPORT_MAX_BYTES,
+  TOAST_TIMEOUT_MS,
+} from '../../../image-processing.constants';
 import { SettingsStateService } from '../../../settings-state.service';
 import { TranslationService } from '../../../translation.service';
 import { UploaderStateService } from '../../../uploader-state.service';
+import { getInputFiles, getInputValue, getSelectValue } from '../../../utils/dom-event';
 
 @Component({
   selector: 'app-preset-manager',
@@ -16,9 +22,10 @@ export class PresetManagerComponent {
 
   readonly t = this.translationService.t;
   readonly customPresets = this.settings.customPresets;
+  readonly defaultPresetId = DEFAULT_PRESET_ID;
 
   readonly presetName = signal<string>('');
-  readonly activePresetId = signal<string>('default');
+  readonly activePresetId = signal<string>(DEFAULT_PRESET_ID);
 
   readonly successMessage = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
@@ -27,26 +34,21 @@ export class PresetManagerComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   updatePresetName(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.presetName.set(input.value);
+    this.presetName.set(getInputValue(event));
   }
 
   onPresetChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const value = select.value;
+    const value = getSelectValue(event);
     this.activePresetId.set(value);
-
     this.clearMessages();
 
-    if (value === 'default') {
+    if (value === DEFAULT_PRESET_ID) {
       this.settings.resetToDefaults();
-      this.uploaderState.markSettingsChanged();
-      this.showSuccess(this.t()['msg_preset_loaded']);
     } else {
       this.settings.loadCustomPreset(value);
-      this.uploaderState.markSettingsChanged();
-      this.showSuccess(this.t()['msg_preset_loaded']);
     }
+    this.uploaderState.markSettingsChanged();
+    this.showSuccess(this.t()['msg_preset_loaded']);
   }
 
   async savePreset(): Promise<void> {
@@ -66,35 +68,31 @@ export class PresetManagerComponent {
 
     try {
       const saved = await this.settings.saveCustomPreset(name);
-      if (saved) {
-        const newPreset = this.customPresets()[this.customPresets().length - 1];
-        if (newPreset) {
-          this.activePresetId.set(newPreset.id);
-        }
-        this.presetName.set('');
-        this.showSuccess(this.t()['msg_preset_saved']);
-      }
+      if (!saved) return;
+      const newPreset = this.customPresets()[this.customPresets().length - 1];
+      if (newPreset) this.activePresetId.set(newPreset.id);
+      this.presetName.set('');
+      this.showSuccess(this.t()['msg_preset_saved']);
     } catch (e) {
       this.errorMessage.set(
         e instanceof DOMException && e.name === 'QuotaExceededError'
-          ? 'LocalStorage quota exceeded! Please delete old presets.'
-          : 'Failed to save preset.',
+          ? this.t()['msg_preset_quota_exceeded']
+          : this.t()['msg_preset_save_failed'],
       );
     }
   }
 
   deletePreset(): void {
-    const activeId = this.activePresetId();
-    if (activeId === 'default') return;
+    if (this.activePresetId() === DEFAULT_PRESET_ID) return;
     this.showDeleteConfirm.set(true);
   }
 
   confirmDelete(): void {
     const activeId = this.activePresetId();
-    if (activeId === 'default') return;
+    if (activeId === DEFAULT_PRESET_ID) return;
 
     this.settings.deleteCustomPreset(activeId);
-    this.activePresetId.set('default');
+    this.activePresetId.set(DEFAULT_PRESET_ID);
     this.settings.resetToDefaults();
     this.uploaderState.markSettingsChanged();
     this.clearMessages();
@@ -115,9 +113,15 @@ export class PresetManagerComponent {
   }
 
   onFileImport(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = getInputFiles(event);
+    const file = files?.[0];
     if (!file) return;
+
+    if (file.size > PRESET_IMPORT_MAX_BYTES) {
+      this.errorMessage.set(this.t()['msg_preset_file_too_large']);
+      this.resetFileInput(event);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -125,12 +129,17 @@ export class PresetManagerComponent {
       const success = this.settings.importPresets(text);
       if (success) {
         this.showSuccess(this.t()['msg_preset_imported']);
-        input.value = '';
       } else {
         this.errorMessage.set(this.t()['msg_invalid_preset_file']);
       }
+      this.resetFileInput(event);
     };
     reader.readAsText(file);
+  }
+
+  private resetFileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    input.value = '';
   }
 
   private showSuccess(msg: string): void {
@@ -139,7 +148,7 @@ export class PresetManagerComponent {
       if (this.successMessage() === msg) {
         this.successMessage.set(null);
       }
-    }, 3000);
+    }, TOAST_TIMEOUT_MS);
   }
 
   private clearMessages(): void {

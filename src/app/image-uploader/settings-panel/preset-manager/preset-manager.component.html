@@ -2,7 +2,7 @@
   <div class="selection-row">
     <div class="select-wrapper">
       <select (change)="onPresetChange($event)">
-        <option value="default" [selected]="activePresetId() === 'default'">
+        <option [value]="defaultPresetId" [selected]="activePresetId() === defaultPresetId">
           {{ t()['preset_default'] }}
         </option>
         @for (preset of customPresets(); track preset.id) {
@@ -88,7 +88,7 @@
       type="file"
       #fileInput
       accept=".json"
-      style="display: none"
+      class="visually-hidden"
       (change)="onFileImport($event)"
     />
   </div>
