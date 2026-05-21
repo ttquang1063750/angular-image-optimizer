@@ -13,32 +13,44 @@ Mục tiêu: Sau khi đã hoàn thành Phase 1 (quick wins) + Phase 2 (CSS varia
 - [x] Spec mới `uploader-state.service.spec.ts` (8 tests) cho state service.
 - [x] Update spec component để spy `compressImagesWithProgress` (public) thay vì private `runCompressionTask`.
 
-### Bước 2 — Tách sub-components
-- [ ] `<app-lang-switcher>` — chuyển ngôn ngữ VI/EN (đã có sẵn UI nhỏ, tách ra trước cho dễ).
-- [ ] `<app-theme-toggle>` — nút 🌙/☀️ (tương tự lang-switcher).
-- [ ] `<app-settings-panel>` — toàn bộ `control-group` (preset, format, resize, naming, watermark). Có thể chia tiếp:
-  - `<app-watermark-config>` — config watermark (chỉ render khi enabled)
-  - `<app-naming-config>` — config tên file
-- [ ] `<app-drop-zone>` — drop zone + file input.
-- [ ] `<app-file-list>` — list of files + empty state.
-- [ ] `<app-file-item>` — render từng file (thumbnail, progress, result actions).
-- [ ] `<app-comparison-modal>` — modal so sánh ảnh.
+### Bước 2 — Tách sub-components ✅
+- [x] `<app-lang-switcher>` — chuyển ngôn ngữ VI/EN
+- [x] `<app-theme-toggle>` — nút 🌙/☀️
+- [x] `<app-settings-panel>` — toàn bộ `control-group` (preset, format, resize, naming, watermark). Tách thêm `SettingsStateService` chứa settings signals + `currentOptions` computed.
+- [x] `<app-drop-zone>` — drop zone + file input (emit `filesSelected` output)
+- [x] `<app-file-list>` — list iterator + empty state
+- [x] `<app-file-item>` — render từng file (thumbnail, progress, result actions, gọi state service)
+- [x] `<app-comparison-modal>` — modal so sánh ảnh
 
-### Bước 3 — SCSS modular
-- [ ] Tách `image-uploader.component.scss` theo từng sub-component.
-- [ ] File chung (`_variables.scss`, `_mixins.scss`) nếu cần share.
+**Kết quả:** Parent ImageUploaderComponent từ 392 → **74 LOC** (-81%). HTML 437 → **50 LOC**. SCSS 940 → **150 LOC**.
 
-### Bước 4 — Helper type-safe
-- [ ] Thay `$any($event.target).value` (template) bằng helper `getSelectValue(event: Event): string` hoặc dùng `(change)="setWatermarkPosition($event)"` với event handler nhận `Event` rồi cast bên trong TS.
+### Bước 3 — SCSS modular ✅
+- [x] Tách `image-uploader.component.scss` theo từng sub-component (đã làm cùng Bước 2).
+- [x] Pull global `@keyframes` (spin, fadeIn, fadeInDown, slideUp) lên `src/styles.scss` (keyframes là global scope).
+- [x] Tạo `src/styles/_mixins.scss` với `focus-ring`, `input-wrapper`, `embedded-input` mixins.
+- [x] Apply mixins vào `settings-panel.scss` (đã dedupe `.resize-input` + `.input-with-label`) và `theme-toggle.scss` (focus-ring).
+- [x] Replace ad-hoc box-shadows bằng shadow tokens (`--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`).
 
-### Bước 5 — Test coverage
-- [ ] Mỗi sub-component có spec file riêng (smoke test + main interactions).
-- [ ] Test cho `UploaderStateService` riêng (signals, actions).
-- [ ] Test memory leak: assert `URL.revokeObjectURL` được gọi khi clear/remove.
+### Bước 4 — Helper type-safe ✅
+- [x] Loại bỏ `$any($event.target).value` trong template (đã làm cùng Bước 2 khi tách settings-panel).
+- [x] Tạo `src/app/utils/dom-event.ts` với `getInputValue`, `getNumberValue`, `getSelectValue<T>`, `getInputFiles` — type-safe wrappers.
+- [x] Apply vào `drop-zone`, `comparison-modal`, `settings-panel` — loại bỏ ~10 chỗ cast `(event.target as HTMLInputElement)`.
+- [x] Spec `dom-event.spec.ts` (5 tests) cho utility.
 
-### Bước 6 — Verify
-- [ ] `npm run lint`, `npm test`, `npm run build` xanh.
-- [ ] Manual test: thử upload, compress, compare, download, switch theme, switch lang — đảm bảo regression không xảy ra.
+### Bước 5 — Test coverage ✅
+- [x] Spec cho từng sub-component: lang-switcher, theme-toggle, drop-zone (7 tests), file-list, file-item (7 tests), comparison-modal, settings-panel (10 tests).
+- [x] Spec cho services: `ThemeService` (5 tests), `TranslationService` (4 tests), `SettingsStateService` (6 tests), `UploaderStateService` (9 tests đã có từ Bước 1).
+- [x] Spec cho utility `dom-event` (5 tests).
+- [x] Test memory leak: `removeFile` và `clearAll` revoke `compressedUrl` được verify trong `uploader-state.service.spec.ts`.
+
+**Kết quả:** **69/69 tests pass** (tăng từ 22). 14 spec files total.
+
+### Bước 6 — Verify ✅
+- [x] `npm run lint` xanh.
+- [x] `npm test` 69/69 tests pass.
+- [x] `npm run build` thành công (chỉ warning ESM cho compressorjs/jszip/heic2any — không phải lỗi).
+- [x] Dev server lên ở http://localhost:4200, HTTP 200.
+- [ ] Manual test trong browser: upload, compress, compare, download, switch theme, switch lang — chờ user xác nhận.
 
 ---
 

@@ -2,11 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { UploaderStateService } from './uploader-state.service';
 import { ImageCompressionService } from './image-compression.service';
-import {
-  CompressionOptions,
-  FileStatusUpdate,
-  ProcessedFile,
-} from './image-processing.model';
+import { FileStatusUpdate, ProcessedFile } from './image-processing.model';
 
 vi.mock('heic2any', () => ({
   default: vi.fn(),
@@ -16,14 +12,11 @@ describe('UploaderStateService', () => {
   let service: UploaderStateService;
   let compressionMock: Partial<ImageCompressionService>;
 
-  const baseOptions: CompressionOptions = {
-    quality: 0.6,
-    maxWidthOrHeight: 1600,
-    resizeMode: 'auto',
-  };
-
   beforeEach(() => {
     compressionMock = {
+      getOptionsByPreset: vi
+        .fn()
+        .mockReturnValue({ quality: 0.6, maxWidthOrHeight: 1600, resizeMode: 'auto' }),
       compressImagesWithProgress: vi.fn().mockReturnValue(of({} as FileStatusUpdate)),
       generateZip: vi.fn(),
     };
@@ -35,14 +28,14 @@ describe('UploaderStateService', () => {
   });
 
   it('addFiles bỏ qua mảng rỗng', () => {
-    service.addFiles([], baseOptions);
+    service.addFiles([]);
     expect(service.processedFiles().length).toBe(0);
     expect(service.isCompressing()).toBe(false);
   });
 
   it('addFiles thêm file vào state và gọi compression service', () => {
     const file = new File([''], 'a.jpg', { type: 'image/jpeg' });
-    service.addFiles([file], baseOptions);
+    service.addFiles([file]);
 
     expect(service.processedFiles().length).toBe(1);
     expect(service.processedFiles()[0].status).toBe('queued');
@@ -132,6 +125,14 @@ describe('UploaderStateService', () => {
     service.openComparison(done);
     expect(service.comparingFile()).toBe(done);
     expect(service.comparisonSliderValue()).toBe(50);
+
+    service.closeComparison();
+    expect(service.comparingFile()).toBeNull();
+  });
+
+  it('setComparisonSlider cập nhật giá trị', () => {
+    service.setComparisonSlider(75);
+    expect(service.comparisonSliderValue()).toBe(75);
   });
 
   it('completedCount đếm số file done', () => {

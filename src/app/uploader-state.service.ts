@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ImageCompressionService } from './image-compression.service';
 import { CompressionOptions, FileStatusUpdate, ProcessedFile } from './image-processing.model';
+import { SettingsStateService } from './settings-state.service';
 
 interface CompressionItem {
   file: File;
@@ -13,6 +14,7 @@ interface CompressionItem {
 })
 export class UploaderStateService {
   private readonly compressionService = inject(ImageCompressionService);
+  private readonly settings = inject(SettingsStateService);
 
   readonly processedFiles = signal<ProcessedFile[]>([]);
   readonly isCompressing = signal<boolean>(false);
@@ -27,7 +29,7 @@ export class UploaderStateService {
   // Cache blob URL theo File để tránh gọi createObjectURL nhiều lần cho cùng một file
   private readonly blobUrlCache = new Map<File, string>();
 
-  addFiles(files: File[], options: CompressionOptions): void {
+  addFiles(files: File[]): void {
     if (files.length === 0) return;
 
     this.isCompressing.set(true);
@@ -48,10 +50,10 @@ export class UploaderStateService {
       index: indexOffset + i,
     }));
 
-    this.runCompressionTask(items, options);
+    this.runCompressionTask(items, this.settings.currentOptions());
   }
 
-  recompressAll(options: CompressionOptions): void {
+  recompressAll(): void {
     const currentFiles = this.processedFiles();
     if (currentFiles.length === 0) return;
 
@@ -71,7 +73,7 @@ export class UploaderStateService {
       index,
     }));
 
-    this.runCompressionTask(items, options);
+    this.runCompressionTask(items, this.settings.currentOptions());
   }
 
   removeFile(id: string): void {

@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImageUploaderComponent } from './image-uploader.component';
 import { ImageCompressionService } from '../image-compression.service';
-import { FileStatusUpdate, OutputFormat, ProcessedFile } from '../image-processing.model';
-import { of } from 'rxjs';
+import { ProcessedFile } from '../image-processing.model';
 
 vi.mock('heic2any', () => ({
   default: vi.fn(),
@@ -37,7 +36,6 @@ describe('ImageUploaderComponent', () => {
   });
 
   it('should call downloadFile when downloadSingle is called with a completed item', () => {
-    // Mock downloadFile to avoid actual DOM manipulation
     const downloadFileSpy = vi.spyOn(
       component as unknown as { downloadFile: (url: string, name: string) => void },
       'downloadFile',
@@ -83,131 +81,40 @@ describe('ImageUploaderComponent', () => {
     expect(downloadFileSpy).not.toHaveBeenCalled();
   });
 
-  it('should update selectedFormat and pass it to service', () => {
-    const format: OutputFormat = 'image/webp';
-    component.setFormat(format);
-    expect(component.selectedFormat()).toBe(format);
-
+  it('onFilesSelected delegates to state service', () => {
     const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
-    const spy = vi
-      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
-      .mockReturnValue(of({} as FileStatusUpdate));
+    const stateServiceAddSpy = vi
+      .spyOn(
+        (component as unknown as { state: { addFiles: (files: File[]) => void } }).state,
+        'addFiles',
+      )
+      .mockImplementation(() => undefined);
 
-    // Truy cập private method để test
-    (component as unknown as { processFiles: (files: File[]) => void }).processFiles([mockFile]);
+    component.onFilesSelected([mockFile]);
 
-    expect(spy).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({ format: 'image/webp' }),
-    );
+    expect(stateServiceAddSpy).toHaveBeenCalledWith([mockFile]);
   });
 
-  it('should update resize options and pass them to service', () => {
-    component.setResizeMode('width');
-    component.resizeWidth.set(800);
-
-    expect(component.selectedResizeMode()).toBe('width');
-    expect(component.resizeWidth()).toBe(800);
-
-    const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
-    const spy = vi
-      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
-      .mockReturnValue(of({} as FileStatusUpdate));
-
-    // Truy cập private method để test
-    (component as unknown as { processFiles: (files: File[]) => void }).processFiles([mockFile]);
-
-    expect(spy).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({
-        resizeMode: 'width',
-        resizeWidth: 800,
-      }),
-    );
-  });
-
-  it('should update naming options and pass them to service', () => {
-    component.namePrefix.set('pre-');
-    component.nameSuffix.set('-post');
-    component.includeNumbering.set(true);
-    component.startNumberingIndex.set(10);
-
-    const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
-    const spy = vi
-      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
-      .mockReturnValue(of({} as FileStatusUpdate));
-
-    // Truy cập private method để test
-    (component as unknown as { processFiles: (files: File[]) => void }).processFiles([mockFile]);
-
-    expect(spy).toHaveBeenCalledWith(
-      expect.any(Array),
-      expect.objectContaining({
-        namePattern: expect.objectContaining({
-          prefix: 'pre-',
-          suffix: '-post',
-          includeNumbering: true,
-          startIndex: 10,
-        }),
-      }),
-    );
-  });
-
-  it('should set settingsChanged to true when a setting is updated and reset it after recompressAll', () => {
-    // 1. Giả lập đã có file được xử lý
-    const mockFile = new File([''], 'test.png', { type: 'image/png' });
-    component.processedFiles.set([
-      {
-        id: '1',
-        file: mockFile,
-        status: 'done',
-        progress: 100,
-      },
-    ]);
-
-    // 2. Thay đổi cấu hình
-    component.setFormat('image/webp');
-    expect(component.settingsChanged()).toBe(true);
-
-    // 3. Gọi nén lại thủ công — verify qua public compressImagesWithProgress spy
-    const compressSpy = vi
-      .spyOn(compressionServiceMock as ImageCompressionService, 'compressImagesWithProgress')
-      .mockReturnValue(of({} as FileStatusUpdate));
+  it('recompressAll delegates to state service', () => {
+    const stateServiceRecompressSpy = vi
+      .spyOn(
+        (component as unknown as { state: { recompressAll: () => void } }).state,
+        'recompressAll',
+      )
+      .mockImplementation(() => undefined);
 
     component.recompressAll();
 
-    expect(component.settingsChanged()).toBe(false);
-    expect(compressSpy).toHaveBeenCalled();
+    expect(stateServiceRecompressSpy).toHaveBeenCalled();
   });
 
-  it('should open and close comparison modal', () => {
-    const mockFile = new File([''], 'test.png', { type: 'image/png' });
-    const mockItem: ProcessedFile = {
-      id: '1',
-      file: mockFile,
-      status: 'done',
-      progress: 100,
-      result: {
-        originalFile: mockFile,
-        compressedFile: new File([''], 'test_compressed.png', { type: 'image/png' }),
-        originalSize: 100,
-        compressedSize: 50,
-        savedPercentage: 50,
-        compressedUrl: 'blob:compressed',
-      },
-    };
+  it('clearAll delegates to state service', () => {
+    const stateServiceClearSpy = vi
+      .spyOn((component as unknown as { state: { clearAll: () => void } }).state, 'clearAll')
+      .mockImplementation(() => undefined);
 
-    component.openComparison(mockItem);
-    expect(component.comparingFile()).toBe(mockItem);
-    expect(component.comparisonSliderValue()).toBe(50);
+    component.clearAll();
 
-    component.closeComparison();
-    expect(component.comparingFile()).toBeNull();
-  });
-
-  it('should update comparison slider value', () => {
-    const event = { target: { valueAsNumber: 75 } } as unknown as Event;
-    component.updateComparisonSlider(event);
-    expect(component.comparisonSliderValue()).toBe(75);
+    expect(stateServiceClearSpy).toHaveBeenCalled();
   });
 });
