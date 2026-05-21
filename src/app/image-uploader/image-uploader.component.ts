@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { TranslationService } from '../translation.service';
 import { UploaderStateService } from '../uploader-state.service';
 import { ProcessedFile } from '../image-processing.model';
@@ -8,6 +8,7 @@ import { FileListComponent } from './file-list/file-list.component';
 import { LangSwitcherComponent } from './lang-switcher/lang-switcher.component';
 import { SettingsPanelComponent } from './settings-panel/settings-panel.component';
 import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
+import { PresetManagerComponent } from './settings-panel/preset-manager/preset-manager.component';
 
 @Component({
   selector: 'app-image-uploader',
@@ -19,6 +20,7 @@ import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
     LangSwitcherComponent,
     SettingsPanelComponent,
     ThemeToggleComponent,
+    PresetManagerComponent,
   ],
   templateUrl: './image-uploader.component.html',
   styleUrl: './image-uploader.component.scss',
@@ -32,6 +34,38 @@ export class ImageUploaderComponent {
   readonly isCompressing = this.state.isCompressing;
   readonly settingsChanged = this.state.settingsChanged;
   readonly completedCount = this.state.completedCount;
+
+  readonly showSettings = signal<boolean>(false);
+  readonly showConfig = signal<boolean>(true);
+
+  toggleSettings(): void {
+    this.showSettings.update((val) => !val);
+  }
+
+  toggleConfig(): void {
+    this.showConfig.update((val) => !val);
+  }
+
+  closeSettings(): void {
+    this.showSettings.set(false);
+  }
+
+  openSettings(): void {
+    this.showSettings.set(true);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.showSettings()) return;
+
+    const target = event.target as HTMLElement;
+    const clickedInsideFab = target.closest('.settings-toggle-fab');
+    const clickedInsidePopover = target.closest('.settings-popover');
+
+    if (!clickedInsideFab && !clickedInsidePopover) {
+      this.showSettings.set(false);
+    }
+  }
 
   onFilesSelected(files: File[]): void {
     this.state.addFiles(files);

@@ -1,0 +1,126 @@
+<div class="preset-manager-container">
+  <div class="selection-row">
+    <div class="select-wrapper">
+      <select (change)="onPresetChange($event)">
+        <option [value]="defaultPresetId" [selected]="activePresetId() === defaultPresetId">
+          {{ t()['preset_default'] }}
+        </option>
+        @for (preset of customPresets(); track preset.id) {
+          <option [value]="preset.id" [selected]="activePresetId() === preset.id">
+            {{ preset.name }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (activePresetId() !== 'default') {
+      <button
+        type="button"
+        class="btn-delete"
+        [title]="t()['confirm_delete_preset']"
+        (click)="deletePreset()"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="currentColor"
+        >
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+        </svg>
+      </button>
+    }
+  </div>
+
+  <div class="save-row">
+    <input
+      type="text"
+      [placeholder]="t()['preset_placeholder']"
+      [value]="presetName()"
+      (input)="updatePresetName($event)"
+      (keydown.enter)="savePreset()"
+      class="preset-name-input"
+    />
+    <button type="button" class="btn-save" (click)="savePreset()">
+      {{ t()['btn_save_preset'] }}
+    </button>
+  </div>
+
+  <div class="backup-row">
+    <button type="button" class="btn-backup" (click)="exportPresets()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      {{ t()['btn_export_presets'] }}
+    </button>
+    <button type="button" class="btn-backup" (click)="triggerImport()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      {{ t()['btn_import_presets'] }}
+    </button>
+    <input
+      type="file"
+      #fileInput
+      accept=".json"
+      class="visually-hidden"
+      (change)="onFileImport($event)"
+    />
+  </div>
+
+  @if (errorMessage(); as msg) {
+    <div class="preset-message error">
+      <span class="message-icon">⚠️</span>
+      <span class="message-text">{{ msg }}</span>
+    </div>
+  }
+
+  @if (successMessage(); as msg) {
+    <div class="preset-message success">
+      <span class="message-icon">✓</span>
+      <span class="message-text">{{ msg }}</span>
+    </div>
+  }
+
+  @if (showDeleteConfirm()) {
+    <div class="confirm-overlay">
+      <div class="confirm-card">
+        <span class="confirm-icon">🗑️</span>
+        <p class="confirm-text">{{ t()['confirm_delete_preset'] }}</p>
+        <div class="confirm-buttons">
+          <button type="button" class="btn-confirm-cancel" (click)="cancelDelete()">
+            {{ t()['btn_cancel'] }}
+          </button>
+          <button type="button" class="btn-confirm-ok" (click)="confirmDelete()">
+            {{ t()['btn_delete_confirm'] }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

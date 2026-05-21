@@ -9,11 +9,7 @@
 
 // Form input wrapper có viền + focus-within state.
 // Dùng cho mọi field gộp label + input bên trong cùng container.
-@mixin input-wrapper(
-  $bg: var(--color-surface),
-  $padding: 4px 12px,
-  $radius: 8px
-) {
+@mixin input-wrapper($bg: var(--color-surface), $padding: 4px 12px, $radius: 8px) {
   display: flex;
   align-items: center;
   gap: 8px;

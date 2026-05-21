@@ -90,3 +90,35 @@ export interface ProcessedFile {
   result?: CompressedImageResult;
   error?: string;
 }
+
+// Interface đại diện cho dữ liệu cấu hình đã lưu
+export interface SavedPresetData {
+  selectedPreset: CompressionPreset;
+  selectedFormat: OutputFormat;
+  selectedResizeMode: ResizeMode;
+  resizeWidth: number;
+  resizeHeight: number;
+  resizePercent: number;
+  namePrefix: string;
+  nameSuffix: string;
+  includeNumbering: boolean;
+  startNumberingIndex: number;
+  includeWatermark: boolean;
+  watermarkType: WatermarkType;
+  watermarkText: string;
+  watermarkPosition: WatermarkPosition;
+  watermarkFontSize: number;
+  watermarkOpacity: number;
+  watermarkColor: string;
+  watermarkImageBase64?: string | null;
+  watermarkImageName?: string | null;
+  watermarkImageSize: number;
+}
+
+// Interface đại diện cho một preset tùy chỉnh của người dùng
+export interface UserPreset {
+  id: string;
+  name: string;
+  data: SavedPresetData;
+  createdAt: number;
+}

@@ -13,6 +13,7 @@ Tất cả mục trong Phase 4 + các tính năng đã lên kế hoạch trong `
 - **Bước 6:** Lint + tests + build xanh, dev server verify.
 
 ### Tính năng + chất lượng ✅
+- **Preset save/load:** Lưu và tải cấu hình settings tùy chỉnh trực tiếp tại trình duyệt (hỗ trợ Import/Export và Reset cấu hình).
 - **Image Watermark:** Discriminated union `WatermarkConfig`, `<app-watermark-config>` với tab Text/Image, file picker + preview, drawImage logic trong service.
 - **Input validation:** `validateNumberInput()` helper, `INPUT_RANGES` constants, error UI inline với global `.field`/`.field-error`/`.has-error` classes.
 - **Form validation utility classes:** Gộp `.field`, `.field-error`, `.has-error` về `styles.scss` global để mọi component dùng chung.
@@ -21,12 +22,11 @@ Tất cả mục trong Phase 4 + các tính năng đã lên kế hoạch trong `
 
 ## 🚀 Gợi ý task tiếp theo
 
-Theo `BACKLOG.md`, các mục 🟢 còn lại:
+Theo `BACKLOG.md`, các mục còn lại:
 1.  **PWA** — `@angular/service-worker`, manifest, install prompt.
 2.  **SEO Landing Page** — route `/about` hoặc blog tách biệt với app /optimize.
-3.  **Donation system** — donation FAB đã có sẵn, có thể mở rộng analytics tracking.
-
-Hoặc các ý tưởng tiềm năng từ BACKLOG.md (Keyboard shortcuts, EXIF preservation, Preset save/load, …).
+3.  **Keyboard shortcuts** — `Cmd/Ctrl+O` mở file, `Cmd/Ctrl+S` download all, `Esc` đóng modal.
+4.  **EXIF preservation toggle** — Cho phép giữ/xóa siêu dữ liệu EXIF.
 
 ---
 *Trạng thái: Sẵn sàng nhận task mới.*
