@@ -56,7 +56,7 @@ export interface CompressionOptions {
   resizeHeight?: number;
   resizePercent?: number;
   namePattern?: FileNamePattern;
-  watermark?: WatermarkConfig;
+  watermarks?: WatermarkConfig[];
   // Giữ EXIF của ảnh gốc khi cả input và output đều là JPEG
   preserveExif?: boolean;
 }
@@ -93,6 +93,29 @@ export interface ProcessedFile {
   error?: string;
 }
 
+// Định nghĩa các watermark đã lưu trong preset
+export type SavedWatermarkData = SavedTextWatermarkData | SavedImageWatermarkData;
+
+export interface SavedTextWatermarkData {
+  id: string;
+  type: 'text';
+  text: string;
+  fontSize: number;
+  color: string;
+  opacity: number;
+  position: WatermarkPosition;
+}
+
+export interface SavedImageWatermarkData {
+  id: string;
+  type: 'image';
+  imageBase64: string | null;
+  imageName?: string | null;
+  size: number;
+  opacity: number;
+  position: WatermarkPosition;
+}
+
 // Interface đại diện cho dữ liệu cấu hình đã lưu
 export interface SavedPresetData {
   selectedPreset: CompressionPreset;
@@ -106,15 +129,18 @@ export interface SavedPresetData {
   includeNumbering: boolean;
   startNumberingIndex: number;
   includeWatermark: boolean;
-  watermarkType: WatermarkType;
-  watermarkText: string;
-  watermarkPosition: WatermarkPosition;
-  watermarkFontSize: number;
-  watermarkOpacity: number;
-  watermarkColor: string;
+  // Giữ các trường cũ để tương thích ngược khi load preset cũ
+  watermarkType?: WatermarkType;
+  watermarkText?: string;
+  watermarkPosition?: WatermarkPosition;
+  watermarkFontSize?: number;
+  watermarkOpacity?: number;
+  watermarkColor?: string;
   watermarkImageBase64?: string | null;
   watermarkImageName?: string | null;
-  watermarkImageSize: number;
+  watermarkImageSize?: number;
+  // Trường mới cho multi-watermark
+  watermarks?: SavedWatermarkData[];
   preserveExif: boolean;
 }
 
@@ -124,4 +150,28 @@ export interface UserPreset {
   name: string;
   data: SavedPresetData;
   createdAt: number;
+}
+
+// Định nghĩa trạng thái hiển thị của watermark trên UI (chứa file Blob và preview URL)
+export type WatermarkItem = TextWatermarkItem | ImageWatermarkItem;
+
+export interface TextWatermarkItem {
+  id: string;
+  type: 'text';
+  text: string;
+  fontSize: number;
+  color: string;
+  opacity: number;
+  position: WatermarkPosition;
+}
+
+export interface ImageWatermarkItem {
+  id: string;
+  type: 'image';
+  image: Blob | null;
+  imageName: string | null;
+  previewUrl: string | null;
+  size: number;
+  opacity: number;
+  position: WatermarkPosition;
 }

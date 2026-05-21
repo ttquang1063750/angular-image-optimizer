@@ -77,16 +77,22 @@ export const DEFAULT_SETTINGS: SavedPresetData = {
   includeNumbering: false,
   startNumberingIndex: 1,
   includeWatermark: false,
-  watermarkType: 'text',
-  watermarkText: DEFAULT_WATERMARK.text,
-  watermarkPosition: 'bottom-right',
-  watermarkFontSize: DEFAULT_WATERMARK.fontSizePercent,
-  watermarkOpacity: DEFAULT_WATERMARK.opacity,
-  watermarkColor: DEFAULT_WATERMARK.color,
-  watermarkImageBase64: null,
-  watermarkImageSize: DEFAULT_WATERMARK.imageSizePercent,
+  watermarks: [
+    {
+      id: 'default-text-wm',
+      type: 'text',
+      text: DEFAULT_WATERMARK.text,
+      fontSize: DEFAULT_WATERMARK.fontSizePercent,
+      color: DEFAULT_WATERMARK.color,
+      opacity: DEFAULT_WATERMARK.opacity,
+      position: 'bottom-right',
+    },
+  ],
   preserveExif: false,
 };
+
+// Giới hạn số lượng watermark tối đa
+export const MAX_WATERMARKS = 5;
 
 // Preset feature: storage key, export filename, default id sentinel
 export const PRESET_STORAGE_KEY = 'angular_image_optimizer_presets';

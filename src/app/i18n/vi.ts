@@ -47,6 +47,14 @@ export const vi: TranslationDict = {
   watermark_upload_image: 'Chọn hình logo',
   watermark_remove_image: 'Bỏ hình',
   watermark_no_image: 'Chưa chọn hình',
+  watermark_add_text: 'Thêm watermark chữ',
+  watermark_add_image: 'Thêm watermark hình ảnh',
+  watermark_limit_reached: 'Đã đạt giới hạn tối đa {max} watermark',
+  watermark_item_title: 'Watermark #{index}',
+  watermark_item_text_summary: 'Chữ: "{text}" tại {position}',
+  watermark_item_image_summary: 'Hình: {name} tại {position}',
+  watermark_item_image_empty_summary: 'Hình chưa chọn tại {position}',
+  watermark_drag_handle_title: 'Kéo để sắp xếp thứ tự',
 
   // Validation
   error_value_range: 'Giá trị phải từ {min} đến {max}',

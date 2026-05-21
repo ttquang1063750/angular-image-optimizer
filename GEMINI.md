@@ -86,12 +86,14 @@
 ### Memory & Performance
 - **Blob URL Cache:** Cache blob URLs theo `File` reference để không tạo URL trùng lặp, và cleanup khi clear state.
 - **No URL Leaks:** Bất kỳ helper nào tạo `URL.createObjectURL` cục bộ (đọc kích thước ảnh, tạo Image element, v.v.) phải `revokeObjectURL` ngay sau khi xong.
+- **Watermark URL Revocation:** Khi cập nhật danh sách watermark (sắp xếp lại/reordering), chỉ revoke các preview URL của watermark thực sự bị xóa khỏi danh sách. Tuyệt đối không revoke các watermark đang được giữ lại để tránh lỗi hiển thị.
+- **Watermark Safeguard Limit:** Giới hạn tối đa 5 watermark (`MAX_WATERMARKS = 5`) vẽ trên Canvas cùng lúc. Phải áp dụng kiểm soát độ dài mảng tại cả hàm `sanitizePresetData` và `applyPresetData` khi tải/nhập preset để phòng chống Client-Side DoS.
 
 ### Testing
 - **Coverage Target:** Mỗi service + sub-component có spec riêng. Smoke test tối thiểu + main interactions.
 - **Mock heic2any:** Mọi spec import (trực tiếp/gián tiếp) `image-compression.service.ts` phải có `vi.mock('heic2any', () => ({ default: vi.fn() }))` ở đầu file — nếu không jsdom sẽ crash khi load library.
 - **Delegate Spies:** Khi test orchestrator/parent delegate xuống service, dùng `.mockImplementation(() => undefined)` để swallow side-effects (vd. service nội bộ subscribe Observable).
-- **Discriminated Union Tests:** Khi test `currentOptions().watermark`, narrow bằng `if (opts.watermark?.type === 'text')` trước khi truy cập field — TypeScript sẽ báo lỗi nếu access trực tiếp `.text` hay `.image`.
+- **Discriminated Union Tests:** Khi test `currentOptions().watermarks`, narrow từng item bằng `if (item.type === 'text')` trước khi truy cập field — TypeScript sẽ báo lỗi nếu access trực tiếp `.text` hay `.image`.
 
 ## Workflows
 - **Development:** `npm start`

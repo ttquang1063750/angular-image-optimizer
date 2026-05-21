@@ -48,6 +48,14 @@ export const en: TranslationDict = {
   watermark_upload_image: 'Choose logo image',
   watermark_remove_image: 'Remove image',
   watermark_no_image: 'No image selected',
+  watermark_add_text: 'Add text watermark',
+  watermark_add_image: 'Add image watermark',
+  watermark_limit_reached: 'Maximum limit of {max} watermarks reached',
+  watermark_item_title: 'Watermark #{index}',
+  watermark_item_text_summary: 'Text: "{text}" at {position}',
+  watermark_item_image_summary: 'Image: {name} at {position}',
+  watermark_item_image_empty_summary: 'No image selected at {position}',
+  watermark_drag_handle_title: 'Drag to reorder',
 
   // Validation
   error_value_range: 'Value must be between {min} and {max}',

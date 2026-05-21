@@ -64,21 +64,30 @@ describe('SettingsStateService', () => {
 
   it('currentOptions watermark là undefined khi includeWatermark = false', () => {
     service.includeWatermark.set(false);
-    expect(service.currentOptions().watermark).toBeUndefined();
+    expect(service.currentOptions().watermarks).toBeUndefined();
   });
 
   it('currentOptions text watermark khi enabled + type text', () => {
     service.includeWatermark.set(true);
-    service.watermarkType.set('text');
-    service.watermarkText.set('hello');
-    service.watermarkPosition.set('center');
+    service.watermarks.set([
+      {
+        id: '1',
+        type: 'text',
+        text: 'hello',
+        position: 'center',
+        fontSize: 5,
+        color: '#ffffff',
+        opacity: 0.5,
+      },
+    ]);
 
     const opts = service.currentOptions();
-    expect(opts.watermark).toBeDefined();
-    expect(opts.watermark?.type).toBe('text');
-    if (opts.watermark?.type === 'text') {
-      expect(opts.watermark.text).toBe('hello');
-      expect(opts.watermark.position).toBe('center');
+    expect(opts.watermarks).toBeDefined();
+    expect(opts.watermarks?.length).toBe(1);
+    expect(opts.watermarks?.[0].type).toBe('text');
+    if (opts.watermarks?.[0].type === 'text') {
+      expect(opts.watermarks[0].text).toBe('hello');
+      expect(opts.watermarks[0].position).toBe('center');
     }
   });
 
@@ -87,15 +96,25 @@ describe('SettingsStateService', () => {
     const logo = new File([''], 'logo.png', { type: 'image/png' });
 
     service.includeWatermark.set(true);
-    service.watermarkType.set('image');
-    service.setWatermarkImage(logo);
-    service.watermarkImageSize.set(20);
+    service.watermarks.set([
+      {
+        id: '2',
+        type: 'image',
+        image: null,
+        imageName: null,
+        previewUrl: null,
+        size: 20,
+        opacity: 0.5,
+        position: 'bottom-right',
+      },
+    ]);
+    service.setWatermarkImage('2', logo);
 
     const opts = service.currentOptions();
-    expect(opts.watermark?.type).toBe('image');
-    if (opts.watermark?.type === 'image') {
-      expect(opts.watermark.image).toBe(logo);
-      expect(opts.watermark.size).toBe(20);
+    expect(opts.watermarks?.[0].type).toBe('image');
+    if (opts.watermarks?.[0].type === 'image') {
+      expect(opts.watermarks[0].image).toBe(logo);
+      expect(opts.watermarks[0].size).toBe(20);
     }
 
     createObjectURLSpy.mockRestore();
@@ -103,9 +122,19 @@ describe('SettingsStateService', () => {
 
   it('currentOptions watermark = undefined khi type=image nhưng chưa chọn ảnh', () => {
     service.includeWatermark.set(true);
-    service.watermarkType.set('image');
-    // watermarkImage vẫn là null
-    expect(service.currentOptions().watermark).toBeUndefined();
+    service.watermarks.set([
+      {
+        id: '3',
+        type: 'image',
+        image: null,
+        imageName: null,
+        previewUrl: null,
+        size: 15,
+        opacity: 0.5,
+        position: 'bottom-right',
+      },
+    ]);
+    expect(service.currentOptions().watermarks).toBeUndefined();
   });
 
   describe('quản lý custom presets', () => {
@@ -304,9 +333,14 @@ describe('SettingsStateService', () => {
       expect(ok).toBe(true);
       const data = service.customPresets()[0].data;
       expect(data.resizeWidth).toBe(10000);
-      expect(data.resizeHeight).toBe(1);
-      expect(data.watermarkFontSize).toBeLessThanOrEqual(20);
-      expect(data.watermarkOpacity).toBeLessThanOrEqual(1);
+      expect(data.watermarks).toBeDefined();
+      expect(data.watermarks?.length).toBe(1);
+      const wm = data.watermarks?.[0];
+      expect(wm?.type).toBe('text');
+      if (wm?.type === 'text') {
+        expect(wm.fontSize).toBeLessThanOrEqual(20);
+        expect(wm.opacity).toBeLessThanOrEqual(1);
+      }
     });
 
     it('importPresets: trùng name ghi đè data nhưng giữ id cũ', async () => {
@@ -402,6 +436,139 @@ describe('SettingsStateService', () => {
       const fresh = TestBed.runInInjectionContext(() => new SettingsStateService());
       expect(fresh.customPresets().length).toBe(1);
       expect(fresh.customPresets()[0].name).toBe('Valid');
+    });
+  });
+
+  describe('nâng cao multi-watermark', () => {
+    it('setWatermarks: không revoke preview URL của watermark được giữ lại (reorder), nhưng revoke phần bị xoá', () => {
+      const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+      const item1 = {
+        id: 'w1',
+        type: 'image' as const,
+        image: null,
+        imageName: 'w1.png',
+        previewUrl: 'blob:w1',
+        size: 10,
+        opacity: 1,
+        position: 'center' as const,
+      };
+      const item2 = {
+        id: 'w2',
+        type: 'image' as const,
+        image: null,
+        imageName: 'w2.png',
+        previewUrl: 'blob:w2',
+        size: 10,
+        opacity: 1,
+        position: 'center' as const,
+      };
+      const item3 = {
+        id: 'w3',
+        type: 'image' as const,
+        image: null,
+        imageName: 'w3.png',
+        previewUrl: 'blob:w3',
+        size: 10,
+        opacity: 1,
+        position: 'center' as const,
+      };
+
+      service.watermarks.set([item1, item2, item3]);
+
+      // Giả lập reorder (giữ w1, w2 nhưng đổi chỗ) và xoá w3
+      service.setWatermarks([item2, item1]);
+
+      expect(revokeSpy).toHaveBeenCalledTimes(1);
+      expect(revokeSpy).toHaveBeenCalledWith('blob:w3');
+      expect(revokeSpy).not.toHaveBeenCalledWith('blob:w1');
+      expect(revokeSpy).not.toHaveBeenCalledWith('blob:w2');
+
+      revokeSpy.mockRestore();
+    });
+
+    it('sanitizePresetData: giới hạn tối đa 5 watermark khi import', () => {
+      const badWatermarks = Array.from({ length: 10 }, (_, i) => ({
+        id: `w${i}`,
+        type: 'text',
+        text: `WM ${i}`,
+        fontSize: 5,
+        color: '#ffffff',
+        opacity: 0.5,
+        position: 'bottom-right',
+      }));
+
+      const lengthBefore = service.customPresets().length;
+      const ok = service.importPresets(
+        JSON.stringify([
+          {
+            name: 'Overloaded Watermarks',
+            data: {
+              selectedPreset: 'medium',
+              selectedFormat: 'image/jpeg',
+              selectedResizeMode: 'auto',
+              resizeWidth: 100,
+              resizeHeight: 100,
+              resizePercent: 50,
+              namePrefix: '',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: true,
+              watermarks: badWatermarks,
+            },
+          },
+        ]),
+      );
+
+      expect(ok).toBe(true);
+      expect(service.customPresets().length).toBe(lengthBefore + 1);
+      const newPreset = service.customPresets().find((p) => p.name === 'Overloaded Watermarks');
+      expect(newPreset).toBeDefined();
+      expect(newPreset?.data.watermarks?.length).toBe(5);
+    });
+
+    it('importPresets: tương thích preset cũ (chỉ có watermarkType/watermarkText, không có watermarks[])', () => {
+      const ok = service.importPresets(
+        JSON.stringify([
+          {
+            name: 'Legacy Preset',
+            data: {
+              selectedPreset: 'medium',
+              selectedFormat: 'image/jpeg',
+              selectedResizeMode: 'auto',
+              resizeWidth: 800,
+              resizeHeight: 600,
+              resizePercent: 50,
+              namePrefix: '',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: true,
+              watermarkType: 'text',
+              watermarkText: 'Old Watermark',
+              watermarkFontSize: 4,
+              watermarkColor: '#000000',
+              watermarkOpacity: 0.7,
+              watermarkPosition: 'top-left',
+              preserveExif: false,
+            },
+          },
+        ]),
+      );
+
+      expect(ok).toBe(true);
+      const preset = service.customPresets().find((p) => p.name === 'Legacy Preset');
+      expect(preset?.data.watermarks?.length).toBe(1);
+      const wm = preset?.data.watermarks?.[0];
+      expect(wm?.type).toBe('text');
+      if (wm?.type === 'text') {
+        expect(wm.text).toBe('Old Watermark');
+        expect(wm.fontSize).toBe(4);
+        expect(wm.color).toBe('#000000');
+        expect(wm.opacity).toBe(0.7);
+        expect(wm.position).toBe('top-left');
+      }
     });
   });
 });

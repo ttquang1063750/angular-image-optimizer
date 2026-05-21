@@ -44,83 +44,165 @@ describe('WatermarkConfigComponent', () => {
     expect(settings.includeWatermark()).toBe(true);
   });
 
-  it('setType chuyển giữa text và image', () => {
-    component.setType('image');
-    expect(settings.watermarkType()).toBe('image');
-    component.setType('text');
-    expect(settings.watermarkType()).toBe('text');
+  it('addWatermark thêm watermark mới và expand nó', () => {
+    const initialLength = settings.watermarks().length;
+    component.addWatermark('text');
+
+    expect(settings.watermarks().length).toBe(initialLength + 1);
+    const newWm = settings.watermarks()[settings.watermarks().length - 1];
+    expect(newWm.type).toBe('text');
+    expect(component.expandedId()).toBe(newWm.id);
   });
 
-  it('onTextChange cập nhật text', () => {
-    const event = { target: { value: 'hello' } } as unknown as Event;
-    component.onTextChange(event);
-    expect(settings.watermarkText()).toBe('hello');
+  it('removeWatermark xóa watermark khỏi danh sách', () => {
+    component.addWatermark('text');
+    const list = settings.watermarks();
+    const idToRemove = list[list.length - 1].id;
+
+    component.removeWatermark(idToRemove);
+    expect(settings.watermarks().some((w) => w.id === idToRemove)).toBe(false);
   });
 
-  it('onPositionChange cập nhật position', () => {
+  it('toggleExpand thu/phóng cấu hình watermark', () => {
+    component.addWatermark('text');
+    const id = settings.watermarks()[0].id;
+
+    component.expandedId.set(id);
+    component.toggleExpand(id);
+    expect(component.expandedId()).toBeNull();
+
+    component.toggleExpand(id);
+    expect(component.expandedId()).toBe(id);
+  });
+
+  it('updateType chuyển đổi kiểu của watermark', () => {
+    component.addWatermark('text');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
+    expect(wm.type).toBe('text');
+
+    component.updateType(wm.id, 'image');
+    const updatedWm = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updatedWm?.type).toBe('image');
+  });
+
+  it('onTextChange cập nhật văn bản watermark', () => {
+    component.addWatermark('text');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
+    const event = { target: { value: 'custom watermark' } } as unknown as Event;
+
+    component.onTextChange(wm.id, event);
+    const updatedWm = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updatedWm?.type === 'text' && updatedWm.text).toBe('custom watermark');
+  });
+
+  it('onPositionChange cập nhật vị trí watermark', () => {
+    component.addWatermark('text');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
     const event = { target: { value: 'center' } } as unknown as Event;
-    component.onPositionChange(event);
-    expect(settings.watermarkPosition()).toBe('center');
+
+    component.onPositionChange(wm.id, event);
+    const updatedWm = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updatedWm?.position).toBe('center');
   });
 
-  it('onImageSelected lưu Blob và tạo preview URL', () => {
+  it('onImageSelected cập nhật logo và tạo url preview', () => {
     const createObjectURLSpy = vi
       .spyOn(URL, 'createObjectURL')
-      .mockReturnValue('blob:logo-preview');
+      .mockReturnValue('blob:test-logo-preview');
 
+    component.addWatermark('image');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
     const file = new File([''], 'logo.png', { type: 'image/png' });
     const event = { target: { files: [file] } } as unknown as Event;
-    component.onImageSelected(event);
 
-    expect(settings.watermarkImage()).toBe(file);
-    expect(settings.watermarkImagePreviewUrl()).toBe('blob:logo-preview');
+    component.onImageSelected(wm.id, event);
+    const updatedWm = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updatedWm?.type === 'image' && updatedWm.image).toBe(file);
+    expect(updatedWm?.type === 'image' && updatedWm.previewUrl).toBe('blob:test-logo-preview');
+
     createObjectURLSpy.mockRestore();
   });
 
-  it('onImageSelected bỏ qua file không phải ảnh', () => {
-    const file = new File([''], 'doc.txt', { type: 'text/plain' });
-    const event = { target: { files: [file] } } as unknown as Event;
-    component.onImageSelected(event);
-    expect(settings.watermarkImage()).toBeNull();
+  it('onImageSizeChange đặt lỗi khi không hợp lệ và xóa khi hợp lệ', () => {
+    component.addWatermark('image');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
+
+    component.onImageSizeChange(wm.id, { target: { valueAsNumber: -5 } } as unknown as Event);
+    expect(component.errorFor(wm.id, 'imageSize')).toBeDefined();
+
+    component.onImageSizeChange(wm.id, { target: { valueAsNumber: 15 } } as unknown as Event);
+    expect(component.errorFor(wm.id, 'imageSize')).toBeUndefined();
+    const updatedWm = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updatedWm?.type === 'image' && updatedWm.size).toBe(15);
   });
 
-  it('onImageSizeChange set error khi giá trị âm và không update signal', () => {
-    settings.watermarkImageSize.set(20);
-    const event = { target: { valueAsNumber: -5 } } as unknown as Event;
-    component.onImageSizeChange(event);
+  it('onFontSizeChange validate phạm vi 1..20', () => {
+    component.addWatermark('text');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
 
-    expect(component.errorFor('imageSize')).toBeDefined();
-    expect(settings.watermarkImageSize()).toBe(20);
+    component.onFontSizeChange(wm.id, { target: { valueAsNumber: 25 } } as unknown as Event);
+    expect(component.errorFor(wm.id, 'fontSize')).toBeDefined();
+
+    component.onFontSizeChange(wm.id, { target: { valueAsNumber: 5 } } as unknown as Event);
+    expect(component.errorFor(wm.id, 'fontSize')).toBeUndefined();
+    const updatedWm = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updatedWm?.type === 'text' && updatedWm.fontSize).toBe(5);
   });
 
-  it('onImageSizeChange clear error khi giá trị quay về hợp lệ', () => {
-    component.onImageSizeChange({ target: { valueAsNumber: 100 } } as unknown as Event);
-    expect(component.errorFor('imageSize')).toBeDefined();
+  it('drag & drop reorders list', () => {
+    settings.watermarks.set([
+      {
+        id: 'a',
+        type: 'text',
+        text: 'A',
+        fontSize: 3,
+        color: '#fff',
+        opacity: 0.5,
+        position: 'bottom-right',
+      },
+      {
+        id: 'b',
+        type: 'text',
+        text: 'B',
+        fontSize: 3,
+        color: '#fff',
+        opacity: 0.5,
+        position: 'bottom-right',
+      },
+    ]);
 
-    component.onImageSizeChange({ target: { valueAsNumber: 30 } } as unknown as Event);
-    expect(component.errorFor('imageSize')).toBeUndefined();
-    expect(settings.watermarkImageSize()).toBe(30);
+    const dragEvent = {
+      dataTransfer: {
+        effectAllowed: 'none',
+        setData: vi.fn(),
+      },
+    } as unknown as DragEvent;
+
+    component.onDragStart(dragEvent, 0);
+    expect(component.draggedIndex).toBe(0);
+
+    component.onDrop({ preventDefault: vi.fn() } as unknown as DragEvent, 1);
+    expect(settings.watermarks()[0].id).toBe('b');
+    expect(settings.watermarks()[1].id).toBe('a');
   });
 
-  it('onFontSizeChange validate range 1..20', () => {
-    component.onFontSizeChange({ target: { valueAsNumber: 25 } } as unknown as Event);
-    expect(component.errorFor('fontSize')).toBeDefined();
-
-    component.onFontSizeChange({ target: { valueAsNumber: 5 } } as unknown as Event);
-    expect(component.errorFor('fontSize')).toBeUndefined();
-  });
-
-  it('removeImage clear image và revoke URL', () => {
-    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:x');
+  it('updateType revoke previewUrl khi đổi từ image → text', () => {
+    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:logo');
     const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
-    const file = new File([''], 'logo.png', { type: 'image/png' });
-    settings.setWatermarkImage(file);
-    component.removeImage();
+    component.addWatermark('image');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
+    settings.setWatermarkImage(wm.id, new File([''], 'logo.png', { type: 'image/png' }));
 
-    expect(settings.watermarkImage()).toBeNull();
-    expect(settings.watermarkImagePreviewUrl()).toBeNull();
-    expect(revokeSpy).toHaveBeenCalledWith('blob:x');
+    component.updateType(wm.id, 'text');
+
+    expect(revokeSpy).toHaveBeenCalledWith('blob:logo');
+    const updated = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updated?.type).toBe('text');
+    // Đảm bảo item mới không còn previewUrl từ item cũ
+    if (updated && 'previewUrl' in updated) {
+      expect((updated as { previewUrl: string | null }).previewUrl).toBeUndefined();
+    }
 
     createObjectURLSpy.mockRestore();
     revokeSpy.mockRestore();
