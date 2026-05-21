@@ -60,6 +60,8 @@ export const en: TranslationDict = {
   // Drop zone
   drop_zone_text: 'Drag & drop images here or click to browse',
   drop_zone_hint: '(Supports JPG, PNG, HEIC - 3 concurrent images)',
+  drop_zone_shortcut: 'or press Ctrl/⌘ + O',
+  shortcut_download_all: 'Ctrl/⌘ + S',
 
   // Item actions
   status_queued: 'Queued...',

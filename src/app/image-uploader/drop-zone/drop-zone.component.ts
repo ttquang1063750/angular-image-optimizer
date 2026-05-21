@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, output, signal } from '@angular/core';
 import { TranslationService } from '../../translation.service';
 import { getInputFiles } from '../../utils/dom-event';
 
@@ -16,6 +16,13 @@ export class DropZoneComponent {
   readonly isDragging = signal<boolean>(false);
 
   readonly filesSelected = output<File[]>();
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
+  // Public API cho keyboard shortcut Cmd/Ctrl+O.
+  openFilePicker(): void {
+    this.fileInput.nativeElement.click();
+  }
 
   onFileSelected(event: Event): void {
     const files = getInputFiles(event);

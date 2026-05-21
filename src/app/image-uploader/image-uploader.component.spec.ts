@@ -143,4 +143,130 @@ describe('ImageUploaderComponent', () => {
     component.toggleConfig();
     expect(component.showConfig()).toBe(true);
   });
+
+  describe('keyboard shortcuts', () => {
+    it('Cmd+O gọi openFilePicker trên drop zone', () => {
+      const openSpy = vi.fn();
+      component.dropZone = { openFilePicker: openSpy } as unknown as typeof component.dropZone;
+
+      const event = new KeyboardEvent('keydown', { key: 'o', metaKey: true });
+      const preventSpy = vi.spyOn(event, 'preventDefault');
+      component.onKeydown(event);
+
+      expect(preventSpy).toHaveBeenCalled();
+      expect(openSpy).toHaveBeenCalled();
+    });
+
+    it('Ctrl+O cũng gọi openFilePicker', () => {
+      const openSpy = vi.fn();
+      component.dropZone = { openFilePicker: openSpy } as unknown as typeof component.dropZone;
+
+      const event = new KeyboardEvent('keydown', { key: 'O', ctrlKey: true });
+      component.onKeydown(event);
+      expect(openSpy).toHaveBeenCalled();
+    });
+
+    it('Ctrl+Shift+O bị bỏ qua (không phải shortcut định nghĩa)', () => {
+      const openSpy = vi.fn();
+      component.dropZone = { openFilePicker: openSpy } as unknown as typeof component.dropZone;
+
+      const event = new KeyboardEvent('keydown', { key: 'o', ctrlKey: true, shiftKey: true });
+      component.onKeydown(event);
+      expect(openSpy).not.toHaveBeenCalled();
+    });
+
+    it('Cmd+S gọi downloadAll khi có file đã nén xong', () => {
+      const downloadSpy = vi
+        .spyOn(component, 'downloadAll')
+        .mockResolvedValue(undefined as unknown as void);
+      vi.spyOn(component, 'completedCount').mockReturnValue(2);
+      vi.spyOn(component, 'isCompressing').mockReturnValue(false);
+
+      const event = new KeyboardEvent('keydown', { key: 's', metaKey: true });
+      const preventSpy = vi.spyOn(event, 'preventDefault');
+      component.onKeydown(event);
+
+      expect(preventSpy).toHaveBeenCalled();
+      expect(downloadSpy).toHaveBeenCalled();
+    });
+
+    it('Cmd+S preventDefault nhưng không download khi chưa có file done', () => {
+      const downloadSpy = vi
+        .spyOn(component, 'downloadAll')
+        .mockResolvedValue(undefined as unknown as void);
+      vi.spyOn(component, 'completedCount').mockReturnValue(0);
+
+      const event = new KeyboardEvent('keydown', { key: 's', metaKey: true });
+      const preventSpy = vi.spyOn(event, 'preventDefault');
+      component.onKeydown(event);
+
+      expect(preventSpy).toHaveBeenCalled();
+      expect(downloadSpy).not.toHaveBeenCalled();
+    });
+
+    it('Cmd+S bỏ qua khi đang nén dở', () => {
+      const downloadSpy = vi
+        .spyOn(component, 'downloadAll')
+        .mockResolvedValue(undefined as unknown as void);
+      vi.spyOn(component, 'completedCount').mockReturnValue(3);
+      vi.spyOn(component, 'isCompressing').mockReturnValue(true);
+
+      const event = new KeyboardEvent('keydown', { key: 's', metaKey: true });
+      component.onKeydown(event);
+      expect(downloadSpy).not.toHaveBeenCalled();
+    });
+
+    it('Esc đóng comparison modal trước (priority cao hơn popover)', () => {
+      const state = (
+        component as unknown as {
+          state: { closeComparison: () => void; comparingFile: () => unknown };
+        }
+      ).state;
+      const closeSpy = vi.spyOn(state, 'closeComparison').mockImplementation(() => undefined);
+      vi.spyOn(component, 'comparingFile').mockReturnValue({
+        id: '1',
+        file: new File([''], 'a.png'),
+        status: 'done',
+        progress: 100,
+      });
+      component.openSettings();
+
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      component.onKeydown(event);
+
+      expect(closeSpy).toHaveBeenCalled();
+      // popover vẫn mở vì modal đóng trước
+      expect(component.showSettings()).toBe(true);
+    });
+
+    it('Esc đóng settings popover khi không có modal', () => {
+      vi.spyOn(component, 'comparingFile').mockReturnValue(null);
+      component.openSettings();
+
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      component.onKeydown(event);
+
+      expect(component.showSettings()).toBe(false);
+    });
+
+    it('Esc không làm gì khi không có popup mở', () => {
+      vi.spyOn(component, 'comparingFile').mockReturnValue(null);
+      expect(component.showSettings()).toBe(false);
+
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      // Không throw
+      expect(() => component.onKeydown(event)).not.toThrow();
+    });
+
+    it('Alt+S bị bỏ qua (chỉ Mod+S không có Alt)', () => {
+      const downloadSpy = vi
+        .spyOn(component, 'downloadAll')
+        .mockResolvedValue(undefined as unknown as void);
+      vi.spyOn(component, 'completedCount').mockReturnValue(2);
+
+      const event = new KeyboardEvent('keydown', { key: 's', metaKey: true, altKey: true });
+      component.onKeydown(event);
+      expect(downloadSpy).not.toHaveBeenCalled();
+    });
+  });
 });

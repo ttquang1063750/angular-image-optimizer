@@ -66,6 +66,14 @@ describe('DropZoneComponent', () => {
     expect(emitSpy).toHaveBeenCalledWith([file]);
   });
 
+  it('openFilePicker click vào file input ẩn', () => {
+    const clickSpy = vi.spyOn(component.fileInput.nativeElement, 'click').mockImplementation(() => {
+      // no-op: avoid native file picker side effect in jsdom
+    });
+    component.openFilePicker();
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
   it('onFileSelected reset input.value sau khi emit', () => {
     const emitSpy = vi.spyOn(component.filesSelected, 'emit');
     const file = new File([''], 'a.png', { type: 'image/png' });

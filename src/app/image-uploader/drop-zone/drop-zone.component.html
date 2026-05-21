@@ -9,12 +9,14 @@
   (keydown.space)="fileInput.click()"
   tabindex="0"
   role="button"
+  aria-keyshortcuts="Control+O Meta+O"
   [attr.aria-label]="t()['drop_zone_text']"
 >
   <div class="drop-content">
     <span class="icon">📁</span>
     <p>{{ t()['drop_zone_text'] }}</p>
     <span class="hint">{{ t()['drop_zone_hint'] }}</span>
+    <kbd class="shortcut-hint">{{ t()['drop_zone_shortcut'] }}</kbd>
   </div>
 
   <input
@@ -23,6 +25,6 @@
     multiple
     accept="image/png, image/jpeg, image/heic, image/heif, .heic, .heif"
     (change)="onFileSelected($event)"
-    style="display: none"
+    class="visually-hidden"
   />
 </div>

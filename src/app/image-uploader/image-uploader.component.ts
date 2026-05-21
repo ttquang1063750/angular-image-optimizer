@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { TranslationService } from '../translation.service';
 import { UploaderStateService } from '../uploader-state.service';
 import { ProcessedFile } from '../image-processing.model';
@@ -34,9 +34,12 @@ export class ImageUploaderComponent {
   readonly isCompressing = this.state.isCompressing;
   readonly settingsChanged = this.state.settingsChanged;
   readonly completedCount = this.state.completedCount;
+  readonly comparingFile = this.state.comparingFile;
 
   readonly showSettings = signal<boolean>(false);
   readonly showConfig = signal<boolean>(true);
+
+  @ViewChild(DropZoneComponent) dropZone?: DropZoneComponent;
 
   toggleSettings(): void {
     this.showSettings.update((val) => !val);
@@ -64,6 +67,43 @@ export class ImageUploaderComponent {
 
     if (!clickedInsideFab && !clickedInsidePopover) {
       this.showSettings.set(false);
+    }
+  }
+
+  /**
+   * Keyboard shortcuts:
+   *  - Cmd/Ctrl+O   → open file picker
+   *  - Cmd/Ctrl+S   → download all (chỉ khi có file đã nén)
+   *  - Escape       → đóng comparison modal hoặc settings popover
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.altKey) return;
+    const isMod = event.metaKey || event.ctrlKey;
+    const key = event.key.toLowerCase();
+
+    if (isMod && !event.shiftKey && key === 'o') {
+      event.preventDefault();
+      this.dropZone?.openFilePicker();
+      return;
+    }
+
+    if (isMod && !event.shiftKey && key === 's') {
+      event.preventDefault();
+      if (this.completedCount() > 0 && !this.isCompressing()) {
+        this.downloadAll();
+      }
+      return;
+    }
+
+    if (!isMod && event.key === 'Escape') {
+      if (this.comparingFile()) {
+        this.state.closeComparison();
+        return;
+      }
+      if (this.showSettings()) {
+        this.closeSettings();
+      }
     }
   }
 
