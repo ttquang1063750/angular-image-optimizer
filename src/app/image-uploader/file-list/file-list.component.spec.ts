@@ -80,32 +80,92 @@ describe('FileListComponent', () => {
     expect(component.draggedRowHeight()).toBe(before);
   });
 
-  it('onDragOver set dragOverIndex và preventDefault', () => {
+  it('onContainerDragOver detect target qua cursor Y với getBoundingClientRect', () => {
     const preventDefault = vi.fn();
     const dt = { dropEffect: 'none' } as unknown as DataTransfer;
-    const event = { preventDefault, dataTransfer: dt } as unknown as DragEvent;
 
-    component.onDragOver(event, 1);
+    // 3 row giả lập với bounding rect
+    const rows = [
+      { getBoundingClientRect: () => ({ bottom: 100 }) },
+      { getBoundingClientRect: () => ({ bottom: 200 }) },
+      { getBoundingClientRect: () => ({ bottom: 300 }) },
+    ];
+    const container = {
+      querySelectorAll: vi.fn().mockReturnValue(rows),
+    } as unknown as HTMLElement;
+    component.draggedIndex.set(0);
+
+    const event = {
+      preventDefault,
+      dataTransfer: dt,
+      currentTarget: container,
+      clientY: 150,
+    } as unknown as DragEvent;
+    component.onContainerDragOver(event);
 
     expect(preventDefault).toHaveBeenCalled();
-    expect(component.dragOverIndex()).toBe(1);
     expect(dt.dropEffect).toBe('move');
+    expect(component.dragOverIndex()).toBe(1);
   });
 
-  it('onDragLeave chỉ clear dragOverIndex khi đúng index', () => {
-    component.dragOverIndex.set(1);
-    component.onDragLeave(0);
+  it('onContainerDragOver chọn last row khi cursor dưới cùng', () => {
+    const rows = [
+      { getBoundingClientRect: () => ({ bottom: 100 }) },
+      { getBoundingClientRect: () => ({ bottom: 200 }) },
+    ];
+    const container = {
+      querySelectorAll: vi.fn().mockReturnValue(rows),
+    } as unknown as HTMLElement;
+    component.draggedIndex.set(0);
+
+    component.onContainerDragOver({
+      preventDefault: vi.fn(),
+      dataTransfer: null,
+      currentTarget: container,
+      clientY: 999,
+    } as unknown as DragEvent);
+
     expect(component.dragOverIndex()).toBe(1);
-    component.onDragLeave(1);
+  });
+
+  it('onContainerDragOver bỏ qua khi chưa có dragged item', () => {
+    component.draggedIndex.set(null);
+    component.onContainerDragOver({
+      preventDefault: vi.fn(),
+      dataTransfer: null,
+      currentTarget: { querySelectorAll: vi.fn().mockReturnValue([]) },
+      clientY: 50,
+    } as unknown as DragEvent);
     expect(component.dragOverIndex()).toBeNull();
   });
 
-  it('onDrop gọi state.reorderFiles và reset state', () => {
-    component.draggedIndex.set(0);
-    const preventDefault = vi.fn();
-    const event = { preventDefault } as unknown as DragEvent;
+  it('onContainerDragLeave clear khi cursor rời hẳn container', () => {
+    component.dragOverIndex.set(1);
+    const container = { contains: vi.fn().mockReturnValue(false) } as unknown as HTMLElement;
+    component.onContainerDragLeave({
+      currentTarget: container,
+      relatedTarget: null,
+    } as unknown as DragEvent);
+    expect(component.dragOverIndex()).toBeNull();
+  });
 
-    component.onDrop(event, 2);
+  it('onContainerDragLeave KHÔNG clear khi chuyển sang child element', () => {
+    component.dragOverIndex.set(1);
+    const child = document.createElement('div');
+    const container = { contains: vi.fn().mockReturnValue(true) } as unknown as HTMLElement;
+    component.onContainerDragLeave({
+      currentTarget: container,
+      relatedTarget: child,
+    } as unknown as DragEvent);
+    expect(component.dragOverIndex()).toBe(1);
+  });
+
+  it('onContainerDrop gọi reorderFiles và reset state', () => {
+    component.draggedIndex.set(0);
+    component.dragOverIndex.set(2);
+    const preventDefault = vi.fn();
+
+    component.onContainerDrop({ preventDefault } as unknown as DragEvent);
 
     expect(preventDefault).toHaveBeenCalled();
     expect(stateMock.reorderFiles).toHaveBeenCalledWith(0, 2);
@@ -113,9 +173,10 @@ describe('FileListComponent', () => {
     expect(component.dragOverIndex()).toBeNull();
   });
 
-  it('onDrop bỏ qua khi from === target', () => {
+  it('onContainerDrop bỏ qua khi from === to', () => {
     component.draggedIndex.set(1);
-    component.onDrop({ preventDefault: vi.fn() } as unknown as DragEvent, 1);
+    component.dragOverIndex.set(1);
+    component.onContainerDrop({ preventDefault: vi.fn() } as unknown as DragEvent);
     expect(stateMock.reorderFiles).not.toHaveBeenCalled();
   });
 

@@ -1,4 +1,9 @@
-<div class="file-list">
+<div
+  class="file-list"
+  (dragover)="onContainerDragOver($event)"
+  (dragleave)="onContainerDragLeave($event)"
+  (drop)="onContainerDrop($event)"
+>
   @for (item of processedFiles(); track item.id; let idx = $index) {
     @if (isDropAbove(idx)) {
       <div class="drop-slot" [style.height.px]="draggedRowHeight()" aria-hidden="true"></div>
@@ -6,12 +11,8 @@
     <div
       class="file-row"
       [class.dragging]="draggedIndex() === idx"
-      [class.drag-over]="dragOverIndex() === idx && draggedIndex() !== idx"
       draggable="true"
       (dragstart)="onDragStart($event, idx)"
-      (dragover)="onDragOver($event, idx)"
-      (dragleave)="onDragLeave(idx)"
-      (drop)="onDrop($event, idx)"
       (dragend)="onDragEnd()"
     >
       <div class="drag-handle" [title]="t()['file_drag_handle_title']" aria-hidden="true">

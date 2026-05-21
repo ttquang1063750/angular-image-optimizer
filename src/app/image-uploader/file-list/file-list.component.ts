@@ -33,10 +33,54 @@ export class FileListComponent {
     }
   }
 
-  onDragOver(event: DragEvent, index: number): void {
+  // Container-level dragover: detect target qua cursor Y position thay vì DOM
+  // element được hover. Tránh flicker khi drop-slot insert làm layout shift đổi
+  // element ở dưới cursor.
+  onContainerDragOver(event: DragEvent): void {
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    if (this.dragOverIndex() !== index) this.dragOverIndex.set(index);
+    if (this.draggedIndex() === null) return;
+
+    const container = event.currentTarget as HTMLElement;
+    const rows = container.querySelectorAll<HTMLElement>('.file-row');
+    if (rows.length === 0) return;
+
+    const cursorY = event.clientY;
+    let targetIdx = rows.length - 1;
+    for (let i = 0; i < rows.length; i++) {
+      if (cursorY < rows[i].getBoundingClientRect().bottom) {
+        targetIdx = i;
+        break;
+      }
+    }
+
+    if (this.dragOverIndex() !== targetIdx) {
+      this.dragOverIndex.set(targetIdx);
+    }
+  }
+
+  onContainerDragLeave(event: DragEvent): void {
+    const container = event.currentTarget as HTMLElement;
+    const related = event.relatedTarget as Node | null;
+    if (!related || !container.contains(related)) {
+      this.dragOverIndex.set(null);
+    }
+  }
+
+  onContainerDrop(event: DragEvent): void {
+    event.preventDefault();
+    const fromIndex = this.draggedIndex();
+    const toIndex = this.dragOverIndex();
+    if (fromIndex !== null && toIndex !== null && fromIndex !== toIndex) {
+      this.state.reorderFiles(fromIndex, toIndex);
+    }
+    this.draggedIndex.set(null);
+    this.dragOverIndex.set(null);
+  }
+
+  onDragEnd(): void {
+    this.draggedIndex.set(null);
+    this.dragOverIndex.set(null);
   }
 
   isDropAbove(index: number): boolean {
@@ -51,24 +95,5 @@ export class FileListComponent {
     const over = this.dragOverIndex();
     if (from === null || over === null || index !== over || from === over) return false;
     return from < over;
-  }
-
-  onDragLeave(index: number): void {
-    if (this.dragOverIndex() === index) this.dragOverIndex.set(null);
-  }
-
-  onDrop(event: DragEvent, targetIndex: number): void {
-    event.preventDefault();
-    const fromIndex = this.draggedIndex();
-    if (fromIndex !== null && fromIndex !== targetIndex) {
-      this.state.reorderFiles(fromIndex, targetIndex);
-    }
-    this.draggedIndex.set(null);
-    this.dragOverIndex.set(null);
-  }
-
-  onDragEnd(): void {
-    this.draggedIndex.set(null);
-    this.dragOverIndex.set(null);
   }
 }

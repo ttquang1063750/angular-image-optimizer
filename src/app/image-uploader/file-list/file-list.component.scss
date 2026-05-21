@@ -38,19 +38,18 @@
     }
   }
 
-  // Hover target — subtle highlight
-  &.drag-over:not(.dragging) {
-    background: var(--color-surface-muted);
-  }
 }
 
-// Drop slot: ghost row có cùng chiều cao item gốc, pulse animation
+// Drop slot: ghost row có cùng chiều cao item gốc, pulse animation.
+// pointer-events: none để drag event bubble lên container (tránh slot tự gây
+// flicker khi cursor lướt qua nó).
 .drop-slot {
   border-radius: 10px;
   background: var(--color-primary-soft);
   border: 2px dashed var(--color-primary);
   box-sizing: border-box;
   box-shadow: 0 0 12px var(--color-primary-shadow);
+  pointer-events: none;
   animation:
     dropSlotEnter 0.22s cubic-bezier(0.4, 0, 0.2, 1),
     dropSlotPulse 1.2s ease-in-out infinite 0.22s;
