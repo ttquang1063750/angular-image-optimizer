@@ -117,4 +117,30 @@ describe('ImageUploaderComponent', () => {
 
     expect(stateServiceClearSpy).toHaveBeenCalled();
   });
+
+  it('showSettings mặc định là false và hoạt động đóng/mở chính xác', () => {
+    expect(component.showSettings()).toBe(false);
+
+    component.toggleSettings();
+    expect(component.showSettings()).toBe(true);
+
+    component.closeSettings();
+    expect(component.showSettings()).toBe(false);
+
+    component.openSettings();
+    expect(component.showSettings()).toBe(true);
+
+    component.toggleSettings();
+    expect(component.showSettings()).toBe(false);
+  });
+
+  it('showConfig mặc định là true và hoạt động đóng/mở chính xác', () => {
+    expect(component.showConfig()).toBe(true);
+
+    component.toggleConfig();
+    expect(component.showConfig()).toBe(false);
+
+    component.toggleConfig();
+    expect(component.showConfig()).toBe(true);
+  });
 });
