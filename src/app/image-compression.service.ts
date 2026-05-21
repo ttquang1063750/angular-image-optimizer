@@ -105,7 +105,8 @@ export class ImageCompressionService {
     const sourceBlob = await this.prepareSource(file);
     const dimensions = await this.resolveResizeDimensions(sourceBlob, options);
     const compressed = await this.runCompressor(sourceBlob, options, dimensions);
-    const watermarked = await this.applyWatermarkIfNeeded(compressed, options.watermark);
+    const watermarks = options.watermarks || (options.watermark ? [options.watermark] : undefined);
+    const watermarked = await this.applyWatermarksIfNeeded(compressed, watermarks);
     const withExif = await this.preserveExifIfEligible(file, watermarked, options);
     const fileName = this.buildFileName(file.name, withExif.type, options.namePattern, index);
     return this.buildResult(file, withExif, fileName);
@@ -223,15 +224,13 @@ export class ImageCompressionService {
     });
   }
 
-  private async applyWatermarkIfNeeded(
+  private async applyWatermarksIfNeeded(
     blob: Blob,
-    watermark: WatermarkConfig | undefined,
+    watermarks: WatermarkConfig[] | undefined,
   ): Promise<Blob> {
-    if (!watermark) return blob;
-    if (watermark.type === 'text' && !watermark.text) return blob;
-    if (watermark.type === 'image' && !watermark.image) return blob;
+    if (!watermarks || watermarks.length === 0) return blob;
     try {
-      return await this.applyWatermark(blob, watermark);
+      return await this.applyWatermarks(blob, watermarks);
     } catch {
       // Vẫn tiếp tục với ảnh đã nén nếu lỗi đóng dấu
       return blob;
@@ -317,7 +316,7 @@ export class ImageCompressionService {
     return candidate;
   }
 
-  private async applyWatermark(blob: Blob, config: WatermarkConfig): Promise<Blob> {
+  private async applyWatermarks(blob: Blob, watermarks: WatermarkConfig[]): Promise<Blob> {
     const baseImg = await this.loadImage(blob);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -326,13 +325,24 @@ export class ImageCompressionService {
     canvas.width = baseImg.width;
     canvas.height = baseImg.height;
     ctx.drawImage(baseImg, 0, 0);
-    ctx.globalAlpha = config.opacity;
 
-    if (config.type === 'text') {
-      this.drawTextWatermark(ctx, canvas.width, canvas.height, config);
-    } else {
-      const logo = await this.loadImage(config.image);
-      this.drawImageWatermark(ctx, canvas.width, canvas.height, logo, config);
+    for (const config of watermarks) {
+      if (config.type === 'text' && !config.text) continue;
+      if (config.type === 'image' && !config.image) continue;
+
+      ctx.save();
+      ctx.globalAlpha = config.opacity;
+      if (config.type === 'text') {
+        this.drawTextWatermark(ctx, canvas.width, canvas.height, config);
+      } else {
+        try {
+          const logo = await this.loadImage(config.image);
+          this.drawImageWatermark(ctx, canvas.width, canvas.height, logo, config);
+        } catch {
+          // ignore logo load failures
+        }
+      }
+      ctx.restore();
     }
 
     return this.canvasToBlob(canvas, blob.type);

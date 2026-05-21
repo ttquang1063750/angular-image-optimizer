@@ -5,104 +5,280 @@
   </label>
 
   @if (includeWatermark()) {
-    <div class="type-tabs">
-      <button type="button" [class.active]="watermarkType() === 'text'" (click)="setType('text')">
-        {{ t()['watermark_type_text'] }}
-      </button>
-      <button type="button" [class.active]="watermarkType() === 'image'" (click)="setType('image')">
-        {{ t()['watermark_type_image'] }}
-      </button>
-    </div>
+    <div class="watermark-list">
+      @for (item of watermarks(); track item.id; let idx = $index) {
+        <div
+          class="watermark-item"
+          [class.expanded]="expandedId() === item.id"
+          [class.dragging]="draggedIndex === idx"
+          draggable="true"
+          (dragstart)="onDragStart($event, idx)"
+          (dragover)="onDragOver($event)"
+          (drop)="onDrop($event, idx)"
+          (dragend)="onDragEnd()"
+        >
+          <!-- Item Header -->
+          <div class="watermark-item-header" (click)="toggleExpand(item.id)">
+            <!-- Grip Drag Handle -->
+            <div
+              class="drag-handle"
+              [title]="t()['watermark_drag_handle_title']"
+              (click)="$event.stopPropagation()"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path
+                  d="M8.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
+                />
+              </svg>
+            </div>
 
-    <div class="watermark-config">
-      @if (watermarkType() === 'text') {
-        <input
-          type="text"
-          [value]="watermarkText()"
-          (input)="onTextChange($event)"
-          [placeholder]="t()['watermark_placeholder']"
-          class="input-text"
-        />
+            <!-- Title & Index -->
+            <span class="watermark-title">
+              {{ t()['watermark_item_title'].replace('{index}', (idx + 1).toString()) }}
+            </span>
 
-        <div class="field">
-          <div class="input-with-label" [class.has-error]="errorFor('fontSize')">
-            <span class="sub-label">{{ t()['watermark_size'] }}</span>
-            <input
-              type="number"
-              [value]="watermarkFontSize()"
-              (input)="onFontSizeChange($event)"
-              [min]="ranges.watermarkFontSize.min"
-              [max]="ranges.watermarkFontSize.max"
-            />
+            <!-- Short Summary -->
+            <span class="watermark-summary-text">
+              @if (item.type === 'text') {
+                {{
+                  t()
+                    ['watermark_item_text_summary'].replace('{text}', item.text || '...')
+                    .replace('{position}', t()['pos_' + item.position.replace('-', '_')])
+                }}
+              } @else {
+                @if (item.imageName) {
+                  {{
+                    t()
+                      ['watermark_item_image_summary'].replace('{name}', item.imageName)
+                      .replace('{position}', t()['pos_' + item.position.replace('-', '_')])
+                  }}
+                } @else {
+                  {{
+                    t()['watermark_item_image_empty_summary'].replace(
+                      '{position}',
+                      t()['pos_' + item.position.replace('-', '_')]
+                    )
+                  }}
+                }
+              }
+            </span>
+
+            <div class="header-actions" (click)="$event.stopPropagation()">
+              <!-- Collapse Toggle Icon -->
+              <button
+                type="button"
+                class="btn-icon toggle-expand-btn"
+                (click)="toggleExpand(item.id)"
+                [attr.aria-label]="t()['btn_close']"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              <!-- Remove Watermark Button -->
+              <button
+                type="button"
+                class="btn-icon remove-wm-btn"
+                (click)="removeWatermark(item.id)"
+                [attr.aria-label]="t()['btn_cancel']"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  ></path>
+                </svg>
+              </button>
+            </div>
           </div>
-          @if (errorFor('fontSize'); as msg) {
-            <span class="field-error">{{ msg }}</span>
-          }
-        </div>
 
-        <div class="color-picker">
-          <input type="color" [value]="watermarkColor()" (input)="onColorChange($event)" />
-        </div>
-      } @else {
-        <div class="image-picker">
-          @if (watermarkImagePreviewUrl(); as url) {
-            <img [src]="url" class="logo-preview" alt="Logo preview" />
-            <button type="button" class="btn-remove-image" (click)="removeImage()">
-              {{ t()['watermark_remove_image'] }}
-            </button>
-          } @else {
-            <label class="btn-upload-image">
-              {{ t()['watermark_upload_image'] }}
-              <input type="file" accept="image/*" (change)="onImageSelected($event)" hidden />
-            </label>
-            <span class="hint">{{ t()['watermark_no_image'] }}</span>
-          }
-        </div>
+          <!-- Item Body -->
+          @if (expandedId() === item.id) {
+            <div class="watermark-item-body">
+              <div class="type-tabs">
+                <button
+                  type="button"
+                  [class.active]="item.type === 'text'"
+                  (click)="updateType(item.id, 'text')"
+                >
+                  {{ t()['watermark_type_text'] }}
+                </button>
+                <button
+                  type="button"
+                  [class.active]="item.type === 'image'"
+                  (click)="updateType(item.id, 'image')"
+                >
+                  {{ t()['watermark_type_image'] }}
+                </button>
+              </div>
 
-        <div class="field">
-          <div class="input-with-label" [class.has-error]="errorFor('imageSize')">
-            <span class="sub-label">{{ t()['watermark_size'] }}</span>
-            <input
-              type="number"
-              [value]="watermarkImageSize()"
-              (input)="onImageSizeChange($event)"
-              [min]="ranges.watermarkImageSize.min"
-              [max]="ranges.watermarkImageSize.max"
-            />
-          </div>
-          @if (errorFor('imageSize'); as msg) {
-            <span class="field-error">{{ msg }}</span>
+              <div class="watermark-config-row">
+                @if (item.type === 'text') {
+                  <input
+                    type="text"
+                    [value]="item.text"
+                    (input)="onTextChange(item.id, $event)"
+                    [placeholder]="t()['watermark_placeholder']"
+                    class="input-text"
+                  />
+
+                  <div class="field">
+                    <div class="input-with-label" [class.has-error]="errorFor(item.id, 'fontSize')">
+                      <span class="sub-label">{{ t()['watermark_size'] }}</span>
+                      <input
+                        type="number"
+                        [value]="item.fontSize"
+                        (input)="onFontSizeChange(item.id, $event)"
+                        [min]="ranges.watermarkFontSize.min"
+                        [max]="ranges.watermarkFontSize.max"
+                      />
+                    </div>
+                    @if (errorFor(item.id, 'fontSize'); as msg) {
+                      <span class="field-error">{{ msg }}</span>
+                    }
+                  </div>
+
+                  <div class="color-picker">
+                    <input
+                      type="color"
+                      [value]="item.color"
+                      (input)="onColorChange(item.id, $event)"
+                    />
+                  </div>
+                } @else {
+                  <div class="image-picker">
+                    @if (item.previewUrl; as url) {
+                      <img [src]="url" class="logo-preview" alt="Logo preview" />
+                      <button type="button" class="btn-remove-image" (click)="removeImage(item.id)">
+                        {{ t()['watermark_remove_image'] }}
+                      </button>
+                    } @else {
+                      <label class="btn-upload-image">
+                        {{ t()['watermark_upload_image'] }}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          (change)="onImageSelected(item.id, $event)"
+                          hidden
+                        />
+                      </label>
+                      <span class="hint">{{ t()['watermark_no_image'] }}</span>
+                    }
+                  </div>
+
+                  <div class="field">
+                    <div
+                      class="input-with-label"
+                      [class.has-error]="errorFor(item.id, 'imageSize')"
+                    >
+                      <span class="sub-label">{{ t()['watermark_size'] }}</span>
+                      <input
+                        type="number"
+                        [value]="item.size"
+                        (input)="onImageSizeChange(item.id, $event)"
+                        [min]="ranges.watermarkImageSize.min"
+                        [max]="ranges.watermarkImageSize.max"
+                      />
+                    </div>
+                    @if (errorFor(item.id, 'imageSize'); as msg) {
+                      <span class="field-error">{{ msg }}</span>
+                    }
+                  </div>
+                }
+
+                <div class="select-group">
+                  <span class="sub-label">{{ t()['watermark_pos'] }}</span>
+                  <select [value]="item.position" (change)="onPositionChange(item.id, $event)">
+                    <option value="bottom-right">{{ t()['pos_bottom_right'] }}</option>
+                    <option value="bottom-left">{{ t()['pos_bottom_left'] }}</option>
+                    <option value="top-right">{{ t()['pos_top_right'] }}</option>
+                    <option value="top-left">{{ t()['pos_top_left'] }}</option>
+                    <option value="center">{{ t()['pos_center'] }}</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <div class="input-with-label" [class.has-error]="errorFor(item.id, 'opacity')">
+                    <span class="sub-label">{{ t()['watermark_opacity'] }}</span>
+                    <input
+                      type="number"
+                      [value]="item.opacity"
+                      (input)="onOpacityChange(item.id, $event)"
+                      [min]="ranges.watermarkOpacity.min"
+                      [max]="ranges.watermarkOpacity.max"
+                      [step]="ranges.watermarkOpacity.step"
+                    />
+                  </div>
+                  @if (errorFor(item.id, 'opacity'); as msg) {
+                    <span class="field-error">{{ msg }}</span>
+                  }
+                </div>
+              </div>
+            </div>
           }
         </div>
       }
+    </div>
 
-      <div class="select-group">
-        <span class="sub-label">{{ t()['watermark_pos'] }}</span>
-        <select [value]="watermarkPosition()" (change)="onPositionChange($event)">
-          <option value="bottom-right">{{ t()['pos_bottom_right'] }}</option>
-          <option value="bottom-left">{{ t()['pos_bottom_left'] }}</option>
-          <option value="top-right">{{ t()['pos_top_right'] }}</option>
-          <option value="top-left">{{ t()['pos_top_left'] }}</option>
-          <option value="center">{{ t()['pos_center'] }}</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <div class="input-with-label" [class.has-error]="errorFor('opacity')">
-          <span class="sub-label">{{ t()['watermark_opacity'] }}</span>
-          <input
-            type="number"
-            [value]="watermarkOpacity()"
-            (input)="onOpacityChange($event)"
-            [min]="ranges.watermarkOpacity.min"
-            [max]="ranges.watermarkOpacity.max"
-            [step]="ranges.watermarkOpacity.step"
-          />
-        </div>
-        @if (errorFor('opacity'); as msg) {
-          <span class="field-error">{{ msg }}</span>
-        }
-      </div>
+    <!-- Add Buttons & Count limit -->
+    <div class="watermark-add-actions">
+      @if (watermarks().length < 5) {
+        <button type="button" class="btn-add btn-add-text" (click)="addWatermark('text')">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          {{ t()['watermark_add_text'] }}
+        </button>
+        <button type="button" class="btn-add btn-add-image" (click)="addWatermark('image')">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          {{ t()['watermark_add_image'] }}
+        </button>
+      } @else {
+        <span class="wm-limit-warning">
+          {{ t()['watermark_limit_reached'].replace('{max}', '5') }}
+        </span>
+      }
     </div>
   }
 </div>

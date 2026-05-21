@@ -8,8 +8,9 @@ import {
   SavedPresetData,
   UserPreset,
   WatermarkConfig,
-  WatermarkPosition,
   WatermarkType,
+  WatermarkItem,
+  SavedWatermarkData,
 } from './image-processing.model';
 import {
   DEFAULT_SETTINGS,
@@ -21,6 +22,8 @@ import {
   VALID_RESIZE_MODES,
   VALID_WATERMARK_POSITIONS,
   VALID_WATERMARK_TYPES,
+  DEFAULT_WATERMARK,
+  MAX_WATERMARKS,
 } from './image-processing.constants';
 
 @Injectable({
@@ -42,15 +45,7 @@ export class SettingsStateService {
   readonly startNumberingIndex = signal<number>(DEFAULT_SETTINGS.startNumberingIndex);
 
   readonly includeWatermark = signal<boolean>(DEFAULT_SETTINGS.includeWatermark);
-  readonly watermarkType = signal<WatermarkType>(DEFAULT_SETTINGS.watermarkType);
-  readonly watermarkText = signal<string>(DEFAULT_SETTINGS.watermarkText);
-  readonly watermarkPosition = signal<WatermarkPosition>(DEFAULT_SETTINGS.watermarkPosition);
-  readonly watermarkFontSize = signal<number>(DEFAULT_SETTINGS.watermarkFontSize);
-  readonly watermarkOpacity = signal<number>(DEFAULT_SETTINGS.watermarkOpacity);
-  readonly watermarkColor = signal<string>(DEFAULT_SETTINGS.watermarkColor);
-  readonly watermarkImage = signal<Blob | null>(null);
-  readonly watermarkImageSize = signal<number>(DEFAULT_SETTINGS.watermarkImageSize);
-  readonly watermarkImagePreviewUrl = signal<string | null>(null);
+  readonly watermarks = signal<WatermarkItem[]>([]);
 
   readonly preserveExif = signal<boolean>(DEFAULT_SETTINGS.preserveExif);
 
@@ -71,22 +66,129 @@ export class SettingsStateService {
         includeNumbering: this.includeNumbering(),
         startIndex: this.startNumberingIndex(),
       },
-      watermark: this.buildWatermarkConfig(),
+      watermarks: this.buildWatermarkConfigList(),
       preserveExif: this.preserveExif(),
     };
   });
 
   constructor() {
+    this.watermarks.set(this.initWatermarksFromDefault());
     this.loadPresetsFromStorage();
   }
 
-  setWatermarkImage(blob: Blob | null): void {
-    // Revoke preview URL cũ trước khi tạo URL mới
-    const oldUrl = this.watermarkImagePreviewUrl();
-    if (oldUrl) URL.revokeObjectURL(oldUrl);
+  private initWatermarksFromDefault(): WatermarkItem[] {
+    const defaultWms = DEFAULT_SETTINGS.watermarks || [];
+    return defaultWms.map((w) => {
+      if (w.type === 'text') {
+        return {
+          id: w.id,
+          type: 'text',
+          text: w.text,
+          fontSize: w.fontSize,
+          color: w.color,
+          opacity: w.opacity,
+          position: w.position,
+        };
+      } else {
+        return {
+          id: w.id,
+          type: 'image',
+          image: null,
+          imageName: w.imageName || null,
+          previewUrl: null,
+          size: w.size,
+          opacity: w.opacity,
+          position: w.position,
+        };
+      }
+    });
+  }
 
-    this.watermarkImage.set(blob);
-    this.watermarkImagePreviewUrl.set(blob ? URL.createObjectURL(blob) : null);
+  setWatermarkImage(id: string, file: Blob | null): void {
+    this.watermarks.update((list) =>
+      list.map((w) => {
+        if (w.id === id && w.type === 'image') {
+          // Revoke old URL to prevent memory leaks
+          if (w.previewUrl) URL.revokeObjectURL(w.previewUrl);
+          return {
+            ...w,
+            image: file,
+            imageName: file ? (file as File).name || 'logo.png' : null,
+            previewUrl: file ? URL.createObjectURL(file) : null,
+          };
+        }
+        return w;
+      }),
+    );
+  }
+
+  addWatermark(type: WatermarkType): void {
+    const current = this.watermarks();
+    if (current.length >= MAX_WATERMARKS) return;
+
+    const id = crypto.randomUUID();
+    let newItem: WatermarkItem;
+    if (type === 'text') {
+      newItem = {
+        id,
+        type: 'text',
+        text: 'Watermark',
+        fontSize: DEFAULT_WATERMARK.fontSizePercent,
+        color: DEFAULT_WATERMARK.color,
+        opacity: DEFAULT_WATERMARK.opacity,
+        position: 'bottom-right',
+      };
+    } else {
+      newItem = {
+        id,
+        type: 'image',
+        image: null,
+        imageName: null,
+        previewUrl: null,
+        size: DEFAULT_WATERMARK.imageSizePercent,
+        opacity: DEFAULT_WATERMARK.opacity,
+        position: 'bottom-right',
+      };
+    }
+
+    this.watermarks.set([...current, newItem]);
+  }
+
+  removeWatermark(id: string): void {
+    const item = this.watermarks().find((w) => w.id === id);
+    if (item && item.type === 'image' && item.previewUrl) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
+    this.watermarks.update((list) => list.filter((w) => w.id !== id));
+  }
+
+  updateWatermark(id: string, updates: Partial<WatermarkItem>): void {
+    this.watermarks.update((list) =>
+      list.map((w) => {
+        if (w.id === id) {
+          return { ...w, ...updates } as WatermarkItem;
+        }
+        return w;
+      }),
+    );
+  }
+
+  setWatermarks(items: WatermarkItem[]): void {
+    const newItemIds = new Set(items.map((item) => item.id));
+    for (const w of this.watermarks()) {
+      if (w.type === 'image' && w.previewUrl && !newItemIds.has(w.id)) {
+        URL.revokeObjectURL(w.previewUrl);
+      }
+    }
+    this.watermarks.set(items);
+  }
+
+  private clearAllWatermarkPreviewUrls(): void {
+    for (const w of this.watermarks()) {
+      if (w.type === 'image' && w.previewUrl) {
+        URL.revokeObjectURL(w.previewUrl);
+      }
+    }
   }
 
   async saveCustomPreset(name: string): Promise<boolean> {
@@ -199,13 +301,38 @@ export class SettingsStateService {
   }
 
   private async buildSavedPresetData(): Promise<SavedPresetData> {
-    let watermarkImageBase64: string | null = null;
-    const wmImage = this.watermarkImage();
-    if (wmImage && this.includeWatermark() && this.watermarkType() === 'image') {
-      try {
-        watermarkImageBase64 = await this.blobToBase64(wmImage);
-      } catch {
-        // Encode fail: preset vẫn save được nhưng không có watermark image
+    const savedWatermarks: SavedWatermarkData[] = [];
+    if (this.includeWatermark()) {
+      for (const w of this.watermarks()) {
+        if (w.type === 'text') {
+          savedWatermarks.push({
+            id: w.id,
+            type: 'text',
+            text: w.text,
+            fontSize: w.fontSize,
+            color: w.color,
+            opacity: w.opacity,
+            position: w.position,
+          });
+        } else {
+          let base64: string | null = null;
+          if (w.image) {
+            try {
+              base64 = await this.blobToBase64(w.image);
+            } catch {
+              // Encode fail
+            }
+          }
+          savedWatermarks.push({
+            id: w.id,
+            type: 'image',
+            imageBase64: base64,
+            imageName: w.imageName,
+            size: w.size,
+            opacity: w.opacity,
+            position: w.position,
+          });
+        }
       }
     }
 
@@ -221,14 +348,7 @@ export class SettingsStateService {
       includeNumbering: this.includeNumbering(),
       startNumberingIndex: this.startNumberingIndex(),
       includeWatermark: this.includeWatermark(),
-      watermarkType: this.watermarkType(),
-      watermarkText: this.watermarkText(),
-      watermarkPosition: this.watermarkPosition(),
-      watermarkFontSize: this.watermarkFontSize(),
-      watermarkOpacity: this.watermarkOpacity(),
-      watermarkColor: this.watermarkColor(),
-      watermarkImageBase64,
-      watermarkImageSize: this.watermarkImageSize(),
+      watermarks: savedWatermarks,
       preserveExif: this.preserveExif(),
     };
   }
@@ -245,57 +365,124 @@ export class SettingsStateService {
     this.includeNumbering.set(data.includeNumbering);
     this.startNumberingIndex.set(data.startNumberingIndex);
     this.includeWatermark.set(data.includeWatermark);
-    this.watermarkType.set(data.watermarkType);
-    this.watermarkText.set(data.watermarkText);
-    this.watermarkPosition.set(data.watermarkPosition);
-    this.watermarkFontSize.set(data.watermarkFontSize);
-    this.watermarkOpacity.set(data.watermarkOpacity);
-    this.watermarkColor.set(data.watermarkColor);
-    this.watermarkImageSize.set(data.watermarkImageSize);
     this.preserveExif.set(data.preserveExif);
 
-    if (data.watermarkImageBase64) {
-      try {
-        const blob = this.base64ToBlob(data.watermarkImageBase64);
-        this.setWatermarkImage(blob);
-      } catch {
-        this.setWatermarkImage(null);
+    this.clearAllWatermarkPreviewUrls();
+
+    const items: WatermarkItem[] = [];
+    if (data.watermarks && data.watermarks.length > 0) {
+      for (const w of data.watermarks) {
+        if (items.length >= MAX_WATERMARKS) break;
+        if (w.type === 'text') {
+          items.push({
+            id: w.id || crypto.randomUUID(),
+            type: 'text',
+            text: w.text,
+            fontSize: w.fontSize,
+            color: w.color,
+            opacity: w.opacity,
+            position: w.position,
+          });
+        } else {
+          let blob: Blob | null = null;
+          let previewUrl: string | null = null;
+          if (w.imageBase64) {
+            try {
+              blob = this.base64ToBlob(w.imageBase64);
+              previewUrl = URL.createObjectURL(blob);
+            } catch {
+              // ignore
+            }
+          }
+          items.push({
+            id: w.id || crypto.randomUUID(),
+            type: 'image',
+            image: blob,
+            imageName: w.imageName || null,
+            previewUrl,
+            size: w.size,
+            opacity: w.opacity,
+            position: w.position,
+          });
+        }
       }
     } else {
-      this.setWatermarkImage(null);
+      // Backward compatibility
+      const type = data.watermarkType || 'text';
+      const position = data.watermarkPosition || 'bottom-right';
+      const opacity = data.watermarkOpacity ?? DEFAULT_WATERMARK.opacity;
+
+      if (type === 'text') {
+        items.push({
+          id: crypto.randomUUID(),
+          type: 'text',
+          text: data.watermarkText || DEFAULT_WATERMARK.text,
+          fontSize: data.watermarkFontSize ?? DEFAULT_WATERMARK.fontSizePercent,
+          color: data.watermarkColor || DEFAULT_WATERMARK.color,
+          opacity,
+          position,
+        });
+      } else {
+        let blob: Blob | null = null;
+        let previewUrl: string | null = null;
+        if (data.watermarkImageBase64) {
+          try {
+            blob = this.base64ToBlob(data.watermarkImageBase64);
+            previewUrl = URL.createObjectURL(blob);
+          } catch {
+            // ignore
+          }
+        }
+        items.push({
+          id: crypto.randomUUID(),
+          type: 'image',
+          image: blob,
+          imageName: data.watermarkImageName || null,
+          previewUrl,
+          size: data.watermarkImageSize ?? DEFAULT_WATERMARK.imageSizePercent,
+          opacity,
+          position,
+        });
+      }
     }
+
+    this.watermarks.set(items);
   }
 
-  private buildWatermarkConfig(): WatermarkConfig | undefined {
+  private buildWatermarkConfigList(): WatermarkConfig[] | undefined {
     if (!this.includeWatermark()) return undefined;
 
-    if (this.watermarkType() === 'image') {
-      const image = this.watermarkImage();
-      if (!image) return undefined;
-      return {
-        type: 'image',
-        image,
-        size: this.watermarkImageSize(),
-        opacity: this.watermarkOpacity(),
-        position: this.watermarkPosition(),
-      };
+    const list: WatermarkConfig[] = [];
+    for (const w of this.watermarks()) {
+      if (w.type === 'text') {
+        if (w.text.trim()) {
+          list.push({
+            id: w.id,
+            type: 'text',
+            text: w.text,
+            fontSize: w.fontSize,
+            color: w.color,
+            opacity: w.opacity,
+            position: w.position,
+          });
+        }
+      } else {
+        if (w.image) {
+          list.push({
+            id: w.id,
+            type: 'image',
+            image: w.image,
+            imageName: w.imageName,
+            size: w.size,
+            opacity: w.opacity,
+            position: w.position,
+          });
+        }
+      }
     }
-
-    return {
-      type: 'text',
-      text: this.watermarkText(),
-      fontSize: this.watermarkFontSize(),
-      opacity: this.watermarkOpacity(),
-      color: this.watermarkColor(),
-      position: this.watermarkPosition(),
-    };
+    return list.length > 0 ? list : undefined;
   }
 
-  /**
-   * Validate một item từ JSON ngoại lai và normalize về `UserPreset`. Re-issue
-   * `id` mới (không tin id từ file ngoại) và clamp/whitelist mọi field.
-   * Trả về `null` nếu cấu trúc tối thiểu không hợp lệ.
-   */
   private validateImportedPreset(item: unknown): UserPreset | null {
     if (!item || typeof item !== 'object') return null;
     const rec = item as Record<string, unknown>;
@@ -318,15 +505,68 @@ export class SettingsStateService {
     const selectedPreset = this.pickEnum(raw['selectedPreset'], VALID_COMPRESSION_PRESETS);
     const selectedFormat = this.pickEnum(raw['selectedFormat'], VALID_OUTPUT_FORMATS);
     const selectedResizeMode = this.pickEnum(raw['selectedResizeMode'], VALID_RESIZE_MODES);
-    const watermarkType = this.pickEnum(raw['watermarkType'], VALID_WATERMARK_TYPES);
-    const watermarkPosition = this.pickEnum(raw['watermarkPosition'], VALID_WATERMARK_POSITIONS);
+    const includeWatermark = this.pickBoolean(
+      raw['includeWatermark'],
+      DEFAULT_SETTINGS.includeWatermark,
+    );
 
     if (!selectedPreset || !selectedFormat || !selectedResizeMode) return null;
-    if (!watermarkType || !watermarkPosition) return null;
 
-    const wmBase64 = raw['watermarkImageBase64'];
-    const watermarkImageBase64 =
-      typeof wmBase64 === 'string' && wmBase64.startsWith('data:') ? wmBase64 : null;
+    const watermarks: SavedWatermarkData[] = [];
+    if (Array.isArray(raw['watermarks'])) {
+      for (const item of raw['watermarks']) {
+        if (watermarks.length >= MAX_WATERMARKS) break;
+        const validatedWm = this.sanitizeSavedWatermark(item);
+        if (validatedWm) watermarks.push(validatedWm);
+      }
+    } else {
+      // Backward compatibility
+      const watermarkType = this.pickEnum(raw['watermarkType'], VALID_WATERMARK_TYPES) || 'text';
+      const watermarkPosition =
+        this.pickEnum(raw['watermarkPosition'], VALID_WATERMARK_POSITIONS) || 'bottom-right';
+      const watermarkOpacity = this.clampNumber(
+        raw['watermarkOpacity'],
+        INPUT_RANGES.watermarkOpacity.min,
+        INPUT_RANGES.watermarkOpacity.max,
+        DEFAULT_WATERMARK.opacity,
+      );
+
+      if (watermarkType === 'text') {
+        watermarks.push({
+          id: crypto.randomUUID(),
+          type: 'text',
+          text: this.pickString(raw['watermarkText'], DEFAULT_WATERMARK.text),
+          fontSize: this.clampNumber(
+            raw['watermarkFontSize'],
+            INPUT_RANGES.watermarkFontSize.min,
+            INPUT_RANGES.watermarkFontSize.max,
+            DEFAULT_WATERMARK.fontSizePercent,
+          ),
+          color: this.pickString(raw['watermarkColor'], DEFAULT_WATERMARK.color),
+          opacity: watermarkOpacity,
+          position: watermarkPosition,
+        });
+      } else {
+        const wmBase64 = raw['watermarkImageBase64'];
+        const watermarkImageBase64 =
+          typeof wmBase64 === 'string' && wmBase64.startsWith('data:') ? wmBase64 : null;
+        watermarks.push({
+          id: crypto.randomUUID(),
+          type: 'image',
+          imageBase64: watermarkImageBase64,
+          imageName:
+            typeof raw['watermarkImageName'] === 'string' ? raw['watermarkImageName'] : null,
+          size: this.clampNumber(
+            raw['watermarkImageSize'],
+            INPUT_RANGES.watermarkImageSize.min,
+            INPUT_RANGES.watermarkImageSize.max,
+            DEFAULT_WATERMARK.imageSizePercent,
+          ),
+          opacity: watermarkOpacity,
+          position: watermarkPosition,
+        });
+      }
+    }
 
     return {
       selectedPreset,
@@ -362,35 +602,62 @@ export class SettingsStateService {
         INPUT_RANGES.startNumberingIndex.max,
         DEFAULT_SETTINGS.startNumberingIndex,
       ),
-      includeWatermark: this.pickBoolean(
-        raw['includeWatermark'],
-        DEFAULT_SETTINGS.includeWatermark,
-      ),
-      watermarkType,
-      watermarkText: this.pickString(raw['watermarkText'], DEFAULT_SETTINGS.watermarkText),
-      watermarkPosition,
-      watermarkFontSize: this.clampNumber(
-        raw['watermarkFontSize'],
-        INPUT_RANGES.watermarkFontSize.min,
-        INPUT_RANGES.watermarkFontSize.max,
-        DEFAULT_SETTINGS.watermarkFontSize,
-      ),
-      watermarkOpacity: this.clampNumber(
-        raw['watermarkOpacity'],
-        INPUT_RANGES.watermarkOpacity.min,
-        INPUT_RANGES.watermarkOpacity.max,
-        DEFAULT_SETTINGS.watermarkOpacity,
-      ),
-      watermarkColor: this.pickString(raw['watermarkColor'], DEFAULT_SETTINGS.watermarkColor),
-      watermarkImageBase64,
-      watermarkImageSize: this.clampNumber(
-        raw['watermarkImageSize'],
-        INPUT_RANGES.watermarkImageSize.min,
-        INPUT_RANGES.watermarkImageSize.max,
-        DEFAULT_SETTINGS.watermarkImageSize,
-      ),
+      includeWatermark,
+      watermarks,
       preserveExif: this.pickBoolean(raw['preserveExif'], DEFAULT_SETTINGS.preserveExif),
     };
+  }
+
+  private sanitizeSavedWatermark(item: unknown): SavedWatermarkData | null {
+    if (!item || typeof item !== 'object') return null;
+    const rec = item as Record<string, unknown>;
+
+    const type = this.pickEnum(rec['type'], VALID_WATERMARK_TYPES);
+    const position = this.pickEnum(rec['position'], VALID_WATERMARK_POSITIONS);
+    if (!type || !position) return null;
+
+    const id = typeof rec['id'] === 'string' ? rec['id'] : crypto.randomUUID();
+    const opacity = this.clampNumber(
+      rec['opacity'],
+      INPUT_RANGES.watermarkOpacity.min,
+      INPUT_RANGES.watermarkOpacity.max,
+      DEFAULT_WATERMARK.opacity,
+    );
+
+    if (type === 'text') {
+      return {
+        id,
+        type: 'text',
+        text: this.pickString(rec['text'], DEFAULT_WATERMARK.text),
+        fontSize: this.clampNumber(
+          rec['fontSize'],
+          INPUT_RANGES.watermarkFontSize.min,
+          INPUT_RANGES.watermarkFontSize.max,
+          DEFAULT_WATERMARK.fontSizePercent,
+        ),
+        color: this.pickString(rec['color'], DEFAULT_WATERMARK.color),
+        opacity,
+        position,
+      };
+    } else {
+      const imgBase64 = rec['imageBase64'];
+      const imageBase64 =
+        typeof imgBase64 === 'string' && imgBase64.startsWith('data:') ? imgBase64 : null;
+      return {
+        id,
+        type: 'image',
+        imageBase64,
+        imageName: typeof rec['imageName'] === 'string' ? rec['imageName'] : null,
+        size: this.clampNumber(
+          rec['size'],
+          INPUT_RANGES.watermarkImageSize.min,
+          INPUT_RANGES.watermarkImageSize.max,
+          DEFAULT_WATERMARK.imageSizePercent,
+        ),
+        opacity,
+        position,
+      };
+    }
   }
 
   private pickEnum<T extends string>(value: unknown, whitelist: readonly T[]): T | null {
