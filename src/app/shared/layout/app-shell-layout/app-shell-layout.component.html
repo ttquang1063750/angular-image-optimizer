@@ -5,7 +5,7 @@
   </header>
 
   <main>
-    <app-image-uploader></app-image-uploader>
+    <router-outlet></router-outlet>
   </main>
 
   <footer>
@@ -13,13 +13,11 @@
   </footer>
 </div>
 
-<!-- Nút mở Modal -->
 <button class="donation-fab" (click)="toggleSupportModal(true)" [attr.title]="t()['btn_support']">
   <span class="icon">☕</span>
   <span class="text">{{ t()['btn_support'] }}</span>
 </button>
 
-<!-- Modal Ủng hộ -->
 @if (isSupportModalOpen()) {
   <div
     class="modal-overlay"
@@ -41,7 +39,6 @@
         </p>
 
         <div class="support-grid">
-          <!-- PayPal -->
           <div class="support-card paypal">
             <div class="card-icon">💳</div>
             <h3>PayPal</h3>
@@ -51,7 +48,6 @@
             }}</a>
           </div>
 
-          <!-- MoMo -->
           <div class="support-card momo">
             <div class="card-icon">📱</div>
             <h3>MoMo</h3>
@@ -61,7 +57,6 @@
             </div>
           </div>
 
-          <!-- Bank Account -->
           <div class="support-card bank">
             <div class="card-icon">🏦</div>
             <h3>{{ t()['support_bank_desc'] }}</h3>
@@ -77,5 +72,3 @@
     </div>
   </div>
 }
-
-<router-outlet />

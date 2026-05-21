@@ -296,7 +296,7 @@ Tasks:
 
 | Phase | Status | Branch | Notes |
 |---|---|---|---|
-| 1. Routing + SSG | ⏳ Pending | - | - |
+| 1. Routing + SSG | ✅ Done | feature/seo-phase-1-ssg | 9 routes prerendered. /optimize = Client mode (skip prerender). Dynamic-imported compressorjs/jszip/heic2any. Services SSR-safe via isPlatformBrowser. |
 | 2. Marketing shell + SeoService | ⏳ Pending | - | - |
 | 3. Landing page | ⏳ Pending | - | - |
 | 4. SEO meta + structured data | ⏳ Pending | - | - |
