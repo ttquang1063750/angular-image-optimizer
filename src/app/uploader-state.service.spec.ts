@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { UploaderStateService } from './uploader-state.service';
 import { ImageCompressionService } from './image-compression.service';
+import { SettingsStateService } from './settings-state.service';
 import { FileStatusUpdate, ProcessedFile } from './image-processing.model';
 
 vi.mock('heic2any', () => ({
@@ -154,5 +155,49 @@ describe('UploaderStateService', () => {
     expect(url1).toBe(url2);
     expect(createSpy).toHaveBeenCalledTimes(1);
     createSpy.mockRestore();
+  });
+
+  describe('reorderFiles', () => {
+    const sampleFiles = (): ProcessedFile[] => [
+      { id: 'a', file: new File([''], 'a.jpg'), status: 'done', progress: 100 },
+      { id: 'b', file: new File([''], 'b.jpg'), status: 'done', progress: 100 },
+      { id: 'c', file: new File([''], 'c.jpg'), status: 'done', progress: 100 },
+    ];
+
+    it('di chuyển file trong mảng processedFiles', () => {
+      service.processedFiles.set(sampleFiles());
+      service.reorderFiles(0, 2);
+
+      const ids = service.processedFiles().map((f) => f.id);
+      expect(ids).toEqual(['b', 'c', 'a']);
+    });
+
+    it('bỏ qua khi fromIndex === toIndex', () => {
+      service.processedFiles.set(sampleFiles());
+      service.reorderFiles(1, 1);
+      const ids = service.processedFiles().map((f) => f.id);
+      expect(ids).toEqual(['a', 'b', 'c']);
+      expect(service.settingsChanged()).toBe(false);
+    });
+
+    it('bỏ qua khi index ngoài range', () => {
+      service.processedFiles.set(sampleFiles());
+      service.reorderFiles(-1, 0);
+      service.reorderFiles(0, 99);
+      const ids = service.processedFiles().map((f) => f.id);
+      expect(ids).toEqual(['a', 'b', 'c']);
+    });
+
+    it('chỉ mark settingsChanged khi numbering bật', () => {
+      const settings = TestBed.inject(SettingsStateService);
+      settings.includeNumbering.set(false);
+      service.processedFiles.set(sampleFiles());
+      service.reorderFiles(0, 2);
+      expect(service.settingsChanged()).toBe(false);
+
+      settings.includeNumbering.set(true);
+      service.reorderFiles(0, 1);
+      expect(service.settingsChanged()).toBe(true);
+    });
   });
 });

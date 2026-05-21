@@ -1,6 +1,25 @@
 <div class="file-list">
-  @for (item of processedFiles(); track item.id) {
-    <app-file-item [item]="item"></app-file-item>
+  @for (item of processedFiles(); track item.id; let idx = $index) {
+    <div
+      class="file-row"
+      [class.dragging]="draggedIndex() === idx"
+      [class.drag-over]="dragOverIndex() === idx && draggedIndex() !== idx"
+      draggable="true"
+      (dragstart)="onDragStart($event, idx)"
+      (dragover)="onDragOver($event, idx)"
+      (dragleave)="onDragLeave(idx)"
+      (drop)="onDrop($event, idx)"
+      (dragend)="onDragEnd()"
+    >
+      <div class="drag-handle" [title]="t()['file_drag_handle_title']" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path
+            d="M8.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
+          />
+        </svg>
+      </div>
+      <app-file-item [item]="item"></app-file-item>
+    </div>
   } @empty {
     <div class="empty-state">{{ t()['empty_state'] }}</div>
   }

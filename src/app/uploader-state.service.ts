@@ -84,6 +84,23 @@ export class UploaderStateService {
     });
   }
 
+  reorderFiles(fromIndex: number, toIndex: number): void {
+    const files = this.processedFiles();
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || fromIndex >= files.length) return;
+    if (toIndex < 0 || toIndex >= files.length) return;
+
+    const next = [...files];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    this.processedFiles.set(next);
+
+    // Thứ tự chỉ ảnh hưởng tên file đầu ra khi numbering bật → mark recompress
+    if (this.settings.includeNumbering()) {
+      this.markSettingsChanged();
+    }
+  }
+
   clearAll(): void {
     this.processedFiles().forEach((f) => this.revokeResultUrl(f));
     this.processedFiles.set([]);

@@ -55,6 +55,7 @@ export const vi: TranslationDict = {
   watermark_item_image_summary: 'Hình: {name} tại {position}',
   watermark_item_image_empty_summary: 'Hình chưa chọn tại {position}',
   watermark_drag_handle_title: 'Kéo để sắp xếp thứ tự',
+  file_drag_handle_title: 'Kéo để sắp xếp file',
 
   // Validation
   error_value_range: 'Giá trị phải từ {min} đến {max}',

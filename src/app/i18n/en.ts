@@ -56,6 +56,7 @@ export const en: TranslationDict = {
   watermark_item_image_summary: 'Image: {name} at {position}',
   watermark_item_image_empty_summary: 'No image selected at {position}',
   watermark_drag_handle_title: 'Drag to reorder',
+  file_drag_handle_title: 'Drag to reorder file',
 
   // Validation
   error_value_range: 'Value must be between {min} and {max}',
