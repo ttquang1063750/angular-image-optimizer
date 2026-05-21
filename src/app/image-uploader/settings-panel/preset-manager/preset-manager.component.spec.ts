@@ -15,6 +15,7 @@ describe('PresetManagerComponent', () => {
   let stateMock: Partial<UploaderStateService>;
 
   beforeEach(async () => {
+    localStorage.clear();
     stateMock = { markSettingsChanged: vi.fn() };
 
     await TestBed.configureTestingModule({
@@ -35,6 +36,8 @@ describe('PresetManagerComponent', () => {
     fixture = TestBed.createComponent(PresetManagerComponent);
     component = fixture.componentInstance;
     settings = TestBed.inject(SettingsStateService);
+    // SettingsStateService có thể đã được instantiate trước khi clear → reset list
+    settings.customPresets.set([]);
     fixture.detectChanges();
   });
 

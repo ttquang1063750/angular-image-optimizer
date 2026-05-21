@@ -24,6 +24,7 @@ import {
   HEIC_CONVERT_QUALITY,
   WATERMARK_OUTPUT_QUALITY,
 } from './image-processing.constants';
+import { preserveJpegExif } from './utils/exif';
 
 interface ResizeDimensions {
   width?: number;
@@ -105,8 +106,32 @@ export class ImageCompressionService {
     const dimensions = await this.resolveResizeDimensions(sourceBlob, options);
     const compressed = await this.runCompressor(sourceBlob, options, dimensions);
     const watermarked = await this.applyWatermarkIfNeeded(compressed, options.watermark);
-    const fileName = this.buildFileName(file.name, watermarked.type, options.namePattern, index);
-    return this.buildResult(file, watermarked, fileName);
+    const withExif = await this.preserveExifIfEligible(file, watermarked, options);
+    const fileName = this.buildFileName(file.name, withExif.type, options.namePattern, index);
+    return this.buildResult(file, withExif, fileName);
+  }
+
+  /**
+   * Chèn EXIF từ file gốc vào output đã nén, chỉ khi:
+   *  - User bật `preserveExif`
+   *  - Cả input MIME và output MIME đều là `image/jpeg`
+   *
+   * Các trường hợp khác (WebP output, HEIC source, không có EXIF) silent bỏ qua.
+   */
+  private async preserveExifIfEligible(
+    originalFile: File,
+    compressed: Blob,
+    options: CompressionOptions,
+  ): Promise<Blob> {
+    if (!options.preserveExif) return compressed;
+    if (originalFile.type !== 'image/jpeg') return compressed;
+    if (compressed.type !== 'image/jpeg') return compressed;
+    try {
+      return await preserveJpegExif(originalFile, compressed);
+    } catch {
+      // Lỗi parse EXIF: giữ output không có metadata thay vì fail toàn bộ
+      return compressed;
+    }
   }
 
   // --- Pipeline steps ---

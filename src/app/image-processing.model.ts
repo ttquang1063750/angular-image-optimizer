@@ -57,6 +57,8 @@ export interface CompressionOptions {
   resizePercent?: number;
   namePattern?: FileNamePattern;
   watermark?: WatermarkConfig;
+  // Giữ EXIF của ảnh gốc khi cả input và output đều là JPEG
+  preserveExif?: boolean;
 }
 
 // Định nghĩa cấu trúc dữ liệu trả về cho mỗi file sau khi nén
@@ -113,6 +115,7 @@ export interface SavedPresetData {
   watermarkImageBase64?: string | null;
   watermarkImageName?: string | null;
   watermarkImageSize: number;
+  preserveExif: boolean;
 }
 
 // Interface đại diện cho một preset tùy chỉnh của người dùng

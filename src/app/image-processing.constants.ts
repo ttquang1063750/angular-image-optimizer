@@ -85,6 +85,7 @@ export const DEFAULT_SETTINGS: SavedPresetData = {
   watermarkColor: DEFAULT_WATERMARK.color,
   watermarkImageBase64: null,
   watermarkImageSize: DEFAULT_WATERMARK.imageSizePercent,
+  preserveExif: false,
 };
 
 // Preset feature: storage key, export filename, default id sentinel

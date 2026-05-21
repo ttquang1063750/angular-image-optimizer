@@ -90,4 +90,14 @@ describe('SettingsPanelComponent', () => {
     expect(component.errorFor('percent')).toBeUndefined();
     expect(settings.resizePercent()).toBe(75);
   });
+
+  it('togglePreserveExif cập nhật signal + markSettingsChanged', () => {
+    expect(settings.preserveExif()).toBe(false);
+    component.togglePreserveExif({ target: { checked: true } } as unknown as Event);
+    expect(settings.preserveExif()).toBe(true);
+    expect(stateMock.markSettingsChanged).toHaveBeenCalled();
+
+    component.togglePreserveExif({ target: { checked: false } } as unknown as Event);
+    expect(settings.preserveExif()).toBe(false);
+  });
 });

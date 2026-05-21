@@ -60,4 +60,49 @@
       font-size: 0.9rem;
     }
   }
+
+  .exif-toggle {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--color-surface-alt);
+    }
+
+    input[type='checkbox'] {
+      margin-top: 3px;
+      cursor: pointer;
+
+      &:disabled {
+        cursor: not-allowed;
+      }
+    }
+
+    &:has(input:disabled) {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .exif-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .exif-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .exif-hint {
+      font-size: 0.75rem;
+      color: var(--color-text-subtle);
+    }
+  }
 }

@@ -120,6 +120,7 @@ describe('SettingsStateService', () => {
       service.selectedFormat.set('image/webp');
       service.namePrefix.set('test-');
       service.includeWatermark.set(true);
+      service.preserveExif.set(true);
 
       service.resetToDefaults();
 
@@ -127,6 +128,17 @@ describe('SettingsStateService', () => {
       expect(service.selectedFormat()).toBe('image/jpeg');
       expect(service.namePrefix()).toBe('');
       expect(service.includeWatermark()).toBe(false);
+      expect(service.preserveExif()).toBe(false);
+    });
+
+    it('saveCustomPreset + loadCustomPreset roundtrip preserveExif', async () => {
+      service.preserveExif.set(true);
+      const ok = await service.saveCustomPreset('Exif On');
+      expect(ok).toBe(true);
+
+      service.preserveExif.set(false);
+      service.loadCustomPreset(service.customPresets()[0].id);
+      expect(service.preserveExif()).toBe(true);
     });
 
     it('saveCustomPreset: lưu preset thành công và không cho trùng tên', async () => {

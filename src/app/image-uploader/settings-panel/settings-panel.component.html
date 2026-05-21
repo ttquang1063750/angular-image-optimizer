@@ -40,6 +40,19 @@
         WebP
       </button>
     </div>
+
+    <label class="exif-toggle">
+      <input
+        type="checkbox"
+        [checked]="preserveExif()"
+        [disabled]="selectedFormat() !== 'image/jpeg'"
+        (change)="togglePreserveExif($event)"
+      />
+      <span class="exif-text">
+        <span class="exif-label">{{ t()['exif_preserve'] }}</span>
+        <span class="exif-hint">{{ t()['exif_hint'] }}</span>
+      </span>
+    </label>
   </div>
 
   <div class="control-group">

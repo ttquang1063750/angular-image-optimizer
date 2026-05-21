@@ -27,6 +27,7 @@ export class SettingsPanelComponent {
   readonly resizeWidth = this.settings.resizeWidth;
   readonly resizeHeight = this.settings.resizeHeight;
   readonly resizePercent = this.settings.resizePercent;
+  readonly preserveExif = this.settings.preserveExif;
 
   readonly ranges = INPUT_RANGES;
   readonly errors = signal<Record<string, string>>({});
@@ -38,6 +39,12 @@ export class SettingsPanelComponent {
 
   setFormat(format: OutputFormat): void {
     this.settings.selectedFormat.set(format);
+    this.state.markSettingsChanged();
+  }
+
+  togglePreserveExif(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.settings.preserveExif.set(checked);
     this.state.markSettingsChanged();
   }
 

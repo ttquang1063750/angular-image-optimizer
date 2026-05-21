@@ -23,6 +23,8 @@ export const en: TranslationDict = {
   preset_max: 'Maximum',
 
   label_output_format: 'Output Format:',
+  exif_preserve: 'Preserve EXIF metadata',
+  exif_hint: 'Keep camera info, GPS, timestamps. JPEG → JPEG only.',
   label_output_size: 'Output Size:',
   resize_auto: 'Auto',
   resize_width: 'Width',

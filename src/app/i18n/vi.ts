@@ -22,6 +22,8 @@ export const vi: TranslationDict = {
   preset_max: 'Nén tối đa',
 
   label_output_format: 'Định dạng đầu ra:',
+  exif_preserve: 'Giữ metadata EXIF',
+  exif_hint: 'Giữ thông tin máy ảnh, GPS, thời gian. Chỉ áp dụng cho JPEG → JPEG.',
   label_output_size: 'Kích thước đầu ra:',
   resize_auto: 'Tự động',
   resize_width: 'Chiều ngang',

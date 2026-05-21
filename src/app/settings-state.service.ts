@@ -52,6 +52,8 @@ export class SettingsStateService {
   readonly watermarkImageSize = signal<number>(DEFAULT_SETTINGS.watermarkImageSize);
   readonly watermarkImagePreviewUrl = signal<string | null>(null);
 
+  readonly preserveExif = signal<boolean>(DEFAULT_SETTINGS.preserveExif);
+
   readonly customPresets = signal<UserPreset[]>([]);
 
   readonly currentOptions = computed<CompressionOptions>(() => {
@@ -70,6 +72,7 @@ export class SettingsStateService {
         startIndex: this.startNumberingIndex(),
       },
       watermark: this.buildWatermarkConfig(),
+      preserveExif: this.preserveExif(),
     };
   });
 
@@ -226,6 +229,7 @@ export class SettingsStateService {
       watermarkColor: this.watermarkColor(),
       watermarkImageBase64,
       watermarkImageSize: this.watermarkImageSize(),
+      preserveExif: this.preserveExif(),
     };
   }
 
@@ -248,6 +252,7 @@ export class SettingsStateService {
     this.watermarkOpacity.set(data.watermarkOpacity);
     this.watermarkColor.set(data.watermarkColor);
     this.watermarkImageSize.set(data.watermarkImageSize);
+    this.preserveExif.set(data.preserveExif);
 
     if (data.watermarkImageBase64) {
       try {
@@ -384,6 +389,7 @@ export class SettingsStateService {
         INPUT_RANGES.watermarkImageSize.max,
         DEFAULT_SETTINGS.watermarkImageSize,
       ),
+      preserveExif: this.pickBoolean(raw['preserveExif'], DEFAULT_SETTINGS.preserveExif),
     };
   }
 
