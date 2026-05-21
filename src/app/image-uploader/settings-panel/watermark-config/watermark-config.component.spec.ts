@@ -149,7 +149,7 @@ describe('WatermarkConfigComponent', () => {
     expect(updatedWm?.type === 'text' && updatedWm.fontSize).toBe(5);
   });
 
-  it('drag & drop reorders list', () => {
+  it('onDrop reorders list theo CDK previousIndex/currentIndex', () => {
     settings.watermarks.set([
       {
         id: 'a',
@@ -171,19 +171,32 @@ describe('WatermarkConfigComponent', () => {
       },
     ]);
 
-    const dragEvent = {
-      dataTransfer: {
-        effectAllowed: 'none',
-        setData: vi.fn(),
-      },
-    } as unknown as DragEvent;
+    component.onDrop({ previousIndex: 0, currentIndex: 1 } as unknown as Parameters<
+      typeof component.onDrop
+    >[0]);
 
-    component.onDragStart(dragEvent, 0);
-    expect(component.draggedIndex).toBe(0);
-
-    component.onDrop({ preventDefault: vi.fn() } as unknown as DragEvent, 1);
     expect(settings.watermarks()[0].id).toBe('b');
     expect(settings.watermarks()[1].id).toBe('a');
+  });
+
+  it('onDrop bỏ qua khi previousIndex === currentIndex', () => {
+    settings.watermarks.set([
+      {
+        id: 'a',
+        type: 'text',
+        text: 'A',
+        fontSize: 3,
+        color: '#fff',
+        opacity: 0.5,
+        position: 'bottom-right',
+      },
+    ]);
+
+    component.onDrop({ previousIndex: 0, currentIndex: 0 } as unknown as Parameters<
+      typeof component.onDrop
+    >[0]);
+
+    expect(settings.watermarks()[0].id).toBe('a');
   });
 
   it('updateType revoke previewUrl khi đổi từ image → text', () => {

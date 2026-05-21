@@ -1,21 +1,12 @@
-<div
-  class="file-list"
-  (dragover)="onContainerDragOver($event)"
-  (dragleave)="onContainerDragLeave($event)"
-  (drop)="onContainerDrop($event)"
->
-  @for (item of processedFiles(); track item.id; let idx = $index) {
-    @if (isDropAbove(idx)) {
-      <div class="drop-slot" [style.height.px]="draggedRowHeight()" aria-hidden="true"></div>
-    }
-    <div
-      class="file-row"
-      [class.dragging]="draggedIndex() === idx"
-      draggable="true"
-      (dragstart)="onDragStart($event, idx)"
-      (dragend)="onDragEnd()"
-    >
-      <div class="drag-handle" [title]="t()['file_drag_handle_title']" aria-hidden="true">
+<div class="file-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
+  @for (item of processedFiles(); track item.id) {
+    <div class="file-row" cdkDrag>
+      <div
+        class="drag-handle"
+        cdkDragHandle
+        [title]="t()['file_drag_handle_title']"
+        aria-hidden="true"
+      >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path
             d="M8.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 7.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
@@ -24,9 +15,6 @@
       </div>
       <app-file-item [item]="item"></app-file-item>
     </div>
-    @if (isDropBelow(idx)) {
-      <div class="drop-slot" [style.height.px]="draggedRowHeight()" aria-hidden="true"></div>
-    }
   } @empty {
     <div class="empty-state">{{ t()['empty_state'] }}</div>
   }

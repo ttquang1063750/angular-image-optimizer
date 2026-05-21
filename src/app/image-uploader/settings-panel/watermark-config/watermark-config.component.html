@@ -5,23 +5,15 @@
   </label>
 
   @if (includeWatermark()) {
-    <div class="watermark-list">
+    <div class="watermark-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
       @for (item of watermarks(); track item.id; let idx = $index) {
-        <div
-          class="watermark-item"
-          [class.expanded]="expandedId() === item.id"
-          [class.dragging]="draggedIndex === idx"
-          draggable="true"
-          (dragstart)="onDragStart($event, idx)"
-          (dragover)="onDragOver($event)"
-          (drop)="onDrop($event, idx)"
-          (dragend)="onDragEnd()"
-        >
+        <div class="watermark-item" [class.expanded]="expandedId() === item.id" cdkDrag>
           <!-- Item Header -->
           <div class="watermark-item-header" (click)="toggleExpand(item.id)">
             <!-- Grip Drag Handle -->
             <div
               class="drag-handle"
+              cdkDragHandle
               [title]="t()['watermark_drag_handle_title']"
               (click)="$event.stopPropagation()"
             >

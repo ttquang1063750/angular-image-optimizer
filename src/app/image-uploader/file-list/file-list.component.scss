@@ -9,51 +9,13 @@
   align-items: stretch;
   gap: 8px;
   border-radius: 10px;
-  position: relative;
-  border: 2px solid transparent;
-  transition:
-    opacity 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  background: var(--color-surface);
 
   app-file-item {
     display: block;
     flex-grow: 1;
     min-width: 0;
   }
-
-  // Item đang được kéo — giữ full height, hide content, show as ghost slot
-  &.dragging {
-    opacity: 0.5;
-    background: var(--color-primary-soft);
-    border-color: var(--color-primary);
-    border-style: dashed;
-    pointer-events: none;
-    animation: ghostPulse 1.4s ease-in-out infinite;
-
-    .drag-handle,
-    app-file-item {
-      visibility: hidden;
-    }
-  }
-
-}
-
-// Drop slot: ghost row có cùng chiều cao item gốc, pulse animation.
-// pointer-events: none để drag event bubble lên container (tránh slot tự gây
-// flicker khi cursor lướt qua nó).
-.drop-slot {
-  border-radius: 10px;
-  background: var(--color-primary-soft);
-  border: 2px dashed var(--color-primary);
-  box-sizing: border-box;
-  box-shadow: 0 0 12px var(--color-primary-shadow);
-  pointer-events: none;
-  animation:
-    dropSlotEnter 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-    dropSlotPulse 1.2s ease-in-out infinite 0.22s;
-  transform-origin: center;
 }
 
 .drag-handle {
@@ -90,16 +52,38 @@
   font-style: italic;
 }
 
-@keyframes ghostPulse {
-  0%,
-  100% {
-    background: var(--color-primary-soft);
-    opacity: 0.5;
+// CDK drag-drop overrides
+.cdk-drag-preview {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow:
+    0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.cdk-drag-placeholder {
+  background: var(--color-primary-soft);
+  border: 2px dashed var(--color-primary);
+  border-radius: 10px;
+  box-sizing: border-box;
+  box-shadow: 0 0 12px var(--color-primary-shadow);
+  animation: dropSlotPulse 1.2s ease-in-out infinite;
+
+  * {
+    visibility: hidden;
   }
-  50% {
-    background: var(--color-surface-muted);
-    opacity: 0.35;
-  }
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.file-list.cdk-drop-list-dragging .file-row:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
 @keyframes dropSlotPulse {
@@ -111,16 +95,5 @@
   50% {
     background: var(--color-surface-muted);
     border-color: var(--color-primary-hover);
-  }
-}
-
-@keyframes dropSlotEnter {
-  from {
-    opacity: 0;
-    transform: scaleY(0.4);
-  }
-  to {
-    opacity: 1;
-    transform: scaleY(1);
   }
 }

@@ -1,4 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { TranslationService } from '../../../translation.service';
 import { SettingsStateService } from '../../../settings-state.service';
 import { UploaderStateService } from '../../../uploader-state.service';
@@ -19,7 +26,7 @@ import {
 @Component({
   selector: 'app-watermark-config',
   standalone: true,
-  imports: [],
+  imports: [CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './watermark-config.component.html',
   styleUrl: './watermark-config.component.scss',
 })
@@ -36,8 +43,6 @@ export class WatermarkConfigComponent {
   readonly maxWatermarks = MAX_WATERMARKS;
   readonly errors = signal<Record<string, string>>({});
   readonly expandedId = signal<string | null>(null);
-
-  draggedIndex: number | null = null;
 
   constructor() {
     const list = this.watermarks();
@@ -164,32 +169,12 @@ export class WatermarkConfigComponent {
     return this.errors()[`${id}_${field}`];
   }
 
-  onDragStart(event: DragEvent, index: number): void {
-    this.draggedIndex = index;
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', String(index));
-    }
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-  }
-
-  onDrop(event: DragEvent, targetIndex: number): void {
-    event.preventDefault();
-    if (this.draggedIndex !== null && this.draggedIndex !== targetIndex) {
-      const list = [...this.watermarks()];
-      const movedItem = list.splice(this.draggedIndex, 1)[0];
-      list.splice(targetIndex, 0, movedItem);
-      this.settings.setWatermarks(list);
-      this.state.markSettingsChanged();
-    }
-    this.draggedIndex = null;
-  }
-
-  onDragEnd(): void {
-    this.draggedIndex = null;
+  onDrop(event: CdkDragDrop<unknown>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    const list = [...this.watermarks()];
+    moveItemInArray(list, event.previousIndex, event.currentIndex);
+    this.settings.setWatermarks(list);
+    this.state.markSettingsChanged();
   }
 
   private validate(id: string, field: string, event: Event, range: NumberRange): number | null {
