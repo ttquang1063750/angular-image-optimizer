@@ -30,7 +30,6 @@ export type WatermarkType = 'text' | 'image';
 export type WatermarkConfig = TextWatermarkConfig | ImageWatermarkConfig;
 
 export interface TextWatermarkConfig {
-  id: string;
   type: 'text';
   text: string;
   fontSize: number; // % so với chiều rộng base image
@@ -40,10 +39,8 @@ export interface TextWatermarkConfig {
 }
 
 export interface ImageWatermarkConfig {
-  id: string;
   type: 'image';
   image: Blob;
-  imageName?: string | null;
   size: number; // % so với chiều rộng base image
   opacity: number; // 0..1
   position: WatermarkPosition;
@@ -59,8 +56,7 @@ export interface CompressionOptions {
   resizeHeight?: number;
   resizePercent?: number;
   namePattern?: FileNamePattern;
-  watermark?: WatermarkConfig; // Giữ trường cũ cho tương thích
-  watermarks?: WatermarkConfig[]; // Trường mới hỗ trợ nhiều watermark
+  watermarks?: WatermarkConfig[];
   // Giữ EXIF của ảnh gốc khi cả input và output đều là JPEG
   preserveExif?: boolean;
 }

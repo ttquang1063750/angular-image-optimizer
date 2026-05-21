@@ -105,8 +105,7 @@ export class ImageCompressionService {
     const sourceBlob = await this.prepareSource(file);
     const dimensions = await this.resolveResizeDimensions(sourceBlob, options);
     const compressed = await this.runCompressor(sourceBlob, options, dimensions);
-    const watermarks = options.watermarks || (options.watermark ? [options.watermark] : undefined);
-    const watermarked = await this.applyWatermarksIfNeeded(compressed, watermarks);
+    const watermarked = await this.applyWatermarksIfNeeded(compressed, options.watermarks);
     const withExif = await this.preserveExifIfEligible(file, watermarked, options);
     const fileName = this.buildFileName(file.name, withExif.type, options.namePattern, index);
     return this.buildResult(file, withExif, fileName);

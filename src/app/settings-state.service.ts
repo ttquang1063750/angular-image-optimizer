@@ -104,22 +104,36 @@ export class SettingsStateService {
     });
   }
 
-  setWatermarkImage(id: string, file: Blob | null): void {
+  setWatermarkImage(id: string, file: File | null): void {
     this.watermarks.update((list) =>
       list.map((w) => {
         if (w.id === id && w.type === 'image') {
-          // Revoke old URL to prevent memory leaks
           if (w.previewUrl) URL.revokeObjectURL(w.previewUrl);
           return {
             ...w,
             image: file,
-            imageName: file ? (file as File).name || 'logo.png' : null,
+            imageName: file ? file.name || 'logo.png' : null,
             previewUrl: file ? URL.createObjectURL(file) : null,
           };
         }
         return w;
       }),
     );
+  }
+
+  replaceWatermark(id: string, newItem: WatermarkItem): void {
+    if (newItem.id !== id) return;
+    const old = this.watermarks().find((w) => w.id === id);
+    if (!old) return;
+
+    if (old.type === 'image' && old.previewUrl) {
+      const newPreviewUrl = newItem.type === 'image' ? newItem.previewUrl : null;
+      if (old.previewUrl !== newPreviewUrl) {
+        URL.revokeObjectURL(old.previewUrl);
+      }
+    }
+
+    this.watermarks.update((list) => list.map((w) => (w.id === id ? newItem : w)));
   }
 
   addWatermark(type: WatermarkType): void {
@@ -370,78 +384,39 @@ export class SettingsStateService {
     this.clearAllWatermarkPreviewUrls();
 
     const items: WatermarkItem[] = [];
-    if (data.watermarks && data.watermarks.length > 0) {
-      for (const w of data.watermarks) {
-        if (items.length >= MAX_WATERMARKS) break;
-        if (w.type === 'text') {
-          items.push({
-            id: w.id || crypto.randomUUID(),
-            type: 'text',
-            text: w.text,
-            fontSize: w.fontSize,
-            color: w.color,
-            opacity: w.opacity,
-            position: w.position,
-          });
-        } else {
-          let blob: Blob | null = null;
-          let previewUrl: string | null = null;
-          if (w.imageBase64) {
-            try {
-              blob = this.base64ToBlob(w.imageBase64);
-              previewUrl = URL.createObjectURL(blob);
-            } catch {
-              // ignore
-            }
-          }
-          items.push({
-            id: w.id || crypto.randomUUID(),
-            type: 'image',
-            image: blob,
-            imageName: w.imageName || null,
-            previewUrl,
-            size: w.size,
-            opacity: w.opacity,
-            position: w.position,
-          });
-        }
-      }
-    } else {
-      // Backward compatibility
-      const type = data.watermarkType || 'text';
-      const position = data.watermarkPosition || 'bottom-right';
-      const opacity = data.watermarkOpacity ?? DEFAULT_WATERMARK.opacity;
-
-      if (type === 'text') {
+    const source = data.watermarks ?? [];
+    for (const w of source) {
+      if (items.length >= MAX_WATERMARKS) break;
+      if (w.type === 'text') {
         items.push({
-          id: crypto.randomUUID(),
+          id: w.id || crypto.randomUUID(),
           type: 'text',
-          text: data.watermarkText || DEFAULT_WATERMARK.text,
-          fontSize: data.watermarkFontSize ?? DEFAULT_WATERMARK.fontSizePercent,
-          color: data.watermarkColor || DEFAULT_WATERMARK.color,
-          opacity,
-          position,
+          text: w.text,
+          fontSize: w.fontSize,
+          color: w.color,
+          opacity: w.opacity,
+          position: w.position,
         });
       } else {
         let blob: Blob | null = null;
         let previewUrl: string | null = null;
-        if (data.watermarkImageBase64) {
+        if (w.imageBase64) {
           try {
-            blob = this.base64ToBlob(data.watermarkImageBase64);
+            blob = this.base64ToBlob(w.imageBase64);
             previewUrl = URL.createObjectURL(blob);
           } catch {
             // ignore
           }
         }
         items.push({
-          id: crypto.randomUUID(),
+          id: w.id || crypto.randomUUID(),
           type: 'image',
           image: blob,
-          imageName: data.watermarkImageName || null,
+          imageName: w.imageName || null,
           previewUrl,
-          size: data.watermarkImageSize ?? DEFAULT_WATERMARK.imageSizePercent,
-          opacity,
-          position,
+          size: w.size,
+          opacity: w.opacity,
+          position: w.position,
         });
       }
     }
@@ -457,7 +432,6 @@ export class SettingsStateService {
       if (w.type === 'text') {
         if (w.text.trim()) {
           list.push({
-            id: w.id,
             type: 'text',
             text: w.text,
             fontSize: w.fontSize,
@@ -469,10 +443,8 @@ export class SettingsStateService {
       } else {
         if (w.image) {
           list.push({
-            id: w.id,
             type: 'image',
             image: w.image,
-            imageName: w.imageName,
             size: w.size,
             opacity: w.opacity,
             position: w.position,

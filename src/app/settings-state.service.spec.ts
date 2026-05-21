@@ -527,5 +527,48 @@ describe('SettingsStateService', () => {
       expect(newPreset).toBeDefined();
       expect(newPreset?.data.watermarks?.length).toBe(5);
     });
+
+    it('importPresets: tương thích preset cũ (chỉ có watermarkType/watermarkText, không có watermarks[])', () => {
+      const ok = service.importPresets(
+        JSON.stringify([
+          {
+            name: 'Legacy Preset',
+            data: {
+              selectedPreset: 'medium',
+              selectedFormat: 'image/jpeg',
+              selectedResizeMode: 'auto',
+              resizeWidth: 800,
+              resizeHeight: 600,
+              resizePercent: 50,
+              namePrefix: '',
+              nameSuffix: '',
+              includeNumbering: false,
+              startNumberingIndex: 1,
+              includeWatermark: true,
+              watermarkType: 'text',
+              watermarkText: 'Old Watermark',
+              watermarkFontSize: 4,
+              watermarkColor: '#000000',
+              watermarkOpacity: 0.7,
+              watermarkPosition: 'top-left',
+              preserveExif: false,
+            },
+          },
+        ]),
+      );
+
+      expect(ok).toBe(true);
+      const preset = service.customPresets().find((p) => p.name === 'Legacy Preset');
+      expect(preset?.data.watermarks?.length).toBe(1);
+      const wm = preset?.data.watermarks?.[0];
+      expect(wm?.type).toBe('text');
+      if (wm?.type === 'text') {
+        expect(wm.text).toBe('Old Watermark');
+        expect(wm.fontSize).toBe(4);
+        expect(wm.color).toBe('#000000');
+        expect(wm.opacity).toBe(0.7);
+        expect(wm.position).toBe('top-left');
+      }
+    });
   });
 });

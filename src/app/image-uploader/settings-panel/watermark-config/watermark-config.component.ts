@@ -2,8 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { TranslationService } from '../../../translation.service';
 import { SettingsStateService } from '../../../settings-state.service';
 import { UploaderStateService } from '../../../uploader-state.service';
-import { WatermarkPosition, WatermarkType } from '../../../image-processing.model';
-import { INPUT_RANGES, NumberRange } from '../../../image-processing.constants';
+import { WatermarkItem, WatermarkPosition, WatermarkType } from '../../../image-processing.model';
+import {
+  DEFAULT_WATERMARK,
+  INPUT_RANGES,
+  MAX_WATERMARKS,
+  NumberRange,
+} from '../../../image-processing.constants';
 import {
   getInputFiles,
   getInputValue,
@@ -28,6 +33,7 @@ export class WatermarkConfigComponent {
   readonly watermarks = this.settings.watermarks;
 
   readonly ranges = INPUT_RANGES;
+  readonly maxWatermarks = MAX_WATERMARKS;
   readonly errors = signal<Record<string, string>>({});
   readonly expandedId = signal<string | null>(null);
 
@@ -72,21 +78,29 @@ export class WatermarkConfigComponent {
     const item = this.watermarks().find((w) => w.id === id);
     if (!item || item.type === type) return;
 
-    if (type === 'text') {
-      this.settings.updateWatermark(id, {
-        type: 'text',
-        text: 'Watermark',
-        fontSize: INPUT_RANGES.watermarkFontSize.min,
-        color: '#ffffff',
-      });
-    } else {
-      this.settings.updateWatermark(id, {
-        type: 'image',
-        image: null,
-        imageName: null,
-        size: INPUT_RANGES.watermarkImageSize.min,
-      });
-    }
+    const newItem: WatermarkItem =
+      type === 'text'
+        ? {
+            id,
+            type: 'text',
+            text: DEFAULT_WATERMARK.text,
+            fontSize: DEFAULT_WATERMARK.fontSizePercent,
+            color: DEFAULT_WATERMARK.color,
+            opacity: item.opacity,
+            position: item.position,
+          }
+        : {
+            id,
+            type: 'image',
+            image: null,
+            imageName: null,
+            previewUrl: null,
+            size: DEFAULT_WATERMARK.imageSizePercent,
+            opacity: item.opacity,
+            position: item.position,
+          };
+
+    this.settings.replaceWatermark(id, newItem);
     this.state.markSettingsChanged();
   }
 

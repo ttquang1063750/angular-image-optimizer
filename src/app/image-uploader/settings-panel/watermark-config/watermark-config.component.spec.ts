@@ -185,4 +185,26 @@ describe('WatermarkConfigComponent', () => {
     expect(settings.watermarks()[0].id).toBe('b');
     expect(settings.watermarks()[1].id).toBe('a');
   });
+
+  it('updateType revoke previewUrl khi đổi từ image → text', () => {
+    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:logo');
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    component.addWatermark('image');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
+    settings.setWatermarkImage(wm.id, new File([''], 'logo.png', { type: 'image/png' }));
+
+    component.updateType(wm.id, 'text');
+
+    expect(revokeSpy).toHaveBeenCalledWith('blob:logo');
+    const updated = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updated?.type).toBe('text');
+    // Đảm bảo item mới không còn previewUrl từ item cũ
+    if (updated && 'previewUrl' in updated) {
+      expect((updated as { previewUrl: string | null }).previewUrl).toBeUndefined();
+    }
+
+    createObjectURLSpy.mockRestore();
+    revokeSpy.mockRestore();
+  });
 });

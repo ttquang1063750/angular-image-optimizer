@@ -241,7 +241,7 @@
 
     <!-- Add Buttons & Count limit -->
     <div class="watermark-add-actions">
-      @if (watermarks().length < 5) {
+      @if (watermarks().length < maxWatermarks) {
         <button type="button" class="btn-add btn-add-text" (click)="addWatermark('text')">
           <svg
             viewBox="0 0 24 24"
@@ -276,7 +276,7 @@
         </button>
       } @else {
         <span class="wm-limit-warning">
-          {{ t()['watermark_limit_reached'].replace('{max}', '5') }}
+          {{ t()['watermark_limit_reached'].replace('{max}', maxWatermarks.toString()) }}
         </span>
       }
     </div>
