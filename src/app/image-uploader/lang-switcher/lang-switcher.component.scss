@@ -1,0 +1,24 @@
+.lang-switcher {
+  display: flex;
+  background: var(--color-surface-alt);
+  padding: 2px;
+  border-radius: 6px;
+
+  button {
+    border: none;
+    background: transparent;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-disabled);
+    transition: all 0.2s;
+
+    &.active {
+      background: var(--color-surface);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}

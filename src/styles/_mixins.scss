@@ -1,0 +1,56 @@
+// Shared SCSS mixins. Import qua `@use 'src/styles/mixins' as m;`
+// rồi gọi `@include m.<mixin-name>`.
+
+// Vòng outline focus tiêu chuẩn cho elements interactive
+@mixin focus-ring($color: var(--color-primary), $offset: 2px) {
+  outline: 2px solid $color;
+  outline-offset: $offset;
+}
+
+// Form input wrapper có viền + focus-within state.
+// Dùng cho mọi field gộp label + input bên trong cùng container.
+@mixin input-wrapper(
+  $bg: var(--color-surface),
+  $padding: 4px 12px,
+  $radius: 8px
+) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: $bg;
+  padding: $padding;
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  transition: all 0.2s;
+
+  &:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-soft);
+  }
+}
+
+// Input trong wrapper — không viền, transparent background
+@mixin embedded-input($width: auto, $align: left) {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-weight: 600;
+  color: var(--color-text);
+
+  @if $width != auto {
+    width: $width;
+  }
+  @if $align != left {
+    text-align: $align;
+  }
+
+  /* Hide number input arrows */
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  &[type='number'] {
+    -moz-appearance: textfield;
+  }
+}

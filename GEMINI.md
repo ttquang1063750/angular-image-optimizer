@@ -32,12 +32,39 @@
 - **Model Separation:** Tất cả interface và type định nghĩa trong `src/app/image-processing.model.ts`.
 
 ## Conventions & Best Practices
+
+### Angular & TypeScript
 - **Standalone Architecture:** Mọi component, directive, và pipe PHẢI là `standalone: true`.
 - **Modern Control Flow:** Sử dụng `@if`, `@for`, `@switch` trong templates thay vì `*ngIf`, `*ngFor`.
-- **Strong Typing:** Tuyệt đối không dùng `any`. Sử dụng `interface` hoặc `type` rõ ràng. Dùng `unknown` nếu cần thiết.
+- **Strong Typing:** Tuyệt đối không dùng `any`. Sử dụng `interface` hoặc `type` rõ ràng. Dùng `unknown` nếu cần thiết. Tránh `$any($event.target)` — viết helper method type-safe.
+- **Imports:** Luôn dùng `import { X } from '...'` ở đầu file. KHÔNG dùng inline `import('...').X` ở giữa code (vi phạm consistency và khó refactor).
 - **File Separation:** Logic (.ts), Template (.html), và Styles (.scss) PHẢI nằm ở các file riêng biệt.
 - **Naming:** Tuân thủ Angular Style Guide (e.g., `feature-name.component.ts`).
-- **Clean Code:** Không để lại `console.log` hoặc code dư thừa trong bản final.
+- **Clean Code:** Không để lại `console.log` hoặc code dư thừa trong bản final. Không thêm field/property nếu chưa có ai dùng.
+
+### State & Services
+- **Signal-First:** State quản lý qua `signal()` / `computed()`. Tránh `BehaviorSubject` trừ khi cần multicast Observable.
+- **Pure Steps:** Service methods dài quá ~40 dòng nên tách thành các private helper "pure step" (input rõ → output rõ), dễ test và dễ thay thế.
+- **Resource Cleanup:** Mọi `URL.createObjectURL` PHẢI có `URL.revokeObjectURL` tương ứng. Khi state có `compressedUrl` hoặc tương tự, revoke trong các action `remove`/`clear`/`recompress`.
+- **Unique IDs:** Dùng `crypto.randomUUID()` cho file/entity IDs. Không dùng `Math.random()` hay timestamps.
+
+### Constants & Magic Numbers
+- **No Magic Numbers:** Mọi giá trị cấu hình (quality preset, concurrency, default size, threshold…) nằm trong `src/app/image-processing.constants.ts`. Component và service chỉ import constants.
+- **One Source of Truth:** Default values cho UI signal phải đến từ cùng file constants với logic xử lý.
+
+### i18n
+- **File-per-Language:** Dictionary mỗi ngôn ngữ nằm trong file riêng tại `src/app/i18n/{lang}.ts` (vd. `vi.ts`, `en.ts`). `TranslationService` chỉ giữ logic, KHÔNG chứa nội dung.
+- **Type Re-exports:** Khi re-export `type` qua barrel file, dùng `export type { ... }` (do `isolatedModules`).
+
+### Styles & Theming
+- **CSS Variables:** Tất cả màu sắc, shadows, spacing tokens định nghĩa trong `:root` ở `src/styles.scss`. Component SCSS chỉ dùng `var(--token-name)`, KHÔNG hardcode hex/rgba.
+- **Theme Override:** Dark Mode override qua `:root[data-theme='dark'] { ... }`. Mọi token cần có giá trị tương ứng ở cả light và dark.
+- **Intentional Hardcoding:** Chỉ hardcode màu khi trên brand-fixed background (vd. text đen trên FAB vàng, text trắng trên PayPal blue, slider handle trên dark image viewer). Có comment ngắn giải thích lý do.
+- **`--color-text-on-primary`:** Dùng cho text ngồi trên brand-color button (`primary`, `success`, `info`, `warning`, `danger`) — token này luôn là white ở cả hai theme.
+
+### Memory & Performance
+- **Blob URL Cache:** Cache blob URLs theo `File` reference để không tạo URL trùng lặp, và cleanup khi clear state.
+- **No URL Leaks:** Bất kỳ helper nào tạo `URL.createObjectURL` cục bộ (đọc kích thước ảnh, tạo Image element, v.v.) phải `revokeObjectURL` ngay sau khi xong.
 
 ## Workflows
 - **Development:** `npm start`

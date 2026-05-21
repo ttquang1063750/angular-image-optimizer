@@ -1,0 +1,28 @@
+<div
+  class="drop-zone"
+  [class.dragging]="isDragging()"
+  (drop)="onDrop($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (click)="fileInput.click()"
+  (keydown.enter)="fileInput.click()"
+  (keydown.space)="fileInput.click()"
+  tabindex="0"
+  role="button"
+  [attr.aria-label]="t()['drop_zone_text']"
+>
+  <div class="drop-content">
+    <span class="icon">📁</span>
+    <p>{{ t()['drop_zone_text'] }}</p>
+    <span class="hint">{{ t()['drop_zone_hint'] }}</span>
+  </div>
+
+  <input
+    #fileInput
+    type="file"
+    multiple
+    accept="image/png, image/jpeg, image/heic, image/heif, .heic, .heif"
+    (change)="onFileSelected($event)"
+    style="display: none"
+  />
+</div>

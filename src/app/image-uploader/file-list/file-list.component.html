@@ -1,0 +1,7 @@
+<div class="file-list">
+  @for (item of processedFiles(); track item.id) {
+    <app-file-item [item]="item"></app-file-item>
+  } @empty {
+    <div class="empty-state">{{ t()['empty_state'] }}</div>
+  }
+</div>

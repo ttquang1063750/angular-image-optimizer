@@ -1,0 +1,47 @@
+@if (comparingFile(); as item) {
+  <div class="comparison-overlay" (click)="close()">
+    <div class="comparison-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ t()['modal_compare_title'] }} {{ item.file.name }}</h3>
+        <button class="btn-close" (click)="close()">✕</button>
+      </div>
+
+      <div class="comparison-container">
+        <!-- Ảnh Gốc (Bên dưới) -->
+        <div class="image-wrapper original">
+          <img [src]="createBlobUrl(item.file)" alt="Original" />
+          <span class="label-tag tag-left"
+            >{{ t()['tag_original'] }} ({{ formatBytes(item.result!.originalSize) }})</span
+          >
+        </div>
+
+        <!-- Ảnh Nén (Bên trên, bị clip) -->
+        <div class="image-wrapper compressed" [style.width.%]="comparisonSliderValue()">
+          <img [src]="item.result!.compressedUrl" alt="Compressed" />
+          <span class="label-tag tag-right"
+            >{{ t()['tag_compressed'] }} ({{ formatBytes(item.result!.compressedSize) }})</span
+          >
+        </div>
+
+        <!-- Thanh trượt Slider -->
+        <input
+          type="range"
+          min="0"
+          max="100"
+          [value]="comparisonSliderValue()"
+          (input)="updateSlider($event)"
+          class="comparison-slider"
+        />
+
+        <!-- Đường kẻ chia đôi -->
+        <div class="slider-divider" [style.left.%]="comparisonSliderValue()">
+          <div class="slider-handle">↔</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <p>{{ t()['modal_compare_hint'] }}</p>
+      </div>
+    </div>
+  </div>
+}

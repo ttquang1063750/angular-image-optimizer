@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="theme-toggle"
+  (click)="toggle()"
+  [attr.aria-label]="currentTheme() === 'dark' ? t()['btn_theme_light'] : t()['btn_theme_dark']"
+  [attr.title]="currentTheme() === 'dark' ? t()['btn_theme_light'] : t()['btn_theme_dark']"
+>
+  @if (currentTheme() === 'dark') {
+    ☀️
+  } @else {
+    🌙
+  }
+</button>

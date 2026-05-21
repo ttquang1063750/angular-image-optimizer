@@ -1,0 +1,42 @@
+.drop-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--color-surface-alt-2);
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: var(--color-primary);
+    background: var(--color-danger-bg);
+  }
+
+  &.dragging {
+    border-color: var(--color-primary);
+    background: var(--color-danger-soft);
+    transform: scale(1.01);
+  }
+
+  .drop-content {
+    .icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .hint {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--color-text-subtle);
+    }
+  }
+}

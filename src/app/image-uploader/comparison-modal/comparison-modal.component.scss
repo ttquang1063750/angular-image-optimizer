@@ -1,0 +1,187 @@
+.comparison-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--color-overlay-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+.comparison-modal {
+  background: var(--color-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--color-border-soft);
+
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--color-text);
+    }
+
+    .btn-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--color-text-disabled);
+      cursor: pointer;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--color-text);
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 12px 24px;
+    background: var(--color-surface-muted);
+    border-top: 1px solid var(--color-border-soft);
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--color-text-muted-2);
+    }
+  }
+}
+
+.comparison-container {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  // Image viewer luôn là nền tối để ảnh nổi bật, không phụ thuộc theme
+  background: #222;
+  overflow: hidden;
+  user-select: none;
+
+  .image-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+  }
+
+  .original {
+    z-index: 1;
+  }
+
+  .compressed {
+    z-index: 2;
+    overflow: hidden;
+    img {
+      width: 1000px;
+      max-width: none;
+    }
+  }
+
+  .compressed img,
+  .original img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .label-tag {
+    position: absolute;
+    top: 20px;
+    padding: 6px 12px;
+    background: var(--color-overlay);
+    color: var(--color-text-on-primary);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 10;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-left {
+    right: 20px;
+    border-right: 3px solid var(--color-info);
+  }
+
+  .tag-right {
+    left: 20px;
+    border-left: 3px solid var(--color-primary);
+  }
+
+  .comparison-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    z-index: 100;
+    cursor: col-resize;
+  }
+
+  .slider-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-surface);
+    z-index: 50;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+    .slider-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      // Comparison viewer luôn là nền tối nên handle giữ màu trắng cố định
+      background: #fff;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
