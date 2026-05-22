@@ -446,11 +446,18 @@ export class ImageCompressionService {
     // Chuyển anchor sang góc trên-trái cho drawImage
     let drawX = x;
     let drawY = y - targetHeight / 2;
-    if (align === 'right') drawX = x - targetWidth;
-    else if (align === 'center') drawX = x - targetWidth / 2;
 
-    if (config.position.startsWith('top-')) drawY = padding;
-    else if (config.position.startsWith('bottom-')) drawY = canvasHeight - targetHeight - padding;
+    if (typeof config.position === 'object' && config.position !== null) {
+      drawX = x - targetWidth / 2;
+      drawY = y - targetHeight / 2;
+    } else {
+      if (align === 'right') drawX = x - targetWidth;
+      else if (align === 'center') drawX = x - targetWidth / 2;
+
+      const posStr = config.position as string;
+      if (posStr.startsWith('top-')) drawY = padding;
+      else if (posStr.startsWith('bottom-')) drawY = canvasHeight - targetHeight - padding;
+    }
 
     ctx.drawImage(logo, drawX, drawY, targetWidth, targetHeight);
   }
@@ -461,6 +468,12 @@ export class ImageCompressionService {
     canvasHeight: number,
     padding: number,
   ): { x: number; y: number; align: CanvasTextAlign } {
+    if (typeof position === 'object' && position !== null) {
+      const xVal = (canvasWidth * position.x) / 100;
+      const yVal = (canvasHeight * position.y) / 100;
+      return { x: xVal, y: yVal, align: 'center' };
+    }
+
     switch (position) {
       case 'top-left':
         return { x: padding, y: padding, align: 'left' };

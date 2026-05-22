@@ -55,6 +55,15 @@ export const vi: TranslationDict = {
   watermark_item_image_summary: 'Hình: {name} tại {position}',
   watermark_item_image_empty_summary: 'Hình chưa chọn tại {position}',
   watermark_drag_handle_title: 'Kéo để sắp xếp thứ tự',
+  btn_move_up: 'Lên trên',
+  btn_move_down: 'Xuống dưới',
+  watermark_preview_title: 'Xem trước vị trí Watermark (Kéo thả trực tiếp)',
+  watermark_preview_placeholder: 'Tải ảnh của bạn lên để xem trước & kéo thả watermark trực quan',
+  watermark_adjust_visually: 'Tùy chỉnh vị trí trực quan',
+  watermark_text_default: 'Watermark',
+  watermark_logo_placeholder: 'Logo',
+  watermark_alt_background: 'Ảnh nền xem trước',
+  watermark_alt_logo: 'Logo watermark',
   file_drag_handle_title: 'Kéo để sắp xếp file',
 
   // Validation
@@ -66,6 +75,7 @@ export const vi: TranslationDict = {
   pos_top_right: 'Trên - Phải',
   pos_top_left: 'Trên - Trái',
   pos_center: 'Chính giữa',
+  pos_custom: 'Tùy chỉnh',
 
   // Drop zone
   drop_zone_text: 'Kéo thả ảnh vào đây hoặc click để chọn file',

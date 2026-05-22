@@ -12,6 +12,7 @@ import {
   WatermarkType,
   WatermarkItem,
   SavedWatermarkData,
+  WatermarkPosition,
 } from './image-processing.model';
 import {
   DEFAULT_SETTINGS,
@@ -497,7 +498,7 @@ export class SettingsStateService {
       // Backward compatibility
       const watermarkType = this.pickEnum(raw['watermarkType'], VALID_WATERMARK_TYPES) || 'text';
       const watermarkPosition =
-        this.pickEnum(raw['watermarkPosition'], VALID_WATERMARK_POSITIONS) || 'bottom-right';
+        this.pickPosition(raw['watermarkPosition']) || 'bottom-right';
       const watermarkOpacity = this.clampNumber(
         raw['watermarkOpacity'],
         INPUT_RANGES.watermarkOpacity.min,
@@ -587,7 +588,7 @@ export class SettingsStateService {
     const rec = item as Record<string, unknown>;
 
     const type = this.pickEnum(rec['type'], VALID_WATERMARK_TYPES);
-    const position = this.pickEnum(rec['position'], VALID_WATERMARK_POSITIONS);
+    const position = this.pickPosition(rec['position']);
     if (!type || !position) return null;
 
     const id = typeof rec['id'] === 'string' ? rec['id'] : crypto.randomUUID();
@@ -632,6 +633,31 @@ export class SettingsStateService {
         position,
       };
     }
+  }
+
+  private pickPosition(value: unknown): WatermarkPosition | null {
+    if (typeof value === 'string') {
+      return (VALID_WATERMARK_POSITIONS as readonly string[]).includes(value)
+        ? (value as WatermarkPosition)
+        : null;
+    }
+    if (value && typeof value === 'object') {
+      const rec = value as Record<string, unknown>;
+      const x = rec['x'];
+      const y = rec['y'];
+      if (
+        typeof x === 'number' &&
+        Number.isFinite(x) &&
+        typeof y === 'number' &&
+        Number.isFinite(y)
+      ) {
+        return {
+          x: Math.min(Math.max(x, 0), 100),
+          y: Math.min(Math.max(y, 0), 100),
+        };
+      }
+    }
+    return null;
   }
 
   private pickEnum<T extends string>(value: unknown, whitelist: readonly T[]): T | null {

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, EnvironmentInjector, inject, signal } from '@angular/core';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -9,7 +9,12 @@ import {
 import { TranslationService } from '../../../translation.service';
 import { SettingsStateService } from '../../../settings-state.service';
 import { UploaderStateService } from '../../../uploader-state.service';
-import { WatermarkItem, WatermarkPosition, WatermarkType } from '../../../image-processing.model';
+import {
+  WatermarkCoordinates,
+  WatermarkItem,
+  WatermarkPosition,
+  WatermarkType,
+} from '../../../image-processing.model';
 import {
   DEFAULT_WATERMARK,
   INPUT_RANGES,
@@ -22,6 +27,7 @@ import {
   getSelectValue,
   validateNumberInput,
 } from '../../../utils/dom-event';
+import { openWatermarkPreviewDialogLazy } from '../../watermark-preview-dialog/open-watermark-preview-dialog';
 
 @Component({
   selector: 'app-watermark-config',
@@ -34,6 +40,7 @@ export class WatermarkConfigComponent {
   private readonly translationService = inject(TranslationService);
   private readonly settings = inject(SettingsStateService);
   private readonly state = inject(UploaderStateService);
+  private readonly envInjector = inject(EnvironmentInjector);
 
   readonly t = this.translationService.t;
   readonly includeWatermark = this.settings.includeWatermark;
@@ -43,11 +50,13 @@ export class WatermarkConfigComponent {
   readonly maxWatermarks = MAX_WATERMARKS;
   readonly errors = signal<Record<string, string>>({});
   readonly expandedId = signal<string | null>(null);
+  readonly selectedWatermarkId = signal<string | null>(null);
 
   constructor() {
     const list = this.watermarks();
     if (list.length > 0) {
       this.expandedId.set(list[0].id);
+      this.selectedWatermarkId.set(list[0].id);
     }
   }
 
@@ -62,6 +71,7 @@ export class WatermarkConfigComponent {
     if (list.length > 0) {
       const newId = list[list.length - 1].id;
       this.expandedId.set(newId);
+      this.selectedWatermarkId.set(newId);
     }
     this.state.markSettingsChanged();
   }
@@ -70,13 +80,51 @@ export class WatermarkConfigComponent {
     this.settings.removeWatermark(id);
     if (this.expandedId() === id) {
       const list = this.watermarks();
-      this.expandedId.set(list.length > 0 ? list[0].id : null);
+      const nextId = list.length > 0 ? list[0].id : null;
+      this.expandedId.set(nextId);
+      this.selectedWatermarkId.set(nextId);
     }
     this.state.markSettingsChanged();
   }
 
   toggleExpand(id: string): void {
-    this.expandedId.update((current) => (current === id ? null : id));
+    this.expandedId.update((current) => {
+      const next = current === id ? null : id;
+      if (next) {
+        this.selectedWatermarkId.set(next);
+      }
+      return next;
+    });
+  }
+
+  selectWatermark(id: string): void {
+    this.selectedWatermarkId.set(id);
+    this.expandedId.set(id);
+  }
+
+  /**
+   * Mở dialog kéo thả vị trí watermark trực quan. CDK Dialog handle focus
+   * trap, Esc, backdrop click. Dialog component (lazy-loaded) đọc/ghi state
+   * trực tiếp qua SettingsStateService.
+   */
+  async openPreviewDialog(id: string): Promise<void> {
+    this.selectedWatermarkId.set(id);
+    await openWatermarkPreviewDialogLazy(
+      this.envInjector,
+      { initialWatermarkId: id },
+      this.t()['watermark_preview_title'],
+    );
+  }
+
+  isCustomPosition(position: WatermarkPosition): position is WatermarkCoordinates {
+    return typeof position === 'object' && position !== null;
+  }
+
+  getPositionSummary(position: WatermarkPosition): string {
+    if (typeof position === 'string') {
+      return this.t()['pos_' + position.replace('-', '_')] || position;
+    }
+    return `(${position.x}%, ${position.y}%)`;
   }
 
   updateType(id: string, type: WatermarkType): void {
@@ -110,9 +158,18 @@ export class WatermarkConfigComponent {
   }
 
   onPositionChange(id: string, event: Event): void {
-    this.settings.updateWatermark(id, {
-      position: getSelectValue<WatermarkPosition>(event),
-    });
+    const val = getSelectValue<string>(event);
+    let newPos: WatermarkPosition;
+    if (val === 'custom') {
+      newPos = { x: 50, y: 50 };
+      this.settings.updateWatermark(id, { position: newPos });
+      this.state.markSettingsChanged();
+      // Auto-mở dialog để user chỉnh ngay
+      void this.openPreviewDialog(id);
+      return;
+    }
+    newPos = val as WatermarkPosition;
+    this.settings.updateWatermark(id, { position: newPos });
     this.state.markSettingsChanged();
   }
 
