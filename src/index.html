@@ -1,11 +1,40 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="utf-8" />
-    <title>ImageOptimizer</title>
     <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <!-- Mobile chrome/safari theme color, separate per scheme -->
+    <meta name="theme-color" content="#c3002f" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e2128" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+
+    <!-- iOS standalone polish -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Authorship -->
+    <meta name="author" content="Tang Thanh Quang" />
+    <meta name="generator" content="Angular" />
+
+    <!--
+      Resource hints. External resources chỉ reach khi user click GitHub link
+      / PayPal CTA → dns-prefetch là đủ, không cần preconnect (giữ initial
+      RTT cho asset của ta).
+    -->
+    <link rel="dns-prefetch" href="https://github.com" />
+    <link rel="dns-prefetch" href="https://paypal.me" />
+
+    <!--
+      <title>, description, canonical, hreflang, OG, JSON-LD are all
+      set per-route by SeoService at prerender + runtime. See
+      src/app/shared/seo/seo.service.ts.
+    -->
+    <title>Image Optimizer</title>
+
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   </head>
   <body>
     <app-root></app-root>

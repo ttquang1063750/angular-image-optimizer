@@ -1,25 +1,48 @@
-import { Component } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { TranslationService } from '../../translation.service';
+import { SeoService } from '../../shared/seo/seo.service';
+import { BlogPost, readingTimeMinutes } from './blog-post.model';
+import { postsByLang } from './blog-posts.registry';
+
+interface CardView {
+  post: BlogPost;
+  readingMinutes: number;
+}
 
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  template: `
-    <article class="container">
-      <h1>Blog</h1>
-      <p>Phase 6 sẽ scaffold list + 3 bài viết đầu tiên.</p>
-    </article>
-  `,
-  styles: [
-    `
-      .container {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 40px 24px;
-      }
-      h1 {
-        margin-bottom: 16px;
-      }
-    `,
-  ],
+  imports: [RouterLink],
+  templateUrl: './blog-list.component.html',
+  styleUrl: './blog-list.component.scss',
 })
-export class BlogListComponent {}
+export class BlogListComponent {
+  private readonly translation = inject(TranslationService);
+  private readonly seo = inject(SeoService);
+
+  readonly t = this.translation.t;
+  readonly lang = this.translation.currentLang;
+
+  readonly cards = computed<CardView[]>(() =>
+    postsByLang(this.lang()).map((post) => ({
+      post,
+      readingMinutes: readingTimeMinutes(post.contentHtml),
+    })),
+  );
+
+  constructor() {
+    effect(() => {
+      const t = this.translation.t();
+      this.seo.setRoute({
+        titleKey: 'seo_blog_title',
+        descriptionKey: 'seo_blog_description',
+        path: 'blog',
+        breadcrumbs: [
+          { name: t['nav_landing'], path: '' },
+          { name: t['nav_blog'], path: 'blog' },
+        ],
+      });
+    });
+  }
+}

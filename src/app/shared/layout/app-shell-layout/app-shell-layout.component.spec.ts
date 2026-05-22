@@ -1,0 +1,122 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { Dialog } from '@angular/cdk/dialog';
+import { AppShellLayoutComponent } from './app-shell-layout.component';
+import { SupportDialogComponent } from '../../ui/support-dialog/support-dialog.component';
+
+vi.mock('heic2any', () => ({ default: vi.fn() }));
+
+interface ShellExposed {
+  showSettings: () => boolean;
+  toggleSettings: () => void;
+  closeSettings: () => void;
+}
+
+describe('AppShellLayoutComponent', () => {
+  let component: AppShellLayoutComponent;
+  let exposed: ShellExposed;
+  let fixture: ComponentFixture<AppShellLayoutComponent>;
+  let dialog: { open: ReturnType<typeof vi.fn> };
+
+  beforeEach(async () => {
+    localStorage.clear();
+    dialog = { open: vi.fn() };
+
+    await TestBed.configureTestingModule({
+      imports: [AppShellLayoutComponent],
+      providers: [provideRouter([]), { provide: Dialog, useValue: dialog }],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AppShellLayoutComponent);
+    component = fixture.componentInstance;
+    exposed = component as unknown as ShellExposed;
+    fixture.detectChanges();
+  });
+
+  it('smoke', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('showSettings mặc định false; toggle/close hoạt động đúng', () => {
+    expect(exposed.showSettings()).toBe(false);
+    exposed.toggleSettings();
+    expect(exposed.showSettings()).toBe(true);
+    exposed.toggleSettings();
+    expect(exposed.showSettings()).toBe(false);
+    exposed.toggleSettings();
+    exposed.closeSettings();
+    expect(exposed.showSettings()).toBe(false);
+  });
+
+  it('openSupport lazy-import SupportDialogComponent rồi mở qua Dialog service', async () => {
+    await component.openSupport();
+    expect(dialog.open).toHaveBeenCalledTimes(1);
+    expect(dialog.open.mock.calls[0][0]).toBe(SupportDialogComponent);
+  });
+
+  describe('outside click', () => {
+    it('click ngoài đóng popover khi đang mở', () => {
+      exposed.toggleSettings();
+      expect(exposed.showSettings()).toBe(true);
+
+      const outside = document.createElement('div');
+      document.body.appendChild(outside);
+      const event = new MouseEvent('click', { bubbles: true });
+      Object.defineProperty(event, 'target', { value: outside });
+      component.onDocumentClick(event);
+
+      expect(exposed.showSettings()).toBe(false);
+      outside.remove();
+    });
+
+    it('click vào .settings-toggle KHÔNG đóng (nút tự xử lý toggle)', () => {
+      exposed.toggleSettings();
+      const btn = document.createElement('button');
+      btn.className = 'settings-toggle';
+      document.body.appendChild(btn);
+
+      const event = new MouseEvent('click', { bubbles: true });
+      Object.defineProperty(event, 'target', { value: btn });
+      component.onDocumentClick(event);
+
+      expect(exposed.showSettings()).toBe(true);
+      btn.remove();
+    });
+
+    it('click vào .settings-popover KHÔNG đóng', () => {
+      exposed.toggleSettings();
+      const popover = document.createElement('div');
+      popover.className = 'settings-popover';
+      const child = document.createElement('span');
+      popover.appendChild(child);
+      document.body.appendChild(popover);
+
+      const event = new MouseEvent('click', { bubbles: true });
+      Object.defineProperty(event, 'target', { value: child });
+      component.onDocumentClick(event);
+
+      expect(exposed.showSettings()).toBe(true);
+      popover.remove();
+    });
+
+    it('khi popover đóng, document click không làm gì', () => {
+      const outside = document.createElement('div');
+      const event = new MouseEvent('click', { bubbles: true });
+      Object.defineProperty(event, 'target', { value: outside });
+      expect(() => component.onDocumentClick(event)).not.toThrow();
+      expect(exposed.showSettings()).toBe(false);
+    });
+  });
+
+  describe('Escape key', () => {
+    it('Esc đóng popover khi đang mở', () => {
+      exposed.toggleSettings();
+      component.onEscape();
+      expect(exposed.showSettings()).toBe(false);
+    });
+
+    it('Esc không lỗi khi popover đang đóng', () => {
+      expect(() => component.onEscape()).not.toThrow();
+    });
+  });
+});

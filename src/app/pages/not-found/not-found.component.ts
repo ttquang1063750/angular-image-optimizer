@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslationService } from '../../translation.service';
+import { SeoService } from '../../shared/seo/seo.service';
 
 @Component({
   selector: 'app-not-found',
@@ -9,8 +10,8 @@ import { TranslationService } from '../../translation.service';
   template: `
     <article class="container">
       <h1>404</h1>
-      <p>Trang không tồn tại.</p>
-      <a [routerLink]="['/', lang()]">← Về trang chủ</a>
+      <p>{{ t()['seo_not_found_description'] }}</p>
+      <a [routerLink]="['/', lang()]">{{ t()['app_shell_back_to_home'] }}</a>
     </article>
   `,
   styles: [
@@ -32,5 +33,20 @@ import { TranslationService } from '../../translation.service';
 })
 export class NotFoundComponent {
   private readonly translation = inject(TranslationService);
+  private readonly seo = inject(SeoService);
+
   readonly lang = this.translation.currentLang;
+  readonly t = this.translation.t;
+
+  constructor() {
+    effect(() => {
+      this.lang();
+      this.seo.setRoute({
+        titleKey: 'seo_not_found_title',
+        descriptionKey: 'seo_not_found_description',
+        path: '404',
+        noIndex: true,
+      });
+    });
+  }
 }

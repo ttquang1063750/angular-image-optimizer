@@ -1,6 +1,9 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
+import { BLOG_POSTS } from './pages/blog/blog-posts.registry';
 
 const langs = async () => [{ lang: 'vi' }, { lang: 'en' }];
+
+const blogSlugs = async () => BLOG_POSTS.map((p) => ({ lang: p.lang, slug: p.slug }));
 
 export const serverRoutes: ServerRoute[] = [
   // Root → resolved via redirect guard tại runtime; vẫn prerender HTML rỗng
@@ -16,11 +19,11 @@ export const serverRoutes: ServerRoute[] = [
   // compressorjs/jszip/heic2any chạy server-side gây lỗi window).
   { path: ':lang/optimize', renderMode: RenderMode.Client },
 
-  // Blog post slugs — Phase 6 sẽ điền danh sách thực; Phase 1 empty.
+  // Blog posts — prerender từng slug × lang từ registry.
   {
     path: ':lang/blog/:slug',
     renderMode: RenderMode.Prerender,
-    getPrerenderParams: async () => [],
+    getPrerenderParams: blogSlugs,
   },
 
   // 404

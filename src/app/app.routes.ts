@@ -1,13 +1,5 @@
 import { Routes } from '@angular/router';
 import { langGuard, rootRedirectGuard } from './shared/lang.guard';
-import { MarketingLayoutComponent } from './shared/layout/marketing-layout/marketing-layout.component';
-import { AppShellLayoutComponent } from './shared/layout/app-shell-layout/app-shell-layout.component';
-import { LandingComponent } from './pages/landing/landing.component';
-import { AboutComponent } from './pages/about/about.component';
-import { ChangelogComponent } from './pages/changelog/changelog.component';
-import { BlogListComponent } from './pages/blog/blog-list.component';
-import { BlogPostComponent } from './pages/blog/blog-post.component';
-import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
   {
@@ -19,7 +11,10 @@ export const routes: Routes = [
   {
     path: ':lang/optimize',
     canActivate: [langGuard],
-    component: AppShellLayoutComponent,
+    loadComponent: () =>
+      import('./shared/layout/app-shell-layout/app-shell-layout.component').then(
+        (m) => m.AppShellLayoutComponent,
+      ),
     loadChildren: () =>
       import('./optimize/optimize.component').then((m) => [
         { path: '', component: m.OptimizeComponent },
@@ -28,14 +23,41 @@ export const routes: Routes = [
   {
     path: ':lang',
     canActivate: [langGuard],
-    component: MarketingLayoutComponent,
+    loadComponent: () =>
+      import('./shared/layout/marketing-layout/marketing-layout.component').then(
+        (m) => m.MarketingLayoutComponent,
+      ),
     children: [
-      { path: '', pathMatch: 'full', component: LandingComponent },
-      { path: 'about', component: AboutComponent },
-      { path: 'changelog', component: ChangelogComponent },
-      { path: 'blog', component: BlogListComponent },
-      { path: 'blog/:slug', component: BlogPostComponent },
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./pages/landing/landing.component').then((m) => m.LandingComponent),
+      },
+      {
+        path: 'about',
+        loadComponent: () => import('./pages/about/about.component').then((m) => m.AboutComponent),
+      },
+      {
+        path: 'changelog',
+        loadComponent: () =>
+          import('./pages/changelog/changelog.component').then((m) => m.ChangelogComponent),
+      },
+      {
+        path: 'blog',
+        loadComponent: () =>
+          import('./pages/blog/blog-list.component').then((m) => m.BlogListComponent),
+      },
+      {
+        path: 'blog/:slug',
+        loadComponent: () =>
+          import('./pages/blog/blog-post.component').then((m) => m.BlogPostComponent),
+      },
     ],
   },
-  { path: '**', component: NotFoundComponent },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/not-found/not-found.component').then((m) => m.NotFoundComponent),
+  },
 ];

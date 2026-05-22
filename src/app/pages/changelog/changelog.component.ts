@@ -1,25 +1,38 @@
-import { Component } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
+import { TranslationService } from '../../translation.service';
+import { SeoService } from '../../shared/seo/seo.service';
+import { ChangelogContent } from './changelog-content';
+import { changelogContentVi } from './changelog-content.vi';
+import { changelogContentEn } from './changelog-content.en';
 
 @Component({
   selector: 'app-changelog',
   standalone: true,
-  template: `
-    <article class="container">
-      <h1>Changelog</h1>
-      <p>Phase 5 sẽ điền version history.</p>
-    </article>
-  `,
-  styles: [
-    `
-      .container {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 40px 24px;
-      }
-      h1 {
-        margin-bottom: 16px;
-      }
-    `,
-  ],
+  imports: [],
+  templateUrl: './changelog.component.html',
+  styleUrl: './changelog.component.scss',
 })
-export class ChangelogComponent {}
+export class ChangelogComponent {
+  private readonly translation = inject(TranslationService);
+  private readonly seo = inject(SeoService);
+
+  readonly t = this.translation.t;
+  readonly content = computed<ChangelogContent>(() =>
+    this.translation.currentLang() === 'vi' ? changelogContentVi : changelogContentEn,
+  );
+
+  constructor() {
+    effect(() => {
+      const t = this.translation.t();
+      this.seo.setRoute({
+        titleKey: 'seo_changelog_title',
+        descriptionKey: 'seo_changelog_description',
+        path: 'changelog',
+        breadcrumbs: [
+          { name: t['nav_landing'], path: '' },
+          { name: t['nav_changelog'], path: 'changelog' },
+        ],
+      });
+    });
+  }
+}

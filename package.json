@@ -7,7 +7,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "verify:seo": "node scripts/verify-seo.mjs",
+    "build:sitemap": "node scripts/generate-sitemap.mjs",
+    "build:full": "ng build && npm run build:sitemap && npm run verify:seo"
   },
   "private": true,
   "packageManager": "npm@10.9.2",

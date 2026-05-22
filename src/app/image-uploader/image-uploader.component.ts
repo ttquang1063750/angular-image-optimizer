@@ -5,23 +5,12 @@ import { ProcessedFile } from '../image-processing.model';
 import { ComparisonModalComponent } from './comparison-modal/comparison-modal.component';
 import { DropZoneComponent } from './drop-zone/drop-zone.component';
 import { FileListComponent } from './file-list/file-list.component';
-import { LangSwitcherComponent } from './lang-switcher/lang-switcher.component';
 import { SettingsPanelComponent } from './settings-panel/settings-panel.component';
-import { ThemeToggleComponent } from './theme-toggle/theme-toggle.component';
-import { PresetManagerComponent } from './settings-panel/preset-manager/preset-manager.component';
 
 @Component({
   selector: 'app-image-uploader',
   standalone: true,
-  imports: [
-    ComparisonModalComponent,
-    DropZoneComponent,
-    FileListComponent,
-    LangSwitcherComponent,
-    SettingsPanelComponent,
-    ThemeToggleComponent,
-    PresetManagerComponent,
-  ],
+  imports: [ComparisonModalComponent, DropZoneComponent, FileListComponent, SettingsPanelComponent],
   templateUrl: './image-uploader.component.html',
   styleUrl: './image-uploader.component.scss',
 })
@@ -36,45 +25,19 @@ export class ImageUploaderComponent {
   readonly completedCount = this.state.completedCount;
   readonly comparingFile = this.state.comparingFile;
 
-  readonly showSettings = signal<boolean>(false);
   readonly showConfig = signal<boolean>(true);
 
   @ViewChild(DropZoneComponent) dropZone?: DropZoneComponent;
 
-  toggleSettings(): void {
-    this.showSettings.update((val) => !val);
-  }
-
   toggleConfig(): void {
     this.showConfig.update((val) => !val);
-  }
-
-  closeSettings(): void {
-    this.showSettings.set(false);
-  }
-
-  openSettings(): void {
-    this.showSettings.set(true);
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.showSettings()) return;
-
-    const target = event.target as HTMLElement;
-    const clickedInsideFab = target.closest('.settings-toggle-fab');
-    const clickedInsidePopover = target.closest('.settings-popover');
-
-    if (!clickedInsideFab && !clickedInsidePopover) {
-      this.showSettings.set(false);
-    }
   }
 
   /**
    * Keyboard shortcuts:
    *  - Cmd/Ctrl+O   → open file picker
    *  - Cmd/Ctrl+S   → download all (chỉ khi có file đã nén)
-   *  - Escape       → đóng comparison modal hoặc settings popover
+   *  - Escape       → đóng comparison modal
    */
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
@@ -96,14 +59,8 @@ export class ImageUploaderComponent {
       return;
     }
 
-    if (!isMod && event.key === 'Escape') {
-      if (this.comparingFile()) {
-        this.state.closeComparison();
-        return;
-      }
-      if (this.showSettings()) {
-        this.closeSettings();
-      }
+    if (!isMod && event.key === 'Escape' && this.comparingFile()) {
+      this.state.closeComparison();
     }
   }
 

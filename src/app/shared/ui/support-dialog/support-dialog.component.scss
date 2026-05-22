@@ -1,0 +1,144 @@
+:host {
+  display: block;
+}
+
+.support-dialog {
+  background: var(--color-surface);
+  width: min(80vw, 880px);
+  max-height: 90vh;
+  border-radius: 20px;
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dialog-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--color-text);
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--color-text-disabled);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+
+    &:hover {
+      color: var(--color-text);
+      background: var(--color-surface-alt);
+    }
+  }
+}
+
+.dialog-body {
+  padding: 24px;
+  overflow-y: auto;
+
+  .intro {
+    text-align: center;
+    color: var(--color-text-muted-2);
+    margin: 0 0 28px;
+  }
+}
+
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.support-card {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 16px var(--color-primary-soft);
+    transform: translateY(-4px);
+  }
+
+  .card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    color: var(--color-text);
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: var(--color-text-subtle);
+    margin-bottom: 16px;
+  }
+
+  .btn-action {
+    display: inline-block;
+    // PayPal brand blue — keep white text on it at both themes
+    background: #0070ba;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      background: #005ea6;
+    }
+  }
+
+  .qr-placeholder {
+    width: 150px;
+    height: 150px;
+    margin: 12px auto;
+    border-radius: 8px;
+    background: var(--color-surface-muted-2);
+    padding: 8px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .bank-details {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    background: var(--color-surface-muted);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 600px) {
+  .support-dialog {
+    width: 95vw;
+    max-height: 95vh;
+    border-radius: 16px;
+  }
+
+  .support-grid {
+    grid-template-columns: 1fr;
+  }
+}

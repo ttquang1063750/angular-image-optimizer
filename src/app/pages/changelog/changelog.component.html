@@ -1,0 +1,36 @@
+<article class="changelog">
+  <header class="changelog-header">
+    <h1>{{ t()['nav_changelog'] }}</h1>
+    <p class="intro">{{ content().intro }}</p>
+  </header>
+
+  <aside class="note">
+    <strong>{{ content().noteTitle }}:</strong>
+    <span>{{ content().noteBody }}</span>
+  </aside>
+
+  <ol class="timeline">
+    @for (entry of content().entries; track entry.version) {
+      <li class="entry">
+        <div class="entry-heading">
+          <span class="version">{{ entry.version }}</span>
+          @if (entry.codename) {
+            <span class="codename">{{ entry.codename }}</span>
+          }
+          <time [attr.datetime]="entry.date">{{ entry.date }}</time>
+        </div>
+
+        @for (group of entry.groups; track group.kind) {
+          <section class="group group--{{ group.kind }}">
+            <h3>{{ content().kindLabels[group.kind] }}</h3>
+            <ul>
+              @for (item of group.items; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </section>
+        }
+      </li>
+    }
+  </ol>
+</article>

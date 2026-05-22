@@ -1,0 +1,8 @@
+# Image Optimizer — image-optimizer.js-tools.org
+# Toàn bộ site mở cho crawler; /optimize là app shell (client-render) đã
+# set noindex qua meta robots, không cần block ở đây.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://image-optimizer.js-tools.org/sitemap.xml
