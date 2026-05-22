@@ -79,6 +79,18 @@ export const vi: TranslationDict = {
   status_error: 'Lỗi:',
   btn_compare: 'So sánh chất lượng',
   btn_download: 'Tải ảnh này',
+  btn_crop: 'Cắt hình ảnh',
+
+  // Crop Modal
+  modal_crop_title: 'Cắt & xoay hình ảnh:',
+  crop_aspect_free: 'Tự do',
+  crop_aspect_1_1: '1:1 (Vuông)',
+  crop_aspect_4_3: '4:3',
+  crop_aspect_16_9: '16:9',
+  btn_rotate: 'Xoay 90°',
+  btn_flip_h: 'Lật ngang',
+  btn_flip_v: 'Lật dọc',
+  btn_crop_confirm: 'Áp dụng',
 
   // Comparison Modal
   modal_compare_title: 'So sánh chất lượng:',

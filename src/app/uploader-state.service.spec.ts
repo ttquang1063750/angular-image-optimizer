@@ -157,6 +157,40 @@ describe('UploaderStateService', () => {
     createSpy.mockRestore();
   });
 
+  it('updateFile thay thế file, revoke URL cũ, và kích hoạt nén lại', () => {
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    const mockFile = new File([''], 'a.jpg');
+    const newMockFile = new File([''], 'cropped-a.jpg');
+    const item: ProcessedFile = {
+      id: 'abc',
+      file: mockFile,
+      status: 'done',
+      progress: 100,
+      result: {
+        originalFile: mockFile,
+        compressedFile: new File([''], 'a.jpg'),
+        originalSize: 100,
+        compressedSize: 50,
+        savedPercentage: 50,
+        compressedUrl: 'blob:test-result',
+      },
+    };
+    service.processedFiles.set([item]);
+
+    service.createBlobUrl(mockFile);
+
+    service.updateFile('abc', newMockFile);
+
+    const updated = service.processedFiles()[0];
+    expect(updated.file).toBe(newMockFile);
+    expect(updated.status).toBe('queued');
+    expect(updated.progress).toBe(0);
+    expect(updated.result).toBeUndefined();
+    expect(revokeSpy).toHaveBeenCalledWith('blob:test-result');
+    expect(compressionMock.compressImagesWithProgress).toHaveBeenCalled();
+    revokeSpy.mockRestore();
+  });
+
   describe('reorderFiles', () => {
     const sampleFiles = (): ProcessedFile[] => [
       { id: 'a', file: new File([''], 'a.jpg'), status: 'done', progress: 100 },

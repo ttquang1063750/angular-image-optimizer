@@ -80,6 +80,18 @@ export const en: TranslationDict = {
   status_error: 'Error:',
   btn_compare: 'Compare quality',
   btn_download: 'Download this image',
+  btn_crop: 'Crop image',
+
+  // Crop Modal
+  modal_crop_title: 'Crop & rotate image:',
+  crop_aspect_free: 'Free',
+  crop_aspect_1_1: '1:1 (Square)',
+  crop_aspect_4_3: '4:3',
+  crop_aspect_16_9: '16:9',
+  btn_rotate: 'Rotate 90°',
+  btn_flip_h: 'Flip H',
+  btn_flip_v: 'Flip V',
+  btn_crop_confirm: 'Apply',
 
   // Comparison Modal
   modal_compare_title: 'Quality Comparison:',

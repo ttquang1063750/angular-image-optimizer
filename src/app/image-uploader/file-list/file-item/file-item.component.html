@@ -18,7 +18,12 @@
   <div class="details">
     <div class="file-header">
       <span class="name">{{ item().file.name }}</span>
-      <button class="btn-remove" (click)="remove()">✕</button>
+      <div class="header-actions">
+        @if (item().status !== 'compressing') {
+          <button class="btn-crop" (click)="openCrop()" [title]="t()['btn_crop']">✂️</button>
+        }
+        <button class="btn-remove" (click)="remove()">✕</button>
+      </div>
     </div>
 
     <div class="status-content">
