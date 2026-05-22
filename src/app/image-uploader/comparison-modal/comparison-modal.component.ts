@@ -1,7 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { TranslationService } from '../../translation.service';
 import { UploaderStateService } from '../../uploader-state.service';
-import { getNumberValue } from '../../utils/dom-event';
 
 @Component({
   selector: 'app-comparison-modal',
@@ -16,14 +15,77 @@ export class ComparisonModalComponent {
 
   readonly t = this.translationService.t;
   readonly comparingFile = this.state.comparingFile;
-  readonly comparisonSliderValue = this.state.comparisonSliderValue;
+
+  readonly isHovering = signal<boolean>(false);
+  readonly zoomPct = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  readonly lensPos = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  readonly imgSize = signal<{ w: number; h: number }>({ w: 0, h: 0 });
+  readonly zoomFactor = 2.5;
+  readonly lensSize = 160;
 
   close(): void {
     this.state.closeComparison();
   }
 
-  updateSlider(event: Event): void {
-    this.state.setComparisonSlider(getNumberValue(event));
+  onMouseMove(event: MouseEvent): void {
+    const pane = event.currentTarget as HTMLElement;
+    const img = pane.querySelector('img') as HTMLImageElement;
+    if (!img) return;
+
+    const paneRect = pane.getBoundingClientRect();
+    const imgRect = img.getBoundingClientRect();
+
+    const x = event.clientX - imgRect.left;
+    const y = event.clientY - imgRect.top;
+
+    const pctX = (x / imgRect.width) * 100;
+    const pctY = (y / imgRect.height) * 100;
+
+    if (pctX >= 0 && pctX <= 100 && pctY >= 0 && pctY <= 100) {
+      this.isHovering.set(true);
+      this.zoomPct.set({ x: pctX, y: pctY });
+
+      const lensX = imgRect.left - paneRect.left + x - this.lensSize / 2;
+      const lensY = imgRect.top - paneRect.top + y - this.lensSize / 2;
+      this.lensPos.set({ x: lensX, y: lensY });
+      this.imgSize.set({ w: imgRect.width, h: imgRect.height });
+    } else {
+      this.isHovering.set(false);
+    }
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    if (event.touches.length === 0) return;
+    const touch = event.touches[0];
+    const pane = event.currentTarget as HTMLElement;
+    const img = pane.querySelector('img') as HTMLImageElement;
+    if (!img) return;
+
+    const paneRect = pane.getBoundingClientRect();
+    const imgRect = img.getBoundingClientRect();
+
+    const x = touch.clientX - imgRect.left;
+    const y = touch.clientY - imgRect.top;
+
+    const pctX = (x / imgRect.width) * 100;
+    const pctY = (y / imgRect.height) * 100;
+
+    if (pctX >= 0 && pctX <= 100 && pctY >= 0 && pctY <= 100) {
+      event.preventDefault();
+      this.isHovering.set(true);
+      this.zoomPct.set({ x: pctX, y: pctY });
+
+      const lensX = imgRect.left - paneRect.left + x - this.lensSize / 2;
+      const lensY = imgRect.top - paneRect.top + y - this.lensSize / 2;
+      this.lensPos.set({ x: lensX, y: lensY });
+      this.imgSize.set({ w: imgRect.width, h: imgRect.height });
+    } else {
+      this.isHovering.set(false);
+    }
+  }
+
+  onMouseLeave(): void {
+    this.isHovering.set(false);
   }
 
   createBlobUrl(file: File): string {

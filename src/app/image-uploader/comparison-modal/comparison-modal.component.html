@@ -7,35 +7,54 @@
       </div>
 
       <div class="comparison-container">
-        <!-- Ảnh Gốc (Bên dưới) -->
-        <div class="image-wrapper original">
-          <img [src]="createBlobUrl(item.file)" alt="Original" />
-          <span class="label-tag tag-left"
-            >{{ t()['tag_original'] }} ({{ formatBytes(item.result!.originalSize) }})</span
-          >
-        </div>
-
-        <!-- Ảnh Nén (Bên trên, bị clip) -->
-        <div class="image-wrapper compressed" [style.clip-path]="'inset(0 ' + (100 - comparisonSliderValue()) + '% 0 0)'">
+        <!-- Ảnh Nén (Bên trái) -->
+        <div
+          class="compare-pane compressed"
+          (mousemove)="onMouseMove($event)"
+          (mouseleave)="onMouseLeave()"
+          (touchmove)="onTouchMove($event)"
+          (touchstart)="onTouchMove($event)"
+          (touchend)="onMouseLeave()"
+        >
           <img [src]="item.result!.compressedUrl" alt="Compressed" />
-          <span class="label-tag tag-right"
+          <span class="label-tag tag-compressed"
             >{{ t()['tag_compressed'] }} ({{ formatBytes(item.result!.compressedSize) }})</span
           >
+          @if (isHovering()) {
+            <div
+              class="zoom-lens"
+              [style.left.px]="lensPos().x"
+              [style.top.px]="lensPos().y"
+              [style.background-image]="'url(' + item.result!.compressedUrl + ')'"
+              [style.background-size]="(imgSize().w * zoomFactor) + 'px ' + (imgSize().h * zoomFactor) + 'px'"
+              [style.background-position]="(-zoomPct().x / 100 * imgSize().w * zoomFactor + lensSize / 2) + 'px ' + (-zoomPct().y / 100 * imgSize().h * zoomFactor + lensSize / 2) + 'px'"
+            ></div>
+          }
         </div>
 
-        <!-- Thanh trượt Slider -->
-        <input
-          type="range"
-          min="0"
-          max="100"
-          [value]="comparisonSliderValue()"
-          (input)="updateSlider($event)"
-          class="comparison-slider"
-        />
-
-        <!-- Đường kẻ chia đôi -->
-        <div class="slider-divider" [style.left.%]="comparisonSliderValue()">
-          <div class="slider-handle">↔</div>
+        <!-- Ảnh Gốc (Bên phải) -->
+        <div
+          class="compare-pane original"
+          (mousemove)="onMouseMove($event)"
+          (mouseleave)="onMouseLeave()"
+          (touchmove)="onTouchMove($event)"
+          (touchstart)="onTouchMove($event)"
+          (touchend)="onMouseLeave()"
+        >
+          <img [src]="createBlobUrl(item.file)" alt="Original" />
+          <span class="label-tag tag-original"
+            >{{ t()['tag_original'] }} ({{ formatBytes(item.result!.originalSize) }})</span
+          >
+          @if (isHovering()) {
+            <div
+              class="zoom-lens"
+              [style.left.px]="lensPos().x"
+              [style.top.px]="lensPos().y"
+              [style.background-image]="'url(' + createBlobUrl(item.file) + ')'"
+              [style.background-size]="(imgSize().w * zoomFactor) + 'px ' + (imgSize().h * zoomFactor) + 'px'"
+              [style.background-position]="(-zoomPct().x / 100 * imgSize().w * zoomFactor + lensSize / 2) + 'px ' + (-zoomPct().y / 100 * imgSize().h * zoomFactor + lensSize / 2) + 'px'"
+            ></div>
+          }
         </div>
       </div>
 

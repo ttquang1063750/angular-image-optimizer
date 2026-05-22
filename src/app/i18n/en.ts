@@ -97,7 +97,7 @@ export const en: TranslationDict = {
   modal_compare_title: 'Quality Comparison:',
   tag_original: 'Original',
   tag_compressed: 'Compressed',
-  modal_compare_hint: 'Drag the slider to compare Original (right) and Compressed (left)',
+  modal_compare_hint: 'Move mouse or touch the image to view the synchronized magnifying glass (Compressed on left, original on right)',
 
   // Footer
   footer_credit: 'Developed by Tang Thanh Quang',

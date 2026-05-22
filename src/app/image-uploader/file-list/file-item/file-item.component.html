@@ -52,9 +52,11 @@
               <span class="saved-badge">-{{ item().result!.savedPercentage }}%</span>
             </div>
             <div class="item-actions">
-              <button class="btn-compare" (click)="openComparison()" [title]="t()['btn_compare']">
-                👁️
-              </button>
+              @if (!item().isCropped) {
+                <button class="btn-compare" (click)="openComparison()" [title]="t()['btn_compare']">
+                  👁️
+                </button>
+              }
               <button
                 class="btn-download-single"
                 (click)="download()"

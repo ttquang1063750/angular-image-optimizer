@@ -96,7 +96,7 @@ export const vi: TranslationDict = {
   modal_compare_title: 'So sánh chất lượng:',
   tag_original: 'Gốc',
   tag_compressed: 'Nén',
-  modal_compare_hint: 'Kéo thanh trượt để so sánh ảnh Gốc (phải) và Nén (trái)',
+  modal_compare_hint: 'Rê chuột hoặc chạm vào ảnh để xem kính lúp phóng to đồng bộ (Ảnh nén bên trái, ảnh gốc bên phải)',
 
   // Footer
   footer_credit: 'Phát triển bởi Tang Thanh Quang',

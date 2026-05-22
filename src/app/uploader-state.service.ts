@@ -171,6 +171,7 @@ export class UploaderStateService {
           progress: 0,
           result: undefined,
           error: undefined,
+          isCropped: true,
         };
       }),
     );

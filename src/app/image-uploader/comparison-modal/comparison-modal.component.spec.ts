@@ -14,18 +14,14 @@ describe('ComparisonModalComponent', () => {
   let fixture: ComponentFixture<ComparisonModalComponent>;
   let stateMock: {
     comparingFile: ReturnType<typeof signal<ProcessedFile | null>>;
-    comparisonSliderValue: ReturnType<typeof signal<number>>;
     closeComparison: ReturnType<typeof vi.fn>;
-    setComparisonSlider: ReturnType<typeof vi.fn>;
     createBlobUrl: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     stateMock = {
       comparingFile: signal<ProcessedFile | null>(null),
-      comparisonSliderValue: signal(50),
       closeComparison: vi.fn(),
-      setComparisonSlider: vi.fn(),
       createBlobUrl: vi.fn().mockReturnValue('blob:x'),
     };
 
@@ -51,9 +47,51 @@ describe('ComparisonModalComponent', () => {
     expect(stateMock.closeComparison).toHaveBeenCalled();
   });
 
-  it('updateSlider() delegate state.setComparisonSlider với số đọc từ event', () => {
-    const event = { target: { valueAsNumber: 75 } } as unknown as Event;
-    component.updateSlider(event);
-    expect(stateMock.setComparisonSlider).toHaveBeenCalledWith(75);
+  it('onMouseMove sets isHovering to true when inside image', () => {
+    const paneMock = document.createElement('div');
+    const imgMock = document.createElement('img');
+    paneMock.appendChild(imgMock);
+
+    vi.spyOn(paneMock, 'getBoundingClientRect').mockReturnValue({
+      left: 10,
+      top: 10,
+      width: 400,
+      height: 300,
+      right: 410,
+      bottom: 310,
+      x: 10,
+      y: 10,
+      toJSON: () => {},
+    } as DOMRect);
+
+    vi.spyOn(imgMock, 'getBoundingClientRect').mockReturnValue({
+      left: 10,
+      top: 10,
+      width: 400,
+      height: 300,
+      right: 410,
+      bottom: 310,
+      x: 10,
+      y: 10,
+      toJSON: () => {},
+    } as DOMRect);
+
+    const event = {
+      currentTarget: paneMock,
+      clientX: 50,
+      clientY: 50,
+    } as unknown as MouseEvent;
+
+    component.onMouseMove(event);
+
+    expect(component.isHovering()).toBe(true);
+    expect(component.zoomPct()).toEqual({ x: 10, y: 13.333333333333334 });
+    expect(component.lensPos()).toEqual({ x: -40, y: -40 }); // imgRect.left - paneRect.left + x - lensSize/2 = 0 + 40 - 80 = -40
+  });
+
+  it('onMouseLeave sets isHovering to false', () => {
+    component.isHovering.set(true);
+    component.onMouseLeave();
+    expect(component.isHovering()).toBe(false);
   });
 });
