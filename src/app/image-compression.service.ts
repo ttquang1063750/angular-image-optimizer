@@ -287,13 +287,20 @@ export class ImageCompressionService {
     blobType: string,
     nameAlreadyStripped: boolean,
   ): string {
-    const targetExt = blobType === 'image/webp' ? '.webp' : '.jpg';
+    const targetExt =
+      blobType === 'image/webp' ? '.webp' : blobType === 'image/avif' ? '.avif' : '.jpg';
     const lower = fileName.toLowerCase();
     const isJpeg = blobType === 'image/jpeg';
+    const isWebp = blobType === 'image/webp';
+    const isAvif = blobType === 'image/avif';
 
     const hasCorrectExt = isJpeg
       ? lower.endsWith('.jpg') || lower.endsWith('.jpeg')
-      : lower.endsWith('.webp');
+      : isWebp
+        ? lower.endsWith('.webp')
+        : isAvif
+          ? lower.endsWith('.avif')
+          : false;
 
     if (hasCorrectExt) return fileName;
 

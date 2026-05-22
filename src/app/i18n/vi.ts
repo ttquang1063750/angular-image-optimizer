@@ -281,4 +281,7 @@ export const vi: TranslationDict = {
   btn_pwa_install: 'Cài đặt ứng dụng',
   pwa_update_available: 'Có phiên bản cập nhật mới!',
   btn_pwa_reload: 'Tải lại trang',
+
+  // AVIF support
+  avif_not_supported_tooltip: 'Trình duyệt của bạn không hỗ trợ nén định dạng AVIF.',
 };

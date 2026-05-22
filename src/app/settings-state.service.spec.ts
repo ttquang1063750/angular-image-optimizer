@@ -51,6 +51,12 @@ describe('SettingsStateService', () => {
     expect(opts.resizeWidth).toBe(800);
   });
 
+  it('currentOptions phản ánh format AVIF', () => {
+    service.selectedFormat.set('image/avif');
+    const opts = service.currentOptions();
+    expect(opts.format).toBe('image/avif');
+  });
+
   it('currentOptions include namePattern', () => {
     service.namePrefix.set('pre-');
     service.includeNumbering.set(true);

@@ -39,6 +39,15 @@
       >
         WebP
       </button>
+      <button
+        type="button"
+        [class.active]="selectedFormat() === 'image/avif'"
+        [disabled]="!isAvifSupported()"
+        [title]="!isAvifSupported() ? t()['avif_not_supported_tooltip'] : ''"
+        (click)="setFormat('image/avif')"
+      >
+        AVIF
+      </button>
     </div>
 
     <label class="exif-toggle">

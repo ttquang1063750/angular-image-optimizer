@@ -4,6 +4,7 @@ import {
   getNumberValue,
   getSelectValue,
   validateNumberInput,
+  isAvifEncodingSupported,
 } from './dom-event';
 
 describe('dom-event utils', () => {
@@ -66,6 +67,54 @@ describe('dom-event utils', () => {
     it('biên min và max được chấp nhận (inclusive)', () => {
       expect(validateNumberInput(evt(1), 1, 100).valid).toBe(true);
       expect(validateNumberInput(evt(100), 1, 100).valid).toBe(true);
+    });
+  });
+
+  describe('isAvifEncodingSupported', () => {
+    it('trả về true hoặc false tùy theo canvas.toDataURL', () => {
+      const originalCanvas = globalThis.HTMLCanvasElement;
+
+      // Giả lập browser có canvas hỗ trợ AVIF
+      const mockCanvas = {
+        getContext: vi.fn(),
+        toDataURL: vi.fn().mockReturnValue('data:image/avif;base64,...'),
+      };
+      const createElementSpy = vi
+        .spyOn(document, 'createElement')
+        .mockReturnValue(mockCanvas as unknown as HTMLCanvasElement);
+
+      // Định nghĩa HTMLCanvasElement trên global scope
+      globalThis.HTMLCanvasElement = class {} as unknown as typeof HTMLCanvasElement;
+
+      expect(isAvifEncodingSupported()).toBe(true);
+
+      // Giả lập browser có canvas nhưng không hỗ trợ AVIF (trả về png mặc định)
+      mockCanvas.toDataURL.mockReturnValue('data:image/png;base64,...');
+      expect(isAvifEncodingSupported()).toBe(false);
+
+      // Restore
+      createElementSpy.mockRestore();
+      globalThis.HTMLCanvasElement = originalCanvas;
+    });
+
+    it('trả về false khi không có HTMLCanvasElement (môi trường server/SSR)', () => {
+      const originalCanvas = globalThis.HTMLCanvasElement;
+
+      // Xóa định nghĩa HTMLCanvasElement
+      Object.defineProperty(globalThis, 'HTMLCanvasElement', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      });
+
+      expect(isAvifEncodingSupported()).toBe(false);
+
+      // Restore
+      Object.defineProperty(globalThis, 'HTMLCanvasElement', {
+        value: originalCanvas,
+        writable: true,
+        configurable: true,
+      });
     });
   });
 });

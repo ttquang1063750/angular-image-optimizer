@@ -107,7 +107,11 @@ export const PRESET_IMPORT_MAX_BYTES = 10 * 1024 * 1024;
 
 // Whitelist các giá trị enum cho validation khi import preset
 export const VALID_COMPRESSION_PRESETS: readonly CompressionPreset[] = ['light', 'medium', 'max'];
-export const VALID_OUTPUT_FORMATS: readonly OutputFormat[] = ['image/jpeg', 'image/webp'];
+export const VALID_OUTPUT_FORMATS: readonly OutputFormat[] = [
+  'image/jpeg',
+  'image/webp',
+  'image/avif',
+];
 export const VALID_RESIZE_MODES: readonly ResizeMode[] = ['auto', 'width', 'height', 'percent'];
 export const VALID_WATERMARK_TYPES: readonly WatermarkType[] = ['text', 'image'];
 export const VALID_WATERMARK_POSITIONS: readonly WatermarkPosition[] = [

@@ -39,3 +39,19 @@ export function validateNumberInput(event: Event, min: number, max: number): Val
   if (value > max) return { value, valid: false, reason: 'above_max' };
   return { value, valid: true };
 }
+
+/**
+ * Kiểm tra xem trình duyệt có hỗ trợ mã hóa ảnh sang định dạng AVIF qua Canvas hay không.
+ * An toàn khi chạy ở Server-Side Rendering (SSR) do kiểm tra sự tồn tại của HTMLCanvasElement.
+ */
+export function isAvifEncodingSupported(): boolean {
+  if (typeof HTMLCanvasElement === 'undefined') return false;
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    return canvas.toDataURL('image/avif').startsWith('data:image/avif');
+  } catch {
+    return false;
+  }
+}

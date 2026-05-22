@@ -4,7 +4,7 @@ import { SettingsStateService } from '../../settings-state.service';
 import { UploaderStateService } from '../../uploader-state.service';
 import { CompressionPreset, OutputFormat, ResizeMode } from '../../image-processing.model';
 import { INPUT_RANGES, NumberRange } from '../../image-processing.constants';
-import { validateNumberInput } from '../../utils/dom-event';
+import { validateNumberInput, isAvifEncodingSupported } from '../../utils/dom-event';
 import { NamingConfigComponent } from './naming-config/naming-config.component';
 import { WatermarkConfigComponent } from './watermark-config/watermark-config.component';
 
@@ -31,6 +31,7 @@ export class SettingsPanelComponent {
 
   readonly ranges = INPUT_RANGES;
   readonly errors = signal<Record<string, string>>({});
+  readonly isAvifSupported = signal(isAvifEncodingSupported());
 
   setPreset(preset: CompressionPreset): void {
     this.settings.selectedPreset.set(preset);

@@ -2,7 +2,7 @@
 export type CompressionPreset = 'light' | 'medium' | 'max';
 
 // Định nghĩa định dạng đầu ra
-export type OutputFormat = 'image/jpeg' | 'image/webp';
+export type OutputFormat = 'image/jpeg' | 'image/webp' | 'image/avif';
 
 // Định nghĩa chế độ resize
 export type ResizeMode = 'auto' | 'width' | 'height' | 'percent';

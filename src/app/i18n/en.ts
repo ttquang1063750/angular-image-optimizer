@@ -282,4 +282,7 @@ export const en: TranslationDict = {
   btn_pwa_install: 'Install App',
   pwa_update_available: 'A new version is available!',
   btn_pwa_reload: 'Reload Page',
+
+  // AVIF support
+  avif_not_supported_tooltip: 'Your browser does not support AVIF compression.',
 };

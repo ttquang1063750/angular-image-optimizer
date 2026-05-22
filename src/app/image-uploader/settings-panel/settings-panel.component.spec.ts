@@ -52,6 +52,30 @@ describe('SettingsPanelComponent', () => {
     expect(stateMock.markSettingsChanged).toHaveBeenCalled();
   });
 
+  it('setFormat với AVIF cập nhật settings khi isAvifSupported = true', () => {
+    component.isAvifSupported.set(true);
+    component.setFormat('image/avif');
+    expect(settings.selectedFormat()).toBe('image/avif');
+    expect(stateMock.markSettingsChanged).toHaveBeenCalled();
+  });
+
+  it('nút AVIF bị disabled và hiển thị tooltip khi isAvifSupported = false', () => {
+    component.isAvifSupported.set(false);
+    fixture.detectChanges();
+
+    const buttons = fixture.nativeElement.querySelectorAll('.preset-buttons button');
+    let avifBtn: HTMLButtonElement | null = null;
+    buttons.forEach((btn: HTMLButtonElement) => {
+      if (btn.textContent?.trim() === 'AVIF') {
+        avifBtn = btn;
+      }
+    });
+
+    expect(avifBtn).not.toBeNull();
+    expect(avifBtn!.disabled).toBe(true);
+    expect(avifBtn!.getAttribute('title')).toBe(component.t()['avif_not_supported_tooltip']);
+  });
+
   it('setResizeMode cập nhật settings', () => {
     component.setResizeMode('width');
     expect(settings.selectedResizeMode()).toBe('width');
