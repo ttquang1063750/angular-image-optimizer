@@ -6,6 +6,7 @@ import {
   OnDestroy,
   ViewChild,
   inject,
+  ViewEncapsulation,
 } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { isPlatformBrowser } from '@angular/common';
@@ -21,6 +22,7 @@ import type Cropper from 'cropperjs';
   imports: [],
   templateUrl: './crop-modal.component.html',
   styleUrl: './crop-modal.component.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class CropDialogComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly dialogRef = inject(DialogRef<void>);

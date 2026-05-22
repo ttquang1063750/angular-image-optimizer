@@ -16,7 +16,7 @@
         </div>
 
         <!-- Ảnh Nén (Bên trên, bị clip) -->
-        <div class="image-wrapper compressed" [style.width.%]="comparisonSliderValue()">
+        <div class="image-wrapper compressed" [style.clip-path]="'inset(0 ' + (100 - comparisonSliderValue()) + '% 0 0)'">
           <img [src]="item.result!.compressedUrl" alt="Compressed" />
           <span class="label-tag tag-right"
             >{{ t()['tag_compressed'] }} ({{ formatBytes(item.result!.compressedSize) }})</span

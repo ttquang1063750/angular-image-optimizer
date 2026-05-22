@@ -79,7 +79,14 @@ export class UploaderStateService {
   removeFile(id: string): void {
     this.processedFiles.update((files) => {
       const target = files.find((f) => f.id === id);
-      if (target) this.revokeResultUrl(target);
+      if (target) {
+        this.revokeResultUrl(target);
+        const cachedUrl = this.blobUrlCache.get(target.file);
+        if (cachedUrl) {
+          URL.revokeObjectURL(cachedUrl);
+          this.blobUrlCache.delete(target.file);
+        }
+      }
       return files.filter((f) => f.id !== id);
     });
   }
@@ -202,7 +209,6 @@ export class UploaderStateService {
       },
       complete: () => {
         this.isCompressing.set(false);
-        this.cleanupBlobUrls();
       },
     });
   }
