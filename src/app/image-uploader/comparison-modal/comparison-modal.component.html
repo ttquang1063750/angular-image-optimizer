@@ -1,6 +1,6 @@
 @if (comparingFile(); as item) {
-  <div class="comparison-overlay" (click)="close()">
-    <div class="comparison-modal" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-dialog comparison-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ t()['modal_compare_title'] }} {{ item.file.name }}</h3>
         <button class="btn-close" (click)="close()">✕</button>

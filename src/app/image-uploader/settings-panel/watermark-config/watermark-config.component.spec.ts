@@ -3,6 +3,7 @@ import { WatermarkConfigComponent } from './watermark-config.component';
 import { SettingsStateService } from '../../../settings-state.service';
 import { UploaderStateService } from '../../../uploader-state.service';
 import { ImageCompressionService } from '../../../image-compression.service';
+import { WatermarkItem } from '../../../image-processing.model';
 
 vi.mock('heic2any', () => ({
   default: vi.fn(),
@@ -219,5 +220,40 @@ describe('WatermarkConfigComponent', () => {
 
     createObjectURLSpy.mockRestore();
     revokeSpy.mockRestore();
+  });
+
+  it('isCustomPosition xác định đúng toạ độ tuỳ chỉnh', () => {
+    expect(component.isCustomPosition('bottom-right')).toBe(false);
+    expect(component.isCustomPosition('center')).toBe(false);
+    expect(component.isCustomPosition({ x: 25, y: 75 })).toBe(true);
+  });
+
+  it('getPositionSummary trả về nhãn hoặc toạ độ phần trăm', () => {
+    const summaryStr = component.getPositionSummary('bottom-right');
+    expect(summaryStr).toBe(component.t()['pos_bottom_right'] || 'bottom-right');
+    expect(component.getPositionSummary({ x: 12.5, y: 84.3 })).toBe('(12.5%, 84.3%)');
+  });
+
+  it('selectWatermark đặt active watermark và expand nó', () => {
+    component.addWatermark('text');
+    const id = settings.watermarks()[0].id;
+    component.selectWatermark(id);
+    expect(component.selectedWatermarkId()).toBe(id);
+    expect(component.expandedId()).toBe(id);
+  });
+
+  it('onPositionChange với giá trị custom set tọa độ (50,50) — dialog mở qua helper', () => {
+    component.addWatermark('text');
+    const wm = settings.watermarks()[settings.watermarks().length - 1];
+    // Stub openPreviewDialog để tránh dynamic import của CDK Dialog
+    // gây EnvironmentTeardownError khi test tear down trước khi promise resolve.
+    vi.spyOn(component, 'openPreviewDialog').mockResolvedValue(undefined);
+
+    const event = { target: { value: 'custom' } } as unknown as Event;
+    component.onPositionChange(wm.id, event);
+
+    const updated = settings.watermarks().find((w) => w.id === wm.id);
+    expect(updated?.position).toEqual({ x: 50, y: 50 });
+    expect(component.openPreviewDialog).toHaveBeenCalledWith(wm.id);
   });
 });

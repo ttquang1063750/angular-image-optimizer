@@ -1,379 +1,402 @@
 :host {
   display: block;
+  // Guard mọi child không đẩy host vượt parent — fix iPhone bị che bên phải.
+  max-width: 100%;
+  min-width: 0;
 }
 
 .watermark-controls {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
 
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-text-muted);
+
+.watermark-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.watermark-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover, &.expanded {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+  }
+
+  &.selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-soft), var(--shadow-md);
+  }
+}
+
+.watermark-item-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--color-surface);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: var(--color-surface-alt);
+  }
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-disabled);
+  cursor: grab;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--color-primary);
+    background: var(--color-surface-muted);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.watermark-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.watermark-summary-text {
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  margin-right: 12px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-primary);
+  }
+
+  &.remove-wm-btn:hover {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+  }
+}
+
+.watermark-item.expanded .toggle-expand-btn {
+  transform: rotate(180deg);
+  color: var(--color-primary) !important;
+}
+
+.watermark-item-body {
+  padding: 16px;
+  background: var(--color-surface-muted);
+  border-top: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.type-tabs {
+  display: inline-flex;
+  background: var(--color-surface-alt);
+  padding: 3px;
+  border-radius: 6px;
+  width: fit-content;
+
+  button {
+    border: none;
+    background: transparent;
+    padding: 5px 14px;
+    border-radius: 4px;
     cursor: pointer;
-    width: fit-content;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted-2);
+    transition: all 0.2s;
 
-    input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--color-primary);
-    }
-  }
-
-  .watermark-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .watermark-item {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-soft);
-    border-radius: 8px;
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-    transition:
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
-
-    &:hover {
-      border-color: var(--color-primary);
-      box-shadow: var(--shadow-md);
-    }
-
-    &.expanded {
-      border-color: var(--color-primary);
-      box-shadow: var(--shadow-md);
-    }
-
-    .watermark-item-header {
-      display: flex;
-      align-items: center;
-      padding: 12px 16px;
-      gap: 12px;
-      cursor: pointer;
-      user-select: none;
+    &.active {
       background: var(--color-surface);
-      transition: background-color 0.2s;
-
-      &:hover {
-        background: var(--color-surface-alt);
-      }
-
-      .drag-handle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-text-disabled);
-        cursor: grab;
-        padding: 4px;
-        border-radius: 4px;
-        transition: all 0.2s;
-
-        &:hover {
-          color: var(--color-primary);
-          background: var(--color-surface-muted);
-        }
-
-        &:active {
-          cursor: grabbing;
-        }
-
-        svg {
-          display: block;
-        }
-      }
-
-      .watermark-title {
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: var(--color-text-muted);
-        white-space: nowrap;
-      }
-
-      .watermark-summary-text {
-        font-size: 0.85rem;
-        color: var(--color-text-subtle);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        flex-grow: 1;
-        margin-right: 12px;
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-left: auto;
-
-        .btn-icon {
-          background: transparent;
-          border: none;
-          padding: 6px;
-          border-radius: 50%;
-          cursor: pointer;
-          color: var(--color-text-subtle);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-
-          &:hover {
-            background: var(--color-surface-alt);
-            color: var(--color-primary);
-          }
-
-          &.remove-wm-btn:hover {
-            background: var(--color-danger-soft);
-            color: var(--color-danger);
-          }
-
-          svg {
-            display: block;
-          }
-        }
-      }
-    }
-
-    &.expanded .toggle-expand-btn {
-      transform: rotate(180deg);
-      color: var(--color-primary) !important;
-    }
-
-    .watermark-item-body {
-      padding: 16px;
-      background: var(--color-surface-muted);
-      border-top: 1px solid var(--color-border-soft);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
-      .type-tabs {
-        display: inline-flex;
-        background: var(--color-surface-alt);
-        padding: 3px;
-        border-radius: 6px;
-        width: fit-content;
-
-        button {
-          border: none;
-          background: transparent;
-          padding: 5px 14px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: var(--color-text-muted-2);
-          transition: all 0.2s;
-
-          &.active {
-            background: var(--color-surface);
-            color: var(--color-primary);
-            box-shadow: var(--shadow-sm);
-          }
-        }
-      }
-
-      .watermark-config-row {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-
-        .input-text {
-          padding: 6px 12px;
-          border: 1px solid var(--color-border);
-          border-radius: 6px;
-          outline: none;
-          width: 180px;
-          font-weight: 500;
-          background: var(--color-surface);
-          color: var(--color-text-muted);
-
-          &:focus {
-            border-color: var(--color-primary);
-          }
-        }
-
-        .select-group {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-
-          .sub-label {
-            font-size: 0.85rem;
-            color: var(--color-text-subtle);
-          }
-
-          select {
-            padding: 5px 8px;
-            border-radius: 6px;
-            border: 1px solid var(--color-border);
-            outline: none;
-            background: var(--color-surface);
-            color: var(--color-text-muted);
-            cursor: pointer;
-
-            &:focus {
-              border-color: var(--color-primary);
-            }
-          }
-        }
-
-        .input-with-label {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: var(--color-surface);
-          padding: 4px 8px;
-          border: 1px solid var(--color-border);
-          border-radius: 6px;
-
-          .sub-label {
-            font-size: 0.8rem;
-            color: var(--color-text-disabled);
-          }
-
-          input {
-            border: none;
-            width: 45px;
-            outline: none;
-            font-weight: 600;
-            text-align: center;
-            background: transparent;
-            color: var(--color-text-muted);
-          }
-
-          &.has-error {
-            border-color: var(--color-danger);
-            background: var(--color-danger-soft);
-          }
-        }
-
-        .color-picker {
-          display: flex;
-          align-items: center;
-
-          input[type='color'] {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            padding: 0;
-
-            &::-webkit-color-swatch-wrapper {
-              padding: 0;
-            }
-            &::-webkit-color-swatch {
-              border: 2px solid var(--color-surface);
-              border-radius: 4px;
-              box-shadow: 0 0 0 1px var(--color-border);
-            }
-          }
-        }
-
-        .image-picker {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          .logo-preview {
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 6px;
-            padding: 4px;
-          }
-
-          .btn-upload-image {
-            display: inline-block;
-            padding: 6px 12px;
-            background: var(--color-primary);
-            color: var(--color-text-on-primary);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s;
-
-            &:hover {
-              background: var(--color-primary-hover);
-            }
-          }
-
-          .btn-remove-image {
-            background: transparent;
-            border: 1px solid var(--color-danger);
-            color: var(--color-danger);
-            padding: 4px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-
-            &:hover {
-              background: var(--color-danger-soft);
-            }
-          }
-
-          .hint {
-            font-size: 0.8rem;
-            color: var(--color-text-subtle);
-            font-style: italic;
-          }
-        }
-      }
-    }
-  }
-
-  .watermark-add-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 4px;
-
-    .btn-add {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: all 0.2s;
-      border: 1px solid var(--color-border);
-      background: var(--color-surface);
-      color: var(--color-text-muted);
-
-      &:hover {
-        border-color: var(--color-primary);
-        color: var(--color-primary);
-        background: var(--color-surface-alt);
-      }
-
-      svg {
-        display: block;
-      }
-    }
-
-    .wm-limit-warning {
-      font-size: 0.85rem;
-      color: var(--color-danger);
-      font-weight: 500;
-      font-style: italic;
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
     }
   }
 }
 
-// CDK drag-drop overrides
+.watermark-config-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.input-text,
+.position-select-wrapper select {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  outline: none;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+
+  &:focus {
+    border-color: var(--color-primary);
+  }
+}
+
+.input-text {
+  padding: 6px 12px;
+  width: 180px;
+  font-weight: 500;
+  // min-width: 0 cho phép shrink dưới content size khi parent flex chật chội.
+  // max-width: 100% phòng input vượt parent trên mobile.
+  min-width: 0;
+  max-width: 100%;
+}
+
+.select-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .sub-label {
+    font-size: 0.85rem;
+    color: var(--color-text-subtle);
+  }
+}
+
+.position-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  select {
+    padding: 5px 8px;
+    cursor: pointer;
+  }
+}
+
+.btn-add {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-surface-alt);
+  }
+}
+
+.adjust-visually-row {
+  margin-top: 4px;
+  display: flex;
+  width: 100%;
+}
+
+.btn-adjust-visually {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+
+  svg {
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-hover);
+    box-shadow: 0 4px 12px var(--color-primary-shadow);
+
+    svg {
+      transform: scale(1.15) rotate(15deg);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.input-with-label {
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  input {
+    width: 45px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .sub-label {
+    font-size: 0.8rem;
+    color: var(--color-text-disabled);
+  }
+}
+
+.color-picker {
+  display: flex;
+  align-items: center;
+
+  input[type='color'] {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    &::-webkit-color-swatch {
+      border: 2px solid var(--color-surface);
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px var(--color-border);
+    }
+  }
+}
+
+.image-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-preview {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.btn-upload-image,
+.btn-remove-image {
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-upload-image {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &:hover {
+    background: var(--color-primary-hover);
+  }
+}
+
+.btn-remove-image {
+  background: transparent;
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+
+  &:hover {
+    background: var(--color-danger-soft);
+  }
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.watermark-add-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.wm-limit-warning {
+  font-size: 0.85rem;
+  color: var(--color-danger);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.btn-icon,
+.btn-adjust,
+.btn-add {
+  svg {
+    display: block;
+  }
+}
+
+/* CDK drag-drop overrides for reordering watermark list */
 .cdk-drag-preview {
   background: var(--color-surface);
   border: 1px solid var(--color-primary);
@@ -391,29 +414,62 @@
   border-radius: 8px;
   box-sizing: border-box;
   box-shadow: 0 0 12px var(--color-primary-shadow);
-  animation: watermarkPlaceholderPulse 1.2s ease-in-out infinite;
 
   * {
     visibility: hidden;
   }
 }
 
-.cdk-drag-animating {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
+.cdk-drag-animating,
 .watermark-list.cdk-drop-list-dragging .watermark-item:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-@keyframes watermarkPlaceholderPulse {
-  0%,
-  100% {
-    background: var(--color-primary-soft);
-    border-color: var(--color-primary);
+/* ---------- Mobile: tránh overflow ngang trên iPhone / màn hẹp ---------- */
+@media (max-width: 640px) {
+  // Header dễ overflow khi card hẹp — cho phép summary text co lại tới 0.
+  .watermark-item-header {
+    padding: 12px;
+    gap: 8px;
+
+    .watermark-title {
+      font-size: 0.85rem;
+    }
+
+    .watermark-summary-text {
+      // min-width: 0 critical để flex children shrink dưới content size.
+      min-width: 0;
+      margin-right: 4px;
+      font-size: 0.8rem;
+    }
   }
-  50% {
-    background: var(--color-surface-muted);
-    border-color: var(--color-primary-hover);
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  // Body section: input text full-width, controls stack
+  .watermark-item-body {
+    padding: 12px;
+  }
+
+  .input-text {
+    width: 100%;
+  }
+
+  // Nút "Thêm watermark chữ / hình ảnh" mỗi nút 1 hàng, full-width
+  .watermark-add-actions {
+    .btn-add {
+      flex: 1 1 100%;
+      justify-content: center;
+    }
+  }
+
+  // Position select + opacity input ko force min-width
+  .select-group,
+  .position-select-wrapper,
+  .position-select-wrapper select {
+    min-width: 0;
+    max-width: 100%;
   }
 }

@@ -7,10 +7,16 @@
   @if (includeWatermark()) {
     <div class="watermark-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
       @for (item of watermarks(); track item.id; let idx = $index) {
-        <div class="watermark-item" [class.expanded]="expandedId() === item.id" cdkDrag>
+        <div
+          class="watermark-item"
+          [class.expanded]="expandedId() === item.id"
+          [class.selected]="selectedWatermarkId() === item.id"
+          (click)="selectWatermark(item.id)"
+          cdkDrag
+        >
           <!-- Item Header -->
           <div class="watermark-item-header" (click)="toggleExpand(item.id)">
-            <!-- Grip Drag Handle -->
+            <!-- Grip Drag Handle (CDK) -->
             <div
               class="drag-handle"
               cdkDragHandle
@@ -35,20 +41,20 @@
                 {{
                   t()
                     ['watermark_item_text_summary'].replace('{text}', item.text || '...')
-                    .replace('{position}', t()['pos_' + item.position.replace('-', '_')])
+                    .replace('{position}', getPositionSummary(item.position))
                 }}
               } @else {
                 @if (item.imageName) {
                   {{
                     t()
                       ['watermark_item_image_summary'].replace('{name}', item.imageName)
-                      .replace('{position}', t()['pos_' + item.position.replace('-', '_')])
+                      .replace('{position}', getPositionSummary(item.position))
                   }}
                 } @else {
                   {{
                     t()['watermark_item_image_empty_summary'].replace(
                       '{position}',
-                      t()['pos_' + item.position.replace('-', '_')]
+                      getPositionSummary(item.position)
                     )
                   }}
                 }
@@ -56,7 +62,6 @@
             </span>
 
             <div class="header-actions" (click)="$event.stopPropagation()">
-              <!-- Collapse Toggle Icon -->
               <button
                 type="button"
                 class="btn-icon toggle-expand-btn"
@@ -77,7 +82,6 @@
                 </svg>
               </button>
 
-              <!-- Remove Watermark Button -->
               <button
                 type="button"
                 class="btn-icon remove-wm-btn"
@@ -105,7 +109,7 @@
 
           <!-- Item Body -->
           @if (expandedId() === item.id) {
-            <div class="watermark-item-body">
+            <div class="watermark-item-body" (click)="$event.stopPropagation()">
               <div class="type-tabs">
                 <button
                   type="button"
@@ -159,7 +163,7 @@
                 } @else {
                   <div class="image-picker">
                     @if (item.previewUrl; as url) {
-                      <img [src]="url" class="logo-preview" alt="Logo preview" />
+                      <img [src]="url" class="logo-preview" [alt]="t()['watermark_alt_logo']" />
                       <button type="button" class="btn-remove-image" (click)="removeImage(item.id)">
                         {{ t()['watermark_remove_image'] }}
                       </button>
@@ -199,13 +203,19 @@
 
                 <div class="select-group">
                   <span class="sub-label">{{ t()['watermark_pos'] }}</span>
-                  <select [value]="item.position" (change)="onPositionChange(item.id, $event)">
-                    <option value="bottom-right">{{ t()['pos_bottom_right'] }}</option>
-                    <option value="bottom-left">{{ t()['pos_bottom_left'] }}</option>
-                    <option value="top-right">{{ t()['pos_top_right'] }}</option>
-                    <option value="top-left">{{ t()['pos_top_left'] }}</option>
-                    <option value="center">{{ t()['pos_center'] }}</option>
-                  </select>
+                  <div class="position-select-wrapper">
+                    <select
+                      [value]="isCustomPosition(item.position) ? 'custom' : item.position"
+                      (change)="onPositionChange(item.id, $event)"
+                    >
+                      <option value="bottom-right">{{ t()['pos_bottom_right'] }}</option>
+                      <option value="bottom-left">{{ t()['pos_bottom_left'] }}</option>
+                      <option value="top-right">{{ t()['pos_top_right'] }}</option>
+                      <option value="top-left">{{ t()['pos_top_left'] }}</option>
+                      <option value="center">{{ t()['pos_center'] }}</option>
+                      <option value="custom">{{ t()['pos_custom'] }}</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div class="field">
@@ -224,6 +234,32 @@
                     <span class="field-error">{{ msg }}</span>
                   }
                 </div>
+              </div>
+
+              <!-- Dedicated Adjust Visually Button -->
+              <div class="adjust-visually-row">
+                <button
+                  type="button"
+                  class="btn-adjust-visually"
+                  (click)="openPreviewDialog(item.id)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M15 3h6v6"></path>
+                    <path d="M9 21H3v-6"></path>
+                    <path d="M21 3l-7 7"></path>
+                    <path d="M3 21l7-7"></path>
+                  </svg>
+                  {{ t()['watermark_adjust_visually'] }}
+                </button>
               </div>
             </div>
           }

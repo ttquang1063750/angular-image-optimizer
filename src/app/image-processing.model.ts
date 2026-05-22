@@ -15,13 +15,19 @@ export interface FileNamePattern {
   startIndex: number;
 }
 
+export interface WatermarkCoordinates {
+  x: number; // 0 -> 100
+  y: number; // 0 -> 100
+}
+
 // Định nghĩa vị trí watermark
 export type WatermarkPosition =
   | 'bottom-right'
   | 'bottom-left'
   | 'top-right'
   | 'top-left'
-  | 'center';
+  | 'center'
+  | WatermarkCoordinates;
 
 export type WatermarkType = 'text' | 'image';
 

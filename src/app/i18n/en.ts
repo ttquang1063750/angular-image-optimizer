@@ -56,6 +56,15 @@ export const en: TranslationDict = {
   watermark_item_image_summary: 'Image: {name} at {position}',
   watermark_item_image_empty_summary: 'No image selected at {position}',
   watermark_drag_handle_title: 'Drag to reorder',
+  btn_move_up: 'Move up',
+  btn_move_down: 'Move down',
+  watermark_preview_title: 'Watermark Preview (Drag & Drop)',
+  watermark_preview_placeholder: 'Upload an image to preview & drag watermarks visually',
+  watermark_adjust_visually: 'Adjust position visually',
+  watermark_text_default: 'Watermark',
+  watermark_logo_placeholder: 'Logo',
+  watermark_alt_background: 'Preview background',
+  watermark_alt_logo: 'Watermark logo',
   file_drag_handle_title: 'Drag to reorder file',
 
   // Validation
@@ -67,6 +76,7 @@ export const en: TranslationDict = {
   pos_top_right: 'Top Right',
   pos_top_left: 'Top Left',
   pos_center: 'Center',
+  pos_custom: 'Custom',
 
   // Drop zone
   drop_zone_text: 'Drag & drop images here or click to browse',

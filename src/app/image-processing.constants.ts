@@ -94,6 +94,14 @@ export const DEFAULT_SETTINGS: SavedPresetData = {
 // Giới hạn số lượng watermark tối đa
 export const MAX_WATERMARKS = 5;
 
+// Padding mặc định cho image watermark khi ở preset position (% so với size
+// của watermark). 0.05 → padding = 5% size để watermark cách edge tương xứng.
+export const WATERMARK_IMAGE_PRESET_PADDING_RATIO = 0.05;
+
+// Số chữ số thập phân cho coordinate khi drag watermark (0-100 percentage).
+// 1 decimal đủ chính xác cho UI + tránh float drift sau nhiều thao tác.
+export const WATERMARK_DRAG_COORD_DECIMALS = 1;
+
 // Preset feature: storage key, export filename, default id sentinel
 export const PRESET_STORAGE_KEY = 'angular_image_optimizer_presets';
 export const PRESET_EXPORT_FILENAME = 'angular_image_optimizer_presets.json';
