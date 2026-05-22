@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { TranslationService } from '../../translation.service';
 import { UploaderStateService } from '../../uploader-state.service';
+import { COMPARISON_LENS_SIZE_PX, COMPARISON_ZOOM_FACTOR } from '../../image-processing.constants';
 
 @Component({
   selector: 'app-comparison-modal',
@@ -20,8 +21,9 @@ export class ComparisonModalComponent {
   readonly zoomPct = signal<{ x: number; y: number }>({ x: 0, y: 0 });
   readonly lensPos = signal<{ x: number; y: number }>({ x: 0, y: 0 });
   readonly imgSize = signal<{ w: number; h: number }>({ w: 0, h: 0 });
-  readonly zoomFactor = 2.5;
-  readonly lensSize = 160;
+  readonly zoomFactor = COMPARISON_ZOOM_FACTOR;
+  readonly lensSize = COMPARISON_LENS_SIZE_PX;
+
 
   close(): void {
     this.state.closeComparison();
