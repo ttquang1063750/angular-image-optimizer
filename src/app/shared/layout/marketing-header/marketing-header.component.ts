@@ -3,11 +3,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslationService } from '../../../translation.service';
 import { LangSwitcherComponent } from '../../ui/lang-switcher/lang-switcher.component';
 import { ThemeToggleComponent } from '../../ui/theme-toggle/theme-toggle.component';
+import { LogoComponent } from '../../ui/logo/logo.component';
 
 @Component({
   selector: 'app-marketing-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, LangSwitcherComponent, ThemeToggleComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    LangSwitcherComponent,
+    ThemeToggleComponent,
+    LogoComponent,
+  ],
   templateUrl: './marketing-header.component.html',
   styleUrl: './marketing-header.component.scss',
 })

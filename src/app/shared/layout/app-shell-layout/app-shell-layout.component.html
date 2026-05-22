@@ -1,125 +1,6 @@
 <header class="shell-header">
   <a [routerLink]="['/', lang()]" class="brand">
-    <svg
-      class="logo-icon"
-      viewBox="0 0 320 320"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="shell-logo-grad-a" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.15" />
-          <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0.05" />
-        </linearGradient>
-        <linearGradient id="shell-logo-grad-b" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="var(--color-info)" stop-opacity="0.18" />
-          <stop offset="100%" stop-color="var(--color-info)" stop-opacity="0.05" />
-        </linearGradient>
-      </defs>
-
-      <g transform="translate(0 20)">
-        <!-- back card: original -->
-        <g transform="translate(20 30) rotate(-6)">
-          <rect
-            width="180"
-            height="140"
-            rx="14"
-            fill="url(#shell-logo-grad-a)"
-            stroke="var(--color-border)"
-            stroke-width="1.5"
-          />
-          <circle cx="44" cy="44" r="14" fill="var(--color-warning)" opacity="0.6" />
-          <path
-            d="M0 110 L50 70 L90 95 L130 60 L180 100 L180 140 L0 140 Z"
-            fill="var(--color-primary)"
-            opacity="0.25"
-          />
-          <rect
-            x="12"
-            y="118"
-            width="60"
-            height="14"
-            rx="7"
-            fill="var(--color-text-faint)"
-            opacity="0.5"
-          />
-          <g transform="translate(120 6)">
-            <rect width="58" height="22" rx="11" fill="var(--color-danger)" opacity="0.85" />
-            <text
-              x="29"
-              y="15"
-              text-anchor="middle"
-              font-family="system-ui, sans-serif"
-              font-size="11"
-              font-weight="700"
-              fill="#fff"
-            >
-              2.4 MB
-            </text>
-          </g>
-        </g>
-
-        <!-- front card: compressed -->
-        <g transform="translate(120 110) rotate(4)">
-          <rect
-            width="180"
-            height="140"
-            rx="14"
-            fill="url(#shell-logo-grad-b)"
-            stroke="var(--color-border)"
-            stroke-width="1.5"
-          />
-          <circle cx="44" cy="44" r="14" fill="var(--color-warning)" opacity="0.7" />
-          <path
-            d="M0 110 L50 70 L90 95 L130 60 L180 100 L180 140 L0 140 Z"
-            fill="var(--color-info)"
-            opacity="0.3"
-          />
-          <rect
-            x="12"
-            y="118"
-            width="60"
-            height="14"
-            rx="7"
-            fill="var(--color-text-faint)"
-            opacity="0.5"
-          />
-          <g transform="translate(124 6)">
-            <rect width="54" height="22" rx="11" fill="var(--color-success)" opacity="0.95" />
-            <text
-              x="27"
-              y="15"
-              text-anchor="middle"
-              font-family="system-ui, sans-serif"
-              font-size="11"
-              font-weight="700"
-              fill="#fff"
-            >
-              412 KB
-            </text>
-          </g>
-        </g>
-
-        <!-- arrow between -->
-        <g transform="translate(95 80)" opacity="0.65">
-          <path
-            d="M0 0 L24 24"
-            stroke="var(--color-primary)"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-          <path
-            d="M16 22 L24 24 L22 16"
-            stroke="var(--color-primary)"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            fill="none"
-          />
-        </g>
-      </g>
-    </svg>
+    <app-logo class="logo-icon"></app-logo>
     <span class="brand-text">Image Optimizer</span>
   </a>
   <div class="header-spacer"></div>
@@ -129,9 +10,9 @@
     type="button"
     class="settings-toggle"
     [class.active]="showSettings()"
-    [attr.aria-label]="t()['label_settings']"
+    [attr.aria-label]="t()['label_preset_backup']"
     [attr.aria-expanded]="showSettings()"
-    [title]="t()['label_settings']"
+    [title]="t()['label_preset_backup']"
     (click)="toggleSettings()"
   >
     <svg
@@ -151,11 +32,11 @@
 </header>
 
 @if (showSettings()) {
-  <div class="settings-popover" role="dialog" [attr.aria-label]="t()['label_settings']">
+  <div class="settings-popover" role="dialog" [attr.aria-label]="t()['label_preset_backup']">
     <div class="popover-header">
       <div class="header-title">
         <span class="header-icon" aria-hidden="true">⚙️</span>
-        <h3>{{ t()['label_settings'] }}</h3>
+        <h3>{{ t()['label_preset_backup']  }}</h3>
       </div>
     </div>
     <div class="popover-content">

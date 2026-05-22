@@ -79,12 +79,29 @@ export const vi: TranslationDict = {
   status_error: 'Lỗi:',
   btn_compare: 'So sánh chất lượng',
   btn_download: 'Tải ảnh này',
+  btn_crop: 'Cắt hình ảnh',
+
+  // Crop Modal
+  modal_crop_title: 'Cắt & xoay hình ảnh:',
+  crop_preview_alt: 'Xem trước cắt hình',
+  crop_aspect_free: 'Tự do',
+  crop_aspect_1_1: '1:1 (Vuông)',
+  crop_aspect_4_3: '4:3',
+  crop_aspect_16_9: '16:9',
+  btn_rotate: 'Xoay 90°',
+  btn_rotate_left: 'Xoay trái 90°',
+  btn_rotate_right: 'Xoay phải 90°',
+  btn_flip_h: 'Lật ngang',
+  btn_flip_v: 'Lật dọc',
+  btn_crop_confirm: 'Áp dụng',
+  crop_load_error: 'Không thể khởi tạo trình cắt ảnh. Vui lòng thử lại.',
+  crop_apply_error: 'Không thể xử lý ảnh đã cắt. Vui lòng thử lại.',
 
   // Comparison Modal
   modal_compare_title: 'So sánh chất lượng:',
   tag_original: 'Gốc',
   tag_compressed: 'Nén',
-  modal_compare_hint: 'Kéo thanh trượt để so sánh ảnh Gốc (phải) và Nén (trái)',
+  modal_compare_hint: 'Rê chuột hoặc chạm vào ảnh để xem kính lúp phóng to đồng bộ (Ảnh nén bên trái, ảnh gốc bên phải)',
 
   // Footer
   footer_credit: 'Phát triển bởi Tang Thanh Quang',
@@ -119,6 +136,7 @@ export const vi: TranslationDict = {
   msg_preset_save_failed: 'Lưu cấu hình thất bại.',
   msg_preset_file_too_large: 'File quá lớn (tối đa 10 MB).',
   label_settings: 'Cài đặt thông số',
+  label_preset_backup: 'Sao lưu thông số',
   btn_close: 'Đóng',
   btn_cancel: 'Hủy',
   btn_delete_confirm: 'Đồng ý xóa',
@@ -278,7 +296,7 @@ export const vi: TranslationDict = {
   blog_not_found_body: 'Bài viết bạn tìm không tồn tại hoặc đã bị di chuyển.',
 
   // PWA
-  btn_pwa_install: 'Cài đặt ứng dụng',
+  btn_pwa_install: 'Lưu app để dùng offline',
   pwa_update_available: 'Có phiên bản cập nhật mới!',
   btn_pwa_reload: 'Tải lại trang',
 

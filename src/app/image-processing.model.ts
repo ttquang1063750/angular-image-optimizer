@@ -91,6 +91,7 @@ export interface ProcessedFile {
   progress: number;
   result?: CompressedImageResult;
   error?: string;
+  isCropped?: boolean;
 }
 
 // Định nghĩa các watermark đã lưu trong preset

@@ -45,23 +45,25 @@ export class PwaService {
 
   installApp(): void {
     const promptEvent = this.installPromptEvent();
-    if (promptEvent) {
-      promptEvent.prompt();
-      promptEvent.userChoice.then(() => {
-        this.installPromptEvent.set(null);
-      });
-    }
+    if (!promptEvent) return;
+
+    // Luôn clear prompt event sau khi prompt — dù user accept, dismiss, hay
+    // browser throw. Tránh stuck button state nếu Promise reject.
+    const clear = (): void => this.installPromptEvent.set(null);
+    promptEvent.prompt();
+    promptEvent.userChoice.then(clear, clear);
   }
 
   reloadApp(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      if (this.swUpdate.isEnabled) {
-        this.swUpdate.activateUpdate().then(() => {
-          window.location.reload();
-        });
-      } else {
-        window.location.reload();
-      }
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Luôn reload dù activateUpdate fail (vd. không có waiting worker).
+    // User click "Reload" → phải reload, không kẹt button.
+    const reload = (): void => window.location.reload();
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.activateUpdate().then(reload, reload);
+    } else {
+      reload();
     }
   }
 }

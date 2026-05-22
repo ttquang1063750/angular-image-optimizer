@@ -59,7 +59,8 @@ describe('UploaderStateService', () => {
     expect(service.settingsChanged()).toBe(true);
   });
 
-  it('removeFile xóa file và revoke compressedUrl', () => {
+  it('removeFile xóa file, revoke compressedUrl và original cachedUrl', () => {
+    const createSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:original-cached');
     const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
     const mockFile = new File([''], 'a.jpg');
     const item: ProcessedFile = {
@@ -78,10 +79,15 @@ describe('UploaderStateService', () => {
     };
     service.processedFiles.set([item]);
 
+    // Cache the original URL
+    service.createBlobUrl(mockFile);
+
     service.removeFile('abc');
 
     expect(service.processedFiles().length).toBe(0);
     expect(revokeSpy).toHaveBeenCalledWith('blob:test');
+    expect(revokeSpy).toHaveBeenCalledWith('blob:original-cached');
+    createSpy.mockRestore();
     revokeSpy.mockRestore();
   });
 
@@ -155,6 +161,40 @@ describe('UploaderStateService', () => {
     expect(url1).toBe(url2);
     expect(createSpy).toHaveBeenCalledTimes(1);
     createSpy.mockRestore();
+  });
+
+  it('updateFile thay thế file, revoke URL cũ, và kích hoạt nén lại', () => {
+    const revokeSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    const mockFile = new File([''], 'a.jpg');
+    const newMockFile = new File([''], 'cropped-a.jpg');
+    const item: ProcessedFile = {
+      id: 'abc',
+      file: mockFile,
+      status: 'done',
+      progress: 100,
+      result: {
+        originalFile: mockFile,
+        compressedFile: new File([''], 'a.jpg'),
+        originalSize: 100,
+        compressedSize: 50,
+        savedPercentage: 50,
+        compressedUrl: 'blob:test-result',
+      },
+    };
+    service.processedFiles.set([item]);
+
+    service.createBlobUrl(mockFile);
+
+    service.updateFile('abc', newMockFile);
+
+    const updated = service.processedFiles()[0];
+    expect(updated.file).toBe(newMockFile);
+    expect(updated.status).toBe('queued');
+    expect(updated.progress).toBe(0);
+    expect(updated.result).toBeUndefined();
+    expect(revokeSpy).toHaveBeenCalledWith('blob:test-result');
+    expect(compressionMock.compressImagesWithProgress).toHaveBeenCalled();
+    revokeSpy.mockRestore();
   });
 
   describe('reorderFiles', () => {

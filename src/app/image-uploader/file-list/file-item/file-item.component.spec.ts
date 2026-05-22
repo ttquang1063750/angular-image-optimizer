@@ -90,4 +90,27 @@ describe('FileItemComponent', () => {
     expect(component.formatBytes(1000)).toBe('1 KB');
     expect(component.formatBytes(1_500_000)).toBe('1.5 MB');
   });
+
+  it('openCrop() lazy loads Dialog và CropDialogComponent rồi mở dialog', async () => {
+    const { Dialog } = await import('@angular/cdk/dialog');
+    const dialogMock = { open: vi.fn() };
+
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [FileItemComponent],
+      providers: [
+        { provide: UploaderStateService, useValue: stateMock },
+        { provide: Dialog, useValue: dialogMock },
+      ],
+    }).compileComponents();
+
+    const newFixture = TestBed.createComponent(FileItemComponent);
+    const newComponent = newFixture.componentInstance;
+    newFixture.componentRef.setInput('item', doneItem);
+    newFixture.detectChanges();
+
+    await newComponent.openCrop();
+
+    expect(dialogMock.open).toHaveBeenCalled();
+  });
 });

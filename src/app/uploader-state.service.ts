@@ -79,7 +79,14 @@ export class UploaderStateService {
   removeFile(id: string): void {
     this.processedFiles.update((files) => {
       const target = files.find((f) => f.id === id);
-      if (target) this.revokeResultUrl(target);
+      if (target) {
+        this.revokeResultUrl(target);
+        const cachedUrl = this.blobUrlCache.get(target.file);
+        if (cachedUrl) {
+          URL.revokeObjectURL(cachedUrl);
+          this.blobUrlCache.delete(target.file);
+        }
+      }
       return files.filter((f) => f.id !== id);
     });
   }
@@ -142,6 +149,46 @@ export class UploaderStateService {
     return this.compressionService.generateZip(this.processedFiles());
   }
 
+  updateFile(id: string, newFile: File): void {
+    this.processedFiles.update((files) =>
+      files.map((f) => {
+        if (f.id !== id) return f;
+
+        // Thu hồi URL nén cũ
+        this.revokeResultUrl(f);
+
+        // Thu hồi và xóa blob URL cache cũ của file này để render preview mới
+        const cachedUrl = this.blobUrlCache.get(f.file);
+        if (cachedUrl) {
+          URL.revokeObjectURL(cachedUrl);
+          this.blobUrlCache.delete(f.file);
+        }
+
+        return {
+          ...f,
+          file: newFile,
+          status: 'queued',
+          progress: 0,
+          result: undefined,
+          error: undefined,
+          isCropped: true,
+        };
+      }),
+    );
+
+    const files = this.processedFiles();
+    const index = files.findIndex((f) => f.id === id);
+    if (index !== -1) {
+      const item = {
+        file: newFile,
+        id,
+        index,
+      };
+      this.isCompressing.set(true);
+      this.runCompressionTask([item], this.settings.currentOptions());
+    }
+  }
+
   private runCompressionTask(items: CompressionItem[], options: CompressionOptions): void {
     this.compressionService.compressImagesWithProgress(items, options).subscribe({
       next: (update: FileStatusUpdate) => {
@@ -163,7 +210,6 @@ export class UploaderStateService {
       },
       complete: () => {
         this.isCompressing.set(false);
-        this.cleanupBlobUrls();
       },
     });
   }

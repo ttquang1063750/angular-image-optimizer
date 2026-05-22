@@ -1,4 +1,10 @@
-import { Component, inject, input } from '@angular/core';
+import {
+  Component,
+  EnvironmentInjector,
+  inject,
+  input,
+  runInInjectionContext,
+} from '@angular/core';
 import { ProcessedFile } from '../../../image-processing.model';
 import { TranslationService } from '../../../translation.service';
 import { UploaderStateService } from '../../../uploader-state.service';
@@ -13,12 +19,29 @@ import { UploaderStateService } from '../../../uploader-state.service';
 export class FileItemComponent {
   private readonly translationService = inject(TranslationService);
   private readonly state = inject(UploaderStateService);
+  private readonly envInjector = inject(EnvironmentInjector);
 
   readonly item = input.required<ProcessedFile>();
   readonly t = this.translationService.t;
 
   remove(): void {
     this.state.removeFile(this.item().id);
+  }
+
+  async openCrop(): Promise<void> {
+    const [{ Dialog }, { CropModalComponent }] = await Promise.all([
+      import('@angular/cdk/dialog'),
+      import('../../crop-modal/crop-modal.component'),
+    ]);
+
+    runInInjectionContext(this.envInjector, () => {
+      const dialog = inject(Dialog);
+      dialog.open(CropModalComponent, {
+        data: { file: this.item() },
+        panelClass: 'crop-dialog-panel',
+        disableClose: true,
+      });
+    });
   }
 
   openComparison(): void {

@@ -1,3 +1,8 @@
+/* Cropperjs styles cần global vì Cropper tạo DOM động (cropper-container,
+   cropper-canvas, cropper-crop-box…) mà Angular không own → không có
+   _ngcontent attribute, không nhận được scoped selectors của component. */
+@use 'cropperjs/dist/cropper.css';
+
 /* Global styles và theme tokens. Dark Mode sẽ override các biến này. */
 
 :root {

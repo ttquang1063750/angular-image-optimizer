@@ -27,10 +27,11 @@
   text-decoration: none;
   white-space: nowrap;
 
+  // <app-logo> host là inline-flex với svg width:100% — cần explicit width.
+  // viewBox 320×320 vuông nên width = height.
   .logo-icon {
-    width: auto;
+    width: 1.5rem;
     height: 1.5rem;
-    vertical-align: middle;
     flex-shrink: 0;
   }
 

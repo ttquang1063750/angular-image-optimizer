@@ -3,6 +3,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { TranslationService } from '../../../translation.service';
 import { LangSwitcherComponent } from '../../ui/lang-switcher/lang-switcher.component';
 import { ThemeToggleComponent } from '../../ui/theme-toggle/theme-toggle.component';
+import { LogoComponent } from '../../ui/logo/logo.component';
 import { openSupportDialogLazy } from '../../ui/support-dialog/open-support-dialog';
 import { PresetManagerComponent } from '../../../image-uploader/settings-panel/preset-manager/preset-manager.component';
 import { PwaService } from '../../pwa/pwa.service';
@@ -15,6 +16,7 @@ import { PwaService } from '../../pwa/pwa.service';
     RouterLink,
     LangSwitcherComponent,
     ThemeToggleComponent,
+    LogoComponent,
     PresetManagerComponent,
   ],
   templateUrl: './app-shell-layout.component.html',

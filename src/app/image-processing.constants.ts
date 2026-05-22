@@ -121,3 +121,8 @@ export const VALID_WATERMARK_POSITIONS: readonly WatermarkPosition[] = [
   'top-left',
   'center',
 ];
+
+// Các cấu hình cho kính lúp phóng to của Modal so sánh
+export const COMPARISON_ZOOM_FACTOR = 2.5;
+export const COMPARISON_LENS_SIZE_PX = 160;
+
