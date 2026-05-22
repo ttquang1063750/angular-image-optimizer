@@ -1,0 +1,137 @@
+:host {
+  display: block;
+}
+
+.how-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px;
+}
+
+.section-header {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 48px;
+
+  h2 {
+    font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+    margin: 0 0 12px;
+    color: var(--color-text-strong);
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    color: var(--color-text-muted);
+    margin: 0;
+    font-size: 1.05rem;
+  }
+}
+
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  position: relative;
+  counter-reset: step;
+}
+
+.step {
+  text-align: center;
+  position: relative;
+
+  .step-number {
+    position: absolute;
+    top: -8px;
+    right: 50%;
+    transform: translateX(56px);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px var(--color-primary-shadow);
+  }
+
+  .step-icon {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 20px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+    color: var(--color-text-strong);
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  // dashed connector between steps (desktop only)
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 48px;
+    left: calc(50% + 60px);
+    right: calc(-50% + 60px);
+    height: 2px;
+    background-image: linear-gradient(
+      to right,
+      var(--color-border) 0%,
+      var(--color-border) 50%,
+      transparent 50%,
+      transparent 100%
+    );
+    background-size: 12px 2px;
+    background-repeat: repeat-x;
+  }
+}
+
+@media (max-width: 880px) {
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .step {
+    .step-number {
+      transform: translateX(56px);
+    }
+
+    &:not(:last-child)::after {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .how-section {
+    padding: 56px 16px;
+  }
+}

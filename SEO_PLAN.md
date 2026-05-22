@@ -283,10 +283,10 @@ Tasks:
 
 ## 📌 Open questions cần research
 
-1. **Domain & hosting cụ thể?** Cần biết để set canonical URL absolute trong SeoService. Nếu chưa có, dùng env var `BASE_URL` configurable
+1. ~~**Domain & hosting cụ thể?**~~ ✅ Resolved: `image-optimizer.js-tools.org` (subdomain trong hệ thống js-tools.org). `SEO_BASE_URL` đã cập nhật. Hosting subdomain cần setup DNS + CDN khi deploy.
 2. **Keyword research thực sự** chưa làm — danh sách trên là giả định. Trước Phase 3 cần verify qua Ahrefs/Ubersuggest hoặc Google Trends
 3. **Logo + brand identity** cho marketing — hiện logo nào? OG image cần tạo
-4. **Analytics provider** — Plausible (paid $9/mo) hay Umami (self-host free)?
+4. ~~**Analytics provider**~~ ✅ Resolved: bỏ analytics. Giữ message privacy thuần — không tracking nào load trên site.
 5. **Blog: TS module vs markdown** — confirm sau khi prototype Phase 6
 6. **Newsletter / email capture**? — bỏ qua nếu không có backend, hoặc dùng dịch vụ third-party (Buttondown, ConvertKit) — sau MVP
 
@@ -296,14 +296,14 @@ Tasks:
 
 | Phase | Status | Branch | Notes |
 |---|---|---|---|
-| 1. Routing + SSG | ⏳ Pending | - | - |
-| 2. Marketing shell + SeoService | ⏳ Pending | - | - |
-| 3. Landing page | ⏳ Pending | - | - |
-| 4. SEO meta + structured data | ⏳ Pending | - | - |
-| 5. About + Changelog | ⏳ Pending | - | - |
-| 6. Blog scaffold + 3 posts | ⏳ Pending | - | - |
-| 7. Performance | ⏳ Pending | - | - |
-| 8. Sitemap + analytics | ⏳ Pending | - | - |
+| 1. Routing + SSG | ✅ Done | feature/seo-phase-1-ssg | 9 routes prerendered. /optimize = Client mode (skip prerender). Dynamic-imported compressorjs/jszip/heic2any. Services SSR-safe via isPlatformBrowser. |
+| 2. Marketing shell + SeoService | ✅ Done | feature/seo-phase-2-shell | MarketingHeader/Footer + slim AppShellLayout. LangSwitcher/ThemeToggle moved to shared/ui (lang switcher giờ navigate qua Router). SeoService với title/desc/OG/canonical/hreflang/JSON-LD/html[lang]. Mỗi page wire qua effect() để re-fire khi lang đổi. 165 tests pass, prerender HTML có đủ meta. Bonus: gear settings dọn khỏi uploader → header (chỉ ở /optimize). Support modal migrate sang CDK Dialog, footer marketing thêm link Support. |
+| 3. Landing page | ✅ Done | feature/seo-phase-3-landing | 6 sections (Hero/Features/HowItWorks/Comparison/FAQ/CTA) + ~70 i18n keys VI/EN. Hero có inline SVG illustration. 8 feature cards SVG icons. FAQ dùng native &lt;details&gt;/&lt;summary&gt; — semantic + no-JS + SEO-friendly. Comparison table vs TinyPNG/Squoosh 8 rows. JSON-LD FAQPage + SoftwareApplication. 195 tests pass. Prerender HTML verified: 8 cards, 8 FAQ items, 24 compare cells, 3 steps, 3 badges ở cả 2 ngôn ngữ. |
+| 4. SEO meta + structured data | ✅ Done | feature/seo-phase-4-meta | Phần lớn deliverables (per-route setRoute, canonical, hreflang, robots, OG, JSON-LD SoftwareApplication+FAQPage) đã done từ Phase 2/3. Phase 4 bổ sung: BreadcrumbList JSON-LD cho 4 inner pages (About/Changelog/BlogList/BlogPost). Polish index.html: theme-color light+dark, apple-mobile-web-app, color-scheme, author. og-image.svg (1200×630) thiết kế brand + URL chip — TODO export PNG cho LinkedIn/Slack. Script `npm run verify:seo` quét toàn bộ prerendered HTML asserting title/desc/canonical/hreflang×3/robots/OG×6/twitter:card + JSON-LD parse — all 8 pages pass. 198 tests pass. |
+| 5. About + Changelog | ✅ Done | feature/seo-phase-5-about-changelog | About: lede + story + tech stack (6 libs link external) + privacy commitment (6 bullets) + open source + Support CTA (mở SupportDialog) + contact. AboutPage JSON-LD. Changelog: viết tay 4 entries (v0.4.0 Landing&SEO, v0.3.0 Presets&Watermarks, v0.2.0 Polish&Locale, v0.1.0 Initial) theo Keep a Changelog format (Added/Changed/Fixed pills). Note giải thích versioning sẽ chính thức từ v1.0.0 khi deploy. Content stored as TS modules per-lang (about-content.{vi,en}.ts, changelog-content.{vi,en}.ts) — tách khỏi i18n dictionary vì long-form. 210 tests pass. verify:seo all 8 pages pass. |
+| 6. Blog scaffold + 3 posts | ✅ Done | feature/seo-phase-6-blog | BlogPost model (slug, lang, title, desc, publishedAt, updatedAt?, author, tags, contentHtml, heroSvg?) + registry (BLOG_POSTS array, findPost, postsByLang sort desc, relatedPosts). 6 posts viết tay (3 topic × VI/EN, ~700-900 từ mỗi bài, slug riêng từng lang): WebP vs JPEG, Client-side privacy, Bulk resize+watermark. Mỗi post: hero SVG, internal CTA link về /optimize, structured h2/h3/ul/code. BlogList: card grid sort date desc, reading time computed. BlogPost: hero + meta + tags + prose (innerHTML qua DomSanitizer bypass cho trusted source) + related (2 latest). BlogPosting JSON-LD per-post (author/publisher/datePublished/inLanguage/keywords/image). 404 layout khi slug invalid. SeoService mở rộng: nhận raw `title`+`description` override (cho post title không nằm dict). Slug đọc qua paramMap observable + toSignal cho SSR reliability. Server routes prerender 6 slug×lang qua getPrerenderParams từ registry. 15 routes prerendered. 230 tests pass. verify:seo all 14 pages pass. |
+| 7. Performance | ✅ Done | feature/seo-phase-7-perf | Lazy-load tất cả marketing pages qua loadComponent (Landing/About/Changelog/BlogList/BlogPost) + MarketingLayout cũng lazy → mỗi route 1 chunk riêng. CDK Dialog + SupportDialog tách thành chunk riêng (4.8KB/1.5KB gzip) qua `openSupportDialogLazy()` helper dùng dynamic import + runInInjectionContext. dns-prefetch cho github.com + paypal.me trong index.html. /momo.jpg thêm width/height + loading=lazy + decoding=async tránh CLS. angular.json budget gate: initial warning 350KB / error 500KB, landing-component warning 40KB / error 60KB — CI catch regression. Final initial bundle: **315 KB raw / 89 KB gzip** (giảm từ 502/131 = -37% raw, -32% gzip). User vào /vi tải thực tế: initial 89 + marketing-layout 2 + landing 5.6 = **~97 KB gzip** — đạt target plan. 230 tests pass, 15 routes prerendered, verify:seo all 14 pages pass. Lighthouse audit visual cần chạy sau khi deploy thật. |
+| 8. Sitemap + analytics | ✅ Done | feature/seo-phase-8-sitemap | `scripts/generate-sitemap.mjs` sinh sitemap.xml từ static pages + blog registry (đọc topicId qua regex). 14 URLs với xhtml:link hreflang alternates (vi/en/x-default). Blog posts với slug khác nhau giữa 2 lang vẫn pair đúng theo topicId (vd. vi `nen-anh-client-side` ↔ en `client-side-image-compression`). robots.txt deploy vào public/. npm scripts: `build:sitemap` standalone, `build:full = ng build && sitemap && verify:seo`. BlogPost interface mở rộng với `topicId: string` field. Analytics: bỏ qua theo quyết định user — không tracking để giữ message privacy thuần. 230 tests pass. |
 
 ---
 

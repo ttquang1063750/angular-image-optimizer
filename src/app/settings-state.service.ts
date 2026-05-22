@@ -1,4 +1,5 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ImageCompressionService } from './image-compression.service';
 import {
   CompressionOptions,
@@ -31,6 +32,7 @@ import {
 })
 export class SettingsStateService {
   private readonly compressionService = inject(ImageCompressionService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly selectedPreset = signal<CompressionPreset>(DEFAULT_SETTINGS.selectedPreset);
   readonly selectedFormat = signal<OutputFormat>(DEFAULT_SETTINGS.selectedFormat);
@@ -73,7 +75,7 @@ export class SettingsStateService {
 
   constructor() {
     this.watermarks.set(this.initWatermarksFromDefault());
-    this.loadPresetsFromStorage();
+    if (this.isBrowser) this.loadPresetsFromStorage();
   }
 
   private initWatermarksFromDefault(): WatermarkItem[] {
@@ -310,7 +312,7 @@ export class SettingsStateService {
   }
 
   private savePresetsToStorage(presets: UserPreset[]): void {
-    localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+    if (this.isBrowser) localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
     this.customPresets.set(presets);
   }
 

@@ -1,0 +1,126 @@
+:host {
+  display: block;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 48px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 24px 80px;
+}
+
+.hero-content {
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+  }
+
+  h1 {
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    line-height: 1.15;
+    margin: 0 0 16px;
+    color: var(--color-text-strong);
+    letter-spacing: -0.02em;
+  }
+
+  .subline {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    line-height: 1.55;
+    margin: 0 0 32px;
+    max-width: 540px;
+  }
+}
+
+.cta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  .cta-primary {
+    display: inline-block;
+    padding: 14px 28px;
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.05rem;
+    box-shadow: 0 6px 18px var(--color-primary-shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px var(--color-primary-shadow);
+    }
+  }
+
+  .cta-secondary {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 14px 8px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+  }
+}
+
+.hero-illustration {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  svg {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+  }
+}
+
+@media (max-width: 880px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 48px 16px 56px;
+    text-align: center;
+  }
+
+  .hero-content {
+    .badges,
+    .cta-row {
+      justify-content: center;
+    }
+
+    .subline {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .hero-illustration svg {
+    max-width: 320px;
+  }
+}

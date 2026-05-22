@@ -1,4 +1,5 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, PLATFORM_ID, effect, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 export type Theme = 'light' | 'dark';
 
@@ -8,18 +9,20 @@ const STORAGE_KEY = 'theme';
   providedIn: 'root',
 })
 export class ThemeService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   readonly currentTheme = signal<Theme>(this.getInitialTheme());
 
   constructor() {
-    // Đồng bộ thuộc tính data-theme trên <html> khi signal thay đổi
     effect(() => {
+      if (!this.isBrowser) return;
       document.documentElement.setAttribute('data-theme', this.currentTheme());
     });
   }
 
   setTheme(theme: Theme): void {
     this.currentTheme.set(theme);
-    localStorage.setItem(STORAGE_KEY, theme);
+    if (this.isBrowser) localStorage.setItem(STORAGE_KEY, theme);
   }
 
   toggle(): void {
@@ -27,10 +30,11 @@ export class ThemeService {
   }
 
   private getInitialTheme(): Theme {
+    if (!this.isBrowser) return 'light';
+
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
     if (saved === 'light' || saved === 'dark') return saved;
 
-    // Theo dõi sở thích hệ điều hành nếu chưa lưu lựa chọn
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
     return prefersDark ? 'dark' : 'light';
   }

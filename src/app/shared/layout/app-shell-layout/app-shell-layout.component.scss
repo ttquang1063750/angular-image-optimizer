@@ -1,0 +1,243 @@
+@use '../../../../styles/mixins' as m;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  // font-family inherit từ body (var(--font-family) trong styles.scss)
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.shell-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-surface);
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+
+    .logo-icon {
+      width: auto;
+      height: 1.4rem;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  .header-spacer {
+    flex-grow: 1;
+  }
+
+  .back-link {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  .settings-toggle {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      transform 0.15s ease;
+
+    svg {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover {
+      background: var(--color-surface-alt-2);
+      color: var(--color-primary);
+      transform: scale(1.08);
+
+      svg {
+        transform: rotate(45deg);
+      }
+    }
+
+    &.active {
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+
+      svg {
+        transform: rotate(90deg);
+      }
+    }
+
+    &:focus-visible {
+      @include m.focus-ring;
+    }
+  }
+}
+
+.settings-popover {
+  position: fixed;
+  right: 24px;
+  top: 60px;
+  width: min(360px, calc(100vw - 48px));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 80px);
+  z-index: 1100;
+  animation: fadeIn 0.18s ease-out;
+
+  :root[data-theme='dark'] & {
+    border-color: var(--color-border);
+  }
+
+  .popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--color-border-soft);
+
+    :root[data-theme='dark'] & {
+      border-bottom-color: var(--color-border);
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .header-icon {
+        font-size: 1.05rem;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-text-strong);
+      }
+    }
+  }
+
+  .popover-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+
+    .preset-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .preset-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+      }
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-border);
+      border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--color-text-subtle);
+    }
+  }
+}
+
+.shell-main {
+  flex-grow: 1;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.donation-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  // Brand-fixed yellow background — keep black text for contrast at both themes
+  background: #ffdd00;
+  color: #000;
+  padding: 12px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+
+  &:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    background: #ffeb3b;
+  }
+
+  .icon {
+    font-size: 1.4rem;
+  }
+
+  .text {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .donation-fab {
+    padding: 12px;
+    .text {
+      display: none;
+    }
+  }
+
+  .shell-header {
+    padding: 10px 16px;
+    .brand-text {
+      display: none;
+    }
+    .back-link {
+      display: none;
+    }
+  }
+}

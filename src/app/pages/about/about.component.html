@@ -1,0 +1,92 @@
+<article class="about">
+  <header class="about-header">
+    <h1>{{ t()['nav_about'] }}</h1>
+    <p class="lede">{{ content().lede }}</p>
+  </header>
+
+  <section class="story">
+    <h2>{{ content().storyTitle }}</h2>
+    @for (p of content().storyParagraphs; track $index) {
+      <p>{{ p }}</p>
+    }
+  </section>
+
+  <section class="tech">
+    <h2>{{ content().techTitle }}</h2>
+    <p class="section-blurb">{{ content().techBlurb }}</p>
+    <ul class="tech-grid">
+      @for (item of content().techStack; track item.name) {
+        <li>
+          <a [href]="item.url" target="_blank" rel="noopener">
+            <strong>{{ item.name }}</strong>
+            <span>{{ item.role }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="privacy">
+    <h2>{{ content().privacyTitle }}</h2>
+    <p class="section-blurb">{{ content().privacyBlurb }}</p>
+    <ul class="privacy-bullets">
+      @for (b of content().privacyBullets; track $index) {
+        <li>
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="4 11 8 15 16 6"></polyline>
+          </svg>
+          <span>{{ b }}</span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="oss">
+    <h2>{{ content().ossTitle }}</h2>
+    @for (p of content().ossParagraphs; track $index) {
+      <p>{{ p }}</p>
+    }
+    <a
+      href="https://github.com/ttquang1063750/angular-image-optimizer"
+      target="_blank"
+      rel="noopener"
+      class="oss-link"
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path
+          d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.28-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.08-.73.08-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.77.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.29 0 .32.22.69.83.58A12 12 0 0 0 24 12c0-6.63-5.37-12-12-12z"
+        />
+      </svg>
+      ttquang1063750/angular-image-optimizer
+    </a>
+  </section>
+
+  <section class="support">
+    <h2>{{ content().supportTitle }}</h2>
+    <p>{{ content().supportBlurb }}</p>
+    <button type="button" class="support-cta" (click)="openSupport()">
+      {{ content().supportCta }}
+    </button>
+  </section>
+
+  <section class="contact">
+    <h2>{{ content().contactTitle }}</h2>
+    <p>{{ content().contactBlurb }}</p>
+    <ul class="contact-list">
+      @for (line of content().contactLines; track line.href) {
+        <li>
+          <span class="contact-label">{{ line.label }}:</span>
+          <a [href]="line.href" target="_blank" rel="noopener">{{ line.text }}</a>
+        </li>
+      }
+    </ul>
+  </section>
+</article>

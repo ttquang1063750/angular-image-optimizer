@@ -1,0 +1,52 @@
+<div class="support-dialog">
+  <div class="dialog-header">
+    <h2>{{ t()['modal_support_title'] }}</h2>
+    <button type="button" class="btn-close" (click)="close()" [attr.aria-label]="t()['btn_close']">
+      ✕
+    </button>
+  </div>
+
+  <div class="dialog-body">
+    <p class="intro">{{ t()['modal_support_intro'] }}</p>
+
+    <div class="support-grid">
+      <div class="support-card paypal">
+        <h3>PayPal</h3>
+        <p>{{ t()['support_paypal_desc'] }}</p>
+        <a
+          href="https://paypal.me/ttquang1063750"
+          target="_blank"
+          rel="noopener"
+          class="btn-action"
+          >{{ t()['support_paypal_btn'] }}</a
+        >
+      </div>
+
+      <div class="support-card momo">
+        <h3>MoMo</h3>
+        <p>{{ t()['support_momo_desc'] }}</p>
+        <p>0938829401</p>
+        <div class="qr-placeholder">
+          <img
+            src="/momo.jpg"
+            alt="QR MoMo"
+            width="150"
+            height="150"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
+
+      <div class="support-card bank">
+        <h3>{{ t()['support_bank_desc'] }}</h3>
+        <p>{{ t()['support_bank_desc'] }}</p>
+        <div class="bank-details">
+          <strong>TANG THANH QUANG</strong><br />
+          STK: 99327359899<br />
+          {{ t()['bank_name'] }} Standard Chartered
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

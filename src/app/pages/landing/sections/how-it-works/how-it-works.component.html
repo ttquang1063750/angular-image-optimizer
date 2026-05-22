@@ -1,0 +1,63 @@
+<section class="how-section">
+  <header class="section-header">
+    <h2>{{ t()['how_heading'] }}</h2>
+    <p>{{ t()['how_subheading'] }}</p>
+  </header>
+
+  <ol class="steps">
+    @for (step of steps; let i = $index; track step.iconKey) {
+      <li class="step">
+        <div class="step-number">{{ i + 1 }}</div>
+        <div class="step-icon" aria-hidden="true">
+          @switch (step.iconKey) {
+            @case ('drop') {
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="6" y="10" width="36" height="28" rx="3" stroke-dasharray="3 3" />
+                <path d="M24 18 V30 M18 24 L24 18 L30 24" />
+              </svg>
+            }
+            @case ('tune') {
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="8" y1="14" x2="40" y2="14" />
+                <circle cx="32" cy="14" r="3.5" fill="var(--color-surface)" />
+                <line x1="8" y1="24" x2="40" y2="24" />
+                <circle cx="18" cy="24" r="3.5" fill="var(--color-surface)" />
+                <line x1="8" y1="34" x2="40" y2="34" />
+                <circle cx="28" cy="34" r="3.5" fill="var(--color-surface)" />
+              </svg>
+            }
+            @case ('download') {
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M24 6 V30 M14 22 L24 32 L34 22" />
+                <path d="M8 36 V40 C8 41.1 8.9 42 10 42 H38 C39.1 42 40 41.1 40 40 V36" />
+              </svg>
+            }
+          }
+        </div>
+        <h3>{{ t()[step.titleKey] }}</h3>
+        <p>{{ t()[step.descKey] }}</p>
+      </li>
+    }
+  </ol>
+</section>

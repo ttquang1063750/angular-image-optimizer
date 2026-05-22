@@ -1,0 +1,56 @@
+@if (post(); as p) {
+  <article class="blog-post">
+    <a [routerLink]="['/', lang(), 'blog']" class="back-link">
+      {{ t()['blog_back_to_list'] }}
+    </a>
+
+    <header class="post-header">
+      <div class="post-meta">
+        <time [attr.datetime]="p.publishedAt">{{ p.publishedAt }}</time>
+        <span>·</span>
+        <span>{{ readingMinutes() }} {{ t()['blog_reading_min'] }}</span>
+        <span>·</span>
+        <span>{{ t()['blog_by'] }} {{ p.author }}</span>
+      </div>
+      <h1>{{ p.title }}</h1>
+      <p class="lede">{{ p.description }}</p>
+      <ul class="post-tags">
+        @for (tag of p.tags; track tag) {
+          <li class="tag">#{{ tag }}</li>
+        }
+      </ul>
+    </header>
+
+    @if (heroSafe(); as safe) {
+      <figure class="hero" aria-hidden="true" [innerHTML]="safe"></figure>
+    }
+
+    <div class="prose" [innerHTML]="contentSafe()"></div>
+
+    @if (related().length > 0) {
+      <aside class="related">
+        <h2>{{ t()['blog_related_posts'] }}</h2>
+        <ul>
+          @for (r of related(); track r.post.slug) {
+            <li>
+              <a [routerLink]="['/', lang(), 'blog', r.post.slug]" class="related-link">
+                <span class="related-title">{{ r.post.title }}</span>
+                <span class="related-meta">
+                  {{ r.post.publishedAt }} · {{ r.readingMinutes }} {{ t()['blog_reading_min'] }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      </aside>
+    }
+  </article>
+} @else {
+  <article class="post-not-found">
+    <h1>{{ t()['blog_not_found_title'] }}</h1>
+    <p>{{ t()['blog_not_found_body'] }}</p>
+    <a [routerLink]="['/', lang(), 'blog']" class="back-link-cta">
+      {{ t()['blog_back_to_list'] }}
+    </a>
+  </article>
+}

@@ -1,0 +1,36 @@
+<article class="blog-list">
+  <header class="page-header">
+    <h1>{{ t()['nav_blog'] }}</h1>
+    <p>{{ t()['seo_blog_description'] }}</p>
+  </header>
+
+  @if (cards().length === 0) {
+    <div class="empty-state">
+      <p>{{ t()['blog_empty_state'] }}</p>
+    </div>
+  } @else {
+    <ul class="cards">
+      @for (card of cards(); track card.post.slug) {
+        <li class="card">
+          <a [routerLink]="['/', lang(), 'blog', card.post.slug]" class="card-link">
+            <div class="card-hero" aria-hidden="true" [innerHTML]="card.post.heroSvg"></div>
+            <div class="card-body">
+              <div class="card-meta">
+                <time [attr.datetime]="card.post.publishedAt">{{ card.post.publishedAt }}</time>
+                <span>·</span>
+                <span>{{ card.readingMinutes }} {{ t()['blog_reading_min'] }}</span>
+              </div>
+              <h2>{{ card.post.title }}</h2>
+              <p class="card-desc">{{ card.post.description }}</p>
+              <ul class="card-tags">
+                @for (tag of card.post.tags; track tag) {
+                  <li class="tag">#{{ tag }}</li>
+                }
+              </ul>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</article>

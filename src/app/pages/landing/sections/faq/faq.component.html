@@ -1,0 +1,31 @@
+<section class="faq-section" id="faq">
+  <header class="section-header">
+    <h2>{{ t()['faq_heading'] }}</h2>
+    <p>{{ t()['faq_subheading'] }}</p>
+  </header>
+
+  <div class="faq-list">
+    @for (item of items; track item.qKey) {
+      <details class="faq-item">
+        <summary>
+          <span class="question">{{ t()[item.qKey] }}</span>
+          <span class="chevron" aria-hidden="true">
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="4 6 8 10 12 6" />
+            </svg>
+          </span>
+        </summary>
+        <div class="answer">
+          <p>{{ t()[item.aKey] }}</p>
+        </div>
+      </details>
+    }
+  </div>
+</section>

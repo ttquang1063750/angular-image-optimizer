@@ -118,22 +118,6 @@ describe('ImageUploaderComponent', () => {
     expect(stateServiceClearSpy).toHaveBeenCalled();
   });
 
-  it('showSettings mặc định là false và hoạt động đóng/mở chính xác', () => {
-    expect(component.showSettings()).toBe(false);
-
-    component.toggleSettings();
-    expect(component.showSettings()).toBe(true);
-
-    component.closeSettings();
-    expect(component.showSettings()).toBe(false);
-
-    component.openSettings();
-    expect(component.showSettings()).toBe(true);
-
-    component.toggleSettings();
-    expect(component.showSettings()).toBe(false);
-  });
-
   it('showConfig mặc định là true và hoạt động đóng/mở chính xác', () => {
     expect(component.showConfig()).toBe(true);
 
@@ -216,7 +200,7 @@ describe('ImageUploaderComponent', () => {
       expect(downloadSpy).not.toHaveBeenCalled();
     });
 
-    it('Esc đóng comparison modal trước (priority cao hơn popover)', () => {
+    it('Esc đóng comparison modal khi mở', () => {
       const state = (
         component as unknown as {
           state: { closeComparison: () => void; comparingFile: () => unknown };
@@ -229,32 +213,16 @@ describe('ImageUploaderComponent', () => {
         status: 'done',
         progress: 100,
       });
-      component.openSettings();
 
       const event = new KeyboardEvent('keydown', { key: 'Escape' });
       component.onKeydown(event);
 
       expect(closeSpy).toHaveBeenCalled();
-      // popover vẫn mở vì modal đóng trước
-      expect(component.showSettings()).toBe(true);
     });
 
-    it('Esc đóng settings popover khi không có modal', () => {
+    it('Esc không làm gì khi không có modal mở', () => {
       vi.spyOn(component, 'comparingFile').mockReturnValue(null);
-      component.openSettings();
-
       const event = new KeyboardEvent('keydown', { key: 'Escape' });
-      component.onKeydown(event);
-
-      expect(component.showSettings()).toBe(false);
-    });
-
-    it('Esc không làm gì khi không có popup mở', () => {
-      vi.spyOn(component, 'comparingFile').mockReturnValue(null);
-      expect(component.showSettings()).toBe(false);
-
-      const event = new KeyboardEvent('keydown', { key: 'Escape' });
-      // Không throw
       expect(() => component.onKeydown(event)).not.toThrow();
     });
 

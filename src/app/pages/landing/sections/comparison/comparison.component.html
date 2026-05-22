@@ -1,0 +1,48 @@
+<section class="compare-section">
+  <header class="section-header">
+    <h2>{{ t()['compare_heading'] }}</h2>
+    <p>{{ t()['compare_subheading'] }}</p>
+  </header>
+
+  <div class="table-wrapper">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th scope="col">{{ t()['compare_col_feature'] }}</th>
+          <th scope="col" class="ours">{{ t()['compare_col_ours'] }}</th>
+          <th scope="col">{{ t()['compare_col_tinypng'] }}</th>
+          <th scope="col">{{ t()['compare_col_squoosh'] }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.labelKey) {
+          <tr>
+            <th scope="row">{{ t()[row.labelKey] }}</th>
+            <td class="cell ours cell--{{ row.ours }}">
+              <span aria-hidden="true" class="mark">{{
+                row.ours === 'yes' ? '✓' : row.ours === 'no' ? '✕' : '~'
+              }}</span>
+              <span class="cell-text">{{ cellLabel(row.ours) }}</span>
+            </td>
+            <td class="cell cell--{{ row.tinypng }}">
+              <span aria-hidden="true" class="mark">{{
+                row.tinypng === 'yes' ? '✓' : row.tinypng === 'no' ? '✕' : '~'
+              }}</span>
+              <span class="cell-text">{{ cellLabel(row.tinypng) }}</span>
+            </td>
+            <td class="cell cell--{{ row.squoosh }}">
+              <span aria-hidden="true" class="mark">{{
+                row.squoosh === 'yes' ? '✓' : row.squoosh === 'no' ? '✕' : '~'
+              }}</span>
+              <span class="cell-text">{{ cellLabel(row.squoosh) }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="note">
+    {{ t()['compare_note'] }}
+  </p>
+</section>

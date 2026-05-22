@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!--
+    Open Graph image (1200×630).
+    Static SVG so it tracks design tokens at build time.
+    TODO: For social platforms that don't render SVG (Slack, LinkedIn),
+    export og-image.png from this file (e.g. `npx svgexport og-image.svg
+    og-image.png 1200:630 2x`) and serve both. og:image points to .svg
+    for now to avoid a 404.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c3002f"/>
+      <stop offset="100%" stop-color="#7a001d"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="card2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative dots grid -->
+  <g fill="#ffffff" opacity="0.06">
+    <circle cx="100" cy="80"  r="3"/>
+    <circle cx="160" cy="80"  r="3"/>
+    <circle cx="220" cy="80"  r="3"/>
+    <circle cx="100" cy="140" r="3"/>
+    <circle cx="160" cy="140" r="3"/>
+    <circle cx="220" cy="140" r="3"/>
+    <circle cx="1050" cy="490" r="3"/>
+    <circle cx="1110" cy="490" r="3"/>
+    <circle cx="1050" cy="550" r="3"/>
+    <circle cx="1110" cy="550" r="3"/>
+  </g>
+
+  <!-- Text block -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif" fill="#ffffff">
+    <!-- Eyebrow -->
+    <text x="80" y="135" font-size="26" font-weight="700" letter-spacing="6" opacity="0.85">
+      IMAGE OPTIMIZER
+    </text>
+
+    <!-- Main headline (wraps manually for control) -->
+    <text x="80" y="240" font-size="72" font-weight="800" letter-spacing="-1.5">
+      Nén ảnh online,
+    </text>
+    <text x="80" y="325" font-size="72" font-weight="800" letter-spacing="-1.5">
+      ngay trong trình duyệt.
+    </text>
+
+    <!-- Subtagline -->
+    <text x="80" y="395" font-size="30" opacity="0.85" font-weight="500">
+      Riêng tư · Miễn phí · Mã nguồn mở
+    </text>
+
+    <!-- URL chip -->
+    <g transform="translate(80 470)">
+      <rect width="370" height="58" rx="29" fill="#ffffff" opacity="0.14"/>
+      <text x="32" y="38" font-size="22" font-weight="600" opacity="0.95">
+        image-optimizer.js-tools.org
+      </text>
+    </g>
+  </g>
+
+  <!-- Illustration: stacked image cards (compression metaphor) -->
+  <g transform="translate(820 165)">
+    <!-- back card (original) -->
+    <g transform="translate(0 60) rotate(-7)">
+      <rect width="260" height="200" rx="20" fill="url(#card)" stroke="#ffffff" stroke-opacity="0.25" stroke-width="2"/>
+      <circle cx="60" cy="60" r="20" fill="#ffd24c" opacity="0.7"/>
+      <path d="M0 160 L70 100 L130 135 L190 90 L260 145 L260 200 L0 200 Z" fill="#ffffff" opacity="0.18"/>
+      <g transform="translate(170 14)">
+        <rect width="80" height="32" rx="16" fill="#ffffff" opacity="0.25"/>
+        <text x="40" y="22" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700"
+              font-family="-apple-system, sans-serif">2.4 MB</text>
+      </g>
+    </g>
+    <!-- front card (compressed) -->
+    <g transform="translate(70 170) rotate(5)">
+      <rect width="260" height="200" rx="20" fill="url(#card2)" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2"/>
+      <circle cx="60" cy="60" r="20" fill="#ffd24c" opacity="0.85"/>
+      <path d="M0 160 L70 100 L130 135 L190 90 L260 145 L260 200 L0 200 Z" fill="#ffffff" opacity="0.22"/>
+      <g transform="translate(170 14)">
+        <rect width="80" height="32" rx="16" fill="#52c41a"/>
+        <text x="40" y="22" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700"
+              font-family="-apple-system, sans-serif">412 KB</text>
+      </g>
+    </g>
+    <!-- compression arrow -->
+    <g transform="translate(40 130)" opacity="0.85">
+      <path d="M0 0 L36 36" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <path d="M24 33 L36 36 L33 24" stroke="#ffffff" stroke-width="3"
+            stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+  </g>
+</svg>

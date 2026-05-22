@@ -30,15 +30,24 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": ["@angular/cdk/overlay-prebuilt.css", "src/styles.scss"],
+            "server": "src/main.server.ts",
+            "outputMode": "static",
+            "prerender": true
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1.5MB",
-                  "maximumError": "2MB"
+                  "maximumWarning": "350kB",
+                  "maximumError": "500kB"
+                },
+                {
+                  "type": "bundle",
+                  "name": "landing-component",
+                  "maximumWarning": "40kB",
+                  "maximumError": "60kB"
                 },
                 {
                   "type": "anyComponentStyle",

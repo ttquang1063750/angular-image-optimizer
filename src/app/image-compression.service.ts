@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
 import { mergeMap, catchError, startWith } from 'rxjs/operators';
-import Compressor from 'compressorjs';
-import JSZip from 'jszip';
-import heic2any from 'heic2any';
+import type Compressor from 'compressorjs';
+import type JSZip from 'jszip';
+import type heic2any from 'heic2any';
 
 import {
   CompressionOptions,
@@ -35,12 +35,40 @@ interface ResizeDimensions {
   providedIn: 'root',
 })
 export class ImageCompressionService {
+  // Lazy-load các thư viện chỉ chạy được trong browser (compressorjs/jszip/heic2any
+  // truy cập `window` ở top-level). Import tĩnh sẽ fail trong SSR/prerender.
+  private compressorCtor: typeof Compressor | null = null;
+  private jsZipCtor: typeof JSZip | null = null;
+  private heic2anyFn: typeof heic2any | null = null;
+
+  private async getCompressor(): Promise<typeof Compressor> {
+    if (!this.compressorCtor) {
+      this.compressorCtor = (await import('compressorjs')).default;
+    }
+    return this.compressorCtor;
+  }
+
+  private async getJSZip(): Promise<typeof JSZip> {
+    if (!this.jsZipCtor) {
+      this.jsZipCtor = (await import('jszip')).default;
+    }
+    return this.jsZipCtor;
+  }
+
+  private async getHeic2any(): Promise<typeof heic2any> {
+    if (!this.heic2anyFn) {
+      this.heic2anyFn = (await import('heic2any')).default;
+    }
+    return this.heic2anyFn;
+  }
+
   getOptionsByPreset(preset: CompressionPreset): CompressionOptions {
     return COMPRESSION_PRESETS[preset] ?? COMPRESSION_PRESETS.medium;
   }
 
   async generateZip(processedFiles: ProcessedFile[]): Promise<Blob> {
-    const zip = new JSZip();
+    const JSZipCtor = await this.getJSZip();
+    const zip = new JSZipCtor();
     const usedNames = new Set<string>();
 
     processedFiles.forEach((pf) => {
@@ -149,7 +177,8 @@ export class ImageCompressionService {
   private async prepareSource(file: File): Promise<File | Blob> {
     if (!this.isHeic(file)) return file;
     try {
-      const conversion = await heic2any({
+      const heic2anyFn = await this.getHeic2any();
+      const conversion = await heic2anyFn({
         blob: file,
         toType: 'image/jpeg',
         quality: HEIC_CONVERT_QUALITY,
@@ -199,13 +228,14 @@ export class ImageCompressionService {
     });
   }
 
-  private runCompressor(
+  private async runCompressor(
     blob: File | Blob,
     options: CompressionOptions,
     dimensions: ResizeDimensions,
   ): Promise<Blob> {
+    const CompressorCtor = await this.getCompressor();
     return new Promise((resolve, reject) => {
-      new Compressor(blob, {
+      new CompressorCtor(blob, {
         quality: options.quality,
         width: dimensions.width,
         height: dimensions.height,
