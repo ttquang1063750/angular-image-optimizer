@@ -29,14 +29,14 @@ export class FileItemComponent {
   }
 
   async openCrop(): Promise<void> {
-    const [{ Dialog }, { CropDialogComponent }] = await Promise.all([
+    const [{ Dialog }, { CropModalComponent }] = await Promise.all([
       import('@angular/cdk/dialog'),
       import('../../crop-modal/crop-modal.component'),
     ]);
 
     runInInjectionContext(this.envInjector, () => {
       const dialog = inject(Dialog);
-      dialog.open(CropDialogComponent, {
+      dialog.open(CropModalComponent, {
         data: { file: this.item() },
         panelClass: 'crop-dialog-panel',
         disableClose: true,

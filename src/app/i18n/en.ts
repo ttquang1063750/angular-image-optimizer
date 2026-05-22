@@ -84,13 +84,18 @@ export const en: TranslationDict = {
 
   // Crop Modal
   modal_crop_title: 'Crop & rotate image:',
+  crop_preview_alt: 'Crop preview',
   crop_aspect_free: 'Free',
   crop_aspect_1_1: '1:1 (Square)',
   crop_aspect_4_3: '4:3',
   crop_aspect_16_9: '16:9',
   btn_rotate: 'Rotate 90°',
-  btn_flip_h: 'Flip H',
-  btn_flip_v: 'Flip V',
+  btn_rotate_left: 'Rotate left 90°',
+  btn_rotate_right: 'Rotate right 90°',
+  btn_flip_h: 'Flip horizontal',
+  btn_flip_v: 'Flip vertical',
+  crop_load_error: 'Could not initialize the cropper. Please try again.',
+  crop_apply_error: 'Could not process the cropped image. Please try again.',
   btn_crop_confirm: 'Apply',
 
   // Comparison Modal
@@ -131,6 +136,7 @@ export const en: TranslationDict = {
   msg_preset_save_failed: 'Failed to save preset.',
   msg_preset_file_too_large: 'File is too large (max 10 MB).',
   label_settings: 'Parameter Settings',
+  label_preset_backup: 'Backup presets',
   btn_close: 'Close',
   btn_cancel: 'Cancel',
   btn_delete_confirm: 'Yes, Delete',
@@ -291,7 +297,7 @@ export const en: TranslationDict = {
   blog_not_found_body: 'The post you are looking for does not exist or has been moved.',
 
   // PWA
-  btn_pwa_install: 'Install App',
+  btn_pwa_install: 'Install for offline use',
   pwa_update_available: 'A new version is available!',
   btn_pwa_reload: 'Reload Page',
 

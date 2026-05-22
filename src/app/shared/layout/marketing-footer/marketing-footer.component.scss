@@ -26,10 +26,10 @@
     margin-bottom: 8px;
     color: var(--color-text);
 
+    // <app-logo> host inline-flex với svg width:100% — cần explicit width.
     .logo-icon {
-      width: auto;
+      width: 1.5rem;
       height: 1.5rem;
-      vertical-align: middle;
       flex-shrink: 0;
     }
   }

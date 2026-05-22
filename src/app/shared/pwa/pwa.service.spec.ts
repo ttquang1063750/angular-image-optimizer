@@ -23,6 +23,10 @@ describe('PwaService', () => {
     };
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   function createService(platformId: string | object = 'browser'): PwaService {
     TestBed.configureTestingModule({
       providers: [
@@ -34,9 +38,21 @@ describe('PwaService', () => {
     return TestBed.inject(PwaService);
   }
 
+  /**
+   * Stub window.location chỉ replace method .reload bằng spy — KHÔNG đụng
+   * đến properties khác (href, origin, …) tránh phá tests khác.
+   */
+  function stubReload(): ReturnType<typeof vi.fn> {
+    const reloadMock = vi.fn();
+    vi.stubGlobal('location', {
+      ...window.location,
+      reload: reloadMock,
+    });
+    return reloadMock;
+  }
+
   it('smoke', () => {
-    const service = createService();
-    expect(service).toBeTruthy();
+    expect(createService()).toBeTruthy();
   });
 
   it('lắng nghe sự kiện beforeinstallprompt trên môi trường trình duyệt', () => {
@@ -61,15 +77,13 @@ describe('PwaService', () => {
     window.dispatchEvent(mockEvent);
     expect(service.canInstall()).toBe(true);
 
-    const appInstalledEvent = new Event('appinstalled');
-    window.dispatchEvent(appInstalledEvent);
+    window.dispatchEvent(new Event('appinstalled'));
     expect(service.installPromptEvent()).toBeNull();
     expect(service.canInstall()).toBe(false);
   });
 
-  it('gọi prompt() khi click installApp và xóa event', async () => {
+  it('installApp gọi prompt và clear event khi user accept', async () => {
     const service = createService('browser');
-
     const promptSpy = vi.fn().mockResolvedValue(undefined);
     const mockEvent = {
       prompt: promptSpy,
@@ -77,11 +91,23 @@ describe('PwaService', () => {
     } as unknown as BeforeInstallPromptEvent;
 
     service.installPromptEvent.set(mockEvent);
-
     service.installApp();
     expect(promptSpy).toHaveBeenCalledTimes(1);
 
-    // Wait for promise resolution
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(service.installPromptEvent()).toBeNull();
+  });
+
+  it('installApp vẫn clear event khi userChoice REJECT (không kẹt button)', async () => {
+    const service = createService('browser');
+    const mockEvent = {
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.reject(new Error('user gesture interrupted')),
+    } as unknown as BeforeInstallPromptEvent;
+
+    service.installPromptEvent.set(mockEvent);
+    service.installApp();
+
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(service.installPromptEvent()).toBeNull();
   });
@@ -103,29 +129,36 @@ describe('PwaService', () => {
     expect(service.updateAvailable()).toBe(true);
   });
 
-  it('reloadApp kích hoạt activateUpdate và tải lại trang', async () => {
+  it('reloadApp kích hoạt activateUpdate rồi reload', async () => {
     const service = createService('browser');
-
-    const originalReload = window.location.reload;
-    const reloadMock = vi.fn();
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      configurable: true,
-      value: { reload: reloadMock },
-    });
+    const reloadMock = stubReload();
 
     service.reloadApp();
-
     await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(swUpdateMock.activateUpdate).toHaveBeenCalledTimes(1);
     expect(reloadMock).toHaveBeenCalledTimes(1);
+  });
 
-    // Restore location
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      configurable: true,
-      value: originalReload,
-    });
+  it('reloadApp VẪN reload khi activateUpdate REJECT (không kẹt user)', async () => {
+    swUpdateMock.activateUpdate.mockRejectedValueOnce(new Error('no waiting worker'));
+    const service = createService('browser');
+    const reloadMock = stubReload();
+
+    service.reloadApp();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(reloadMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloadApp reload thẳng khi swUpdate không enabled', () => {
+    swUpdateMock.isEnabled = false;
+    const service = createService('browser');
+    const reloadMock = stubReload();
+
+    service.reloadApp();
+    expect(reloadMock).toHaveBeenCalledTimes(1);
+    expect(swUpdateMock.activateUpdate).not.toHaveBeenCalled();
   });
 
   it('không chạy window listeners trên server', () => {

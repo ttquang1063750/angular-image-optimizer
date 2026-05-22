@@ -1,59 +1,91 @@
 <div class="crop-dialog" role="dialog" [attr.aria-label]="t()['modal_crop_title']">
   <div class="dialog-header">
     <h3>{{ t()['modal_crop_title'] }} {{ data.file.file.name }}</h3>
-    <button class="btn-close" (click)="close()" aria-label="Close dialog">✕</button>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="close()"
+      [attr.aria-label]="t()['btn_close']"
+      [title]="t()['btn_close']"
+    >
+      ✕
+    </button>
   </div>
 
-  <div class="dialog-body">
-    <div class="cropper-wrapper">
-      <img #imageElement [src]="imageUrl" alt="Crop preview" />
+  @if (loadError(); as err) {
+    <div class="dialog-error" role="alert">
+      <p>{{ err }}</p>
     </div>
-  </div>
-
-  <div class="dialog-toolbar">
-    <div class="toolbar-group aspect-ratios">
-      <button
-        type="button"
-        [class.active]="isNaN(currentAspectRatio)"
-        (click)="setAspectRatio(NaN)"
-      >
-        {{ t()['crop_aspect_free'] }}
-      </button>
-      <button type="button" [class.active]="currentAspectRatio === 1" (click)="setAspectRatio(1)">
-        {{ t()['crop_aspect_1_1'] }}
-      </button>
-      <button
-        type="button"
-        [class.active]="currentAspectRatio === 4 / 3"
-        (click)="setAspectRatio(4 / 3)"
-      >
-        {{ t()['crop_aspect_4_3'] }}
-      </button>
-      <button
-        type="button"
-        [class.active]="currentAspectRatio === 16 / 9"
-        (click)="setAspectRatio(16 / 9)"
-      >
-        {{ t()['crop_aspect_16_9'] }}
-      </button>
+  } @else {
+    <div class="dialog-body">
+      <div class="cropper-wrapper">
+        <img #imageElement [src]="imageUrl" [alt]="t()['crop_preview_alt']" />
+      </div>
     </div>
 
-    <div class="toolbar-divider"></div>
+    <div class="dialog-toolbar">
+      <div class="toolbar-group aspect-ratios">
+        <button type="button" [class.active]="currentMode() === 'free'" (click)="setMode('free')">
+          {{ t()['crop_aspect_free'] }}
+        </button>
+        <button type="button" [class.active]="currentMode() === '1:1'" (click)="setMode('1:1')">
+          {{ t()['crop_aspect_1_1'] }}
+        </button>
+        <button type="button" [class.active]="currentMode() === '4:3'" (click)="setMode('4:3')">
+          {{ t()['crop_aspect_4_3'] }}
+        </button>
+        <button type="button" [class.active]="currentMode() === '16:9'" (click)="setMode('16:9')">
+          {{ t()['crop_aspect_16_9'] }}
+        </button>
+      </div>
 
-    <div class="toolbar-group transformation">
-      <button type="button" (click)="rotate(-90)" title="Rotate Left">↩️</button>
-      <button type="button" (click)="rotate(90)" title="Rotate Right">↪️</button>
-      <button type="button" (click)="flip('x')" title="Flip Horizontal">↔️</button>
-      <button type="button" (click)="flip('y')" title="Flip Vertical">↕️</button>
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-group transformation">
+        <button
+          type="button"
+          (click)="rotate(-90)"
+          [attr.aria-label]="t()['btn_rotate_left']"
+          [title]="t()['btn_rotate_left']"
+        >
+          ↩️
+        </button>
+        <button
+          type="button"
+          (click)="rotate(90)"
+          [attr.aria-label]="t()['btn_rotate_right']"
+          [title]="t()['btn_rotate_right']"
+        >
+          ↪️
+        </button>
+        <button
+          type="button"
+          (click)="flip('x')"
+          [attr.aria-label]="t()['btn_flip_h']"
+          [title]="t()['btn_flip_h']"
+        >
+          ↔️
+        </button>
+        <button
+          type="button"
+          (click)="flip('y')"
+          [attr.aria-label]="t()['btn_flip_v']"
+          [title]="t()['btn_flip_v']"
+        >
+          ↕️
+        </button>
+      </div>
     </div>
-  </div>
+  }
 
   <div class="dialog-footer">
     <button type="button" class="btn-cancel" (click)="close()">
       {{ t()['btn_cancel'] }}
     </button>
-    <button type="button" class="btn-apply" (click)="apply()">
-      {{ t()['btn_crop_confirm'] }}
-    </button>
+    @if (!loadError()) {
+      <button type="button" class="btn-apply" (click)="apply()" [disabled]="!canApply()">
+        {{ t()['btn_crop_confirm'] }}
+      </button>
+    }
   </div>
 </div>

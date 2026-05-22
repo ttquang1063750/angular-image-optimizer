@@ -1,12 +1,14 @@
 {
-  "name": "Angular Image Optimizer",
+  "name": "Image Optimizer — Nén ảnh online",
   "short_name": "Image Optimizer",
+  "description": "Nén, resize, watermark ảnh hàng loạt 100% trong trình duyệt — không upload, không đăng ký, mã nguồn mở.",
+  "lang": "vi",
+  "id": "/",
   "theme_color": "#c3002f",
   "background_color": "#f5f7fa",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "scope": "/",
-  "start_url": "/",
+  "start_url": "/vi/optimize?utm_source=pwa",
   "icons": [
     {
       "src": "favicon.svg",
