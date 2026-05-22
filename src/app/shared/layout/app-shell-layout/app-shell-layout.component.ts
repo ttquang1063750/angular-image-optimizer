@@ -5,6 +5,7 @@ import { LangSwitcherComponent } from '../../ui/lang-switcher/lang-switcher.comp
 import { ThemeToggleComponent } from '../../ui/theme-toggle/theme-toggle.component';
 import { openSupportDialogLazy } from '../../ui/support-dialog/open-support-dialog';
 import { PresetManagerComponent } from '../../../image-uploader/settings-panel/preset-manager/preset-manager.component';
+import { PwaService } from '../../pwa/pwa.service';
 
 @Component({
   selector: 'app-shell-layout',
@@ -22,6 +23,7 @@ import { PresetManagerComponent } from '../../../image-uploader/settings-panel/p
 export class AppShellLayoutComponent {
   private readonly translation = inject(TranslationService);
   private readonly envInjector = inject(EnvironmentInjector);
+  protected readonly pwa = inject(PwaService);
 
   readonly t = this.translation.t;
   readonly lang = this.translation.currentLang;
@@ -37,6 +39,11 @@ export class AppShellLayoutComponent {
 
   closeSettings(): void {
     this.showSettings.set(false);
+  }
+
+  installApp(): void {
+    this.pwa.installApp();
+    this.closeSettings();
   }
 
   @HostListener('document:click', ['$event'])

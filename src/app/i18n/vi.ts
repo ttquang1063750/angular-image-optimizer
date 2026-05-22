@@ -256,7 +256,7 @@ export const vi: TranslationDict = {
     'Có. Drop hàng chục ảnh, đặt tới 5 watermark (text hoặc logo PNG) cho mỗi ảnh. App xử lý song song 3 ảnh để không treo trình duyệt, xuất zip một lần khi xong.',
   faq_q7: 'App có hoạt động offline không?',
   faq_a7:
-    'Có một phần — sau khi tải trang lần đầu, bạn có thể nén ảnh offline. Lưu bookmark, lần sau load nhanh hơn. Phiên bản PWA cache hoàn chỉnh đang nằm trong roadmap.',
+    'Có. Ứng dụng đã được tích hợp công nghệ PWA (Progressive Web App). Sau lần truy cập đầu tiên, toàn bộ ứng dụng được lưu vào bộ nhớ cache của thiết bị, giúp khởi động tức thì và hoạt động offline 100% không cần kết nối mạng.',
   faq_q8: 'Mã nguồn ứng dụng có công khai không?',
   faq_a8:
     'Có, host trên GitHub theo MIT license. Bạn có thể self-host, fork, sửa đổi, hoặc gửi pull request. Liên kết trong footer.',
@@ -276,4 +276,9 @@ export const vi: TranslationDict = {
   blog_related_posts: 'Bài viết liên quan',
   blog_not_found_title: 'Không tìm thấy bài viết',
   blog_not_found_body: 'Bài viết bạn tìm không tồn tại hoặc đã bị di chuyển.',
+
+  // PWA
+  btn_pwa_install: 'Cài đặt ứng dụng',
+  pwa_update_available: 'Có phiên bản cập nhật mới!',
+  btn_pwa_reload: 'Tải lại trang',
 };

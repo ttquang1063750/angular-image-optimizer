@@ -257,7 +257,7 @@ export const en: TranslationDict = {
     'Yes. Drop dozens of images, add up to 5 watermarks (text or PNG logo) per image. The app processes 3 images in parallel to avoid freezing the browser, then exports a single zip.',
   faq_q7: 'Does the app work offline?',
   faq_a7:
-    'Partially — after the first page load you can compress offline. Bookmark the page for faster repeat loads. A full PWA cache is on the roadmap.',
+    'Yes. The app is a Progressive Web App (PWA). After your first visit, the entire app is cached on your device, allowing it to load instantly and function 100% offline without any internet connection.',
   faq_q8: 'Is the source code public?',
   faq_a8:
     'Yes, hosted on GitHub under the MIT license. Self-host, fork, modify, or send a pull request. Link in the footer.',
@@ -277,4 +277,9 @@ export const en: TranslationDict = {
   blog_related_posts: 'Related posts',
   blog_not_found_title: 'Post not found',
   blog_not_found_body: 'The post you are looking for does not exist or has been moved.',
+
+  // PWA
+  btn_pwa_install: 'Install App',
+  pwa_update_available: 'A new version is available!',
+  btn_pwa_reload: 'Reload Page',
 };

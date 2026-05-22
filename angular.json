@@ -33,7 +33,8 @@
             "styles": ["@angular/cdk/overlay-prebuilt.css", "src/styles.scss"],
             "server": "src/main.server.ts",
             "outputMode": "static",
-            "prerender": true
+            "prerender": true,
+            "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
             "production": {

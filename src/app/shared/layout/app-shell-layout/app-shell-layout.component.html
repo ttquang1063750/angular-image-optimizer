@@ -163,6 +163,16 @@
         <span class="preset-label">{{ t()['label_saved_presets'] }}</span>
         <app-preset-manager></app-preset-manager>
       </div>
+
+      @if (pwa.canInstall()) {
+        <div class="pwa-install-group">
+          <hr class="popover-divider" />
+          <button type="button" class="pwa-install-btn" (click)="installApp()">
+            <span class="pwa-icon" aria-hidden="true">📥</span>
+            <span>{{ t()['btn_pwa_install'] }}</span>
+          </button>
+        </div>
+      }
     </div>
   </div>
 }
@@ -180,3 +190,15 @@
   <span class="icon" aria-hidden="true">☕</span>
   <span class="text">{{ t()['btn_support'] }}</span>
 </button>
+
+@if (pwa.updateAvailable()) {
+  <div class="pwa-update-toast" role="alert">
+    <div class="toast-content">
+      <span class="toast-icon" aria-hidden="true">✨</span>
+      <span class="toast-message">{{ t()['pwa_update_available'] }}</span>
+    </div>
+    <button type="button" class="toast-action-btn" (click)="pwa.reloadApp()">
+      {{ t()['btn_pwa_reload'] }}
+    </button>
+  </div>
+}
