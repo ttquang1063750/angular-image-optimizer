@@ -12,6 +12,12 @@
     </button>
   </div>
 
+  @if (isLoading()) {
+    <div class="cropper-loading-overlay">
+      <span class="spinner"></span>
+    </div>
+  }
+
   @if (loadError(); as err) {
     <div class="dialog-error" role="alert">
       <p>{{ err }}</p>

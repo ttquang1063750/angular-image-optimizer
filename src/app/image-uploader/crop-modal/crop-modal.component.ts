@@ -15,6 +15,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ProcessedFile } from '../../image-processing.model';
 import { TranslationService } from '../../translation.service';
 import { UploaderStateService } from '../../uploader-state.service';
+import { ImageCompressionService } from '../../image-compression.service';
 import type Cropper from 'cropperjs';
 
 /** Aspect ratio modes — string sentinel thay cho NaN số khó đọc. */
@@ -43,6 +44,7 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly translationService = inject(TranslationService);
   private readonly state = inject(UploaderStateService);
+  private readonly compressionService = inject(ImageCompressionService);
 
   readonly t = this.translationService.t;
 
@@ -51,6 +53,8 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
   imageUrl = '';
   private shouldRevoke = false;
   private cropper: Cropper | null = null;
+
+  readonly isLoading = signal(true);
 
   /** Mode hiện tại — driver state cho UI active class + aspect ratio thực. */
   readonly currentMode = signal<AspectMode>('free');
@@ -63,6 +67,16 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly canApply = computed(() => this.cropperReady() && !this.loadError());
 
+  private isHeic(file: File): boolean {
+    const name = file.name.toLowerCase();
+    return (
+      file.type === 'image/heic' ||
+      file.type === 'image/heif' ||
+      name.endsWith('.heic') ||
+      name.endsWith('.heif')
+    );
+  }
+
   /**
    * Public chỉ cho test mock (vi.spyOn override). Production code không gọi
    * trực tiếp — ngAfterViewInit gọi internally.
@@ -73,17 +87,41 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const file = this.data.file.file;
     if (this.data.file.result?.decodedOriginalUrl) {
       this.imageUrl = this.data.file.result.decodedOriginalUrl;
       this.shouldRevoke = false;
+      this.isLoading.set(false);
+    } else if (this.isHeic(file)) {
+      this.imageUrl = '';
+      this.isLoading.set(true);
     } else {
-      this.imageUrl = URL.createObjectURL(this.data.file.file);
+      this.imageUrl = URL.createObjectURL(file);
       this.shouldRevoke = true;
+      this.isLoading.set(false);
     }
   }
 
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+
+    const file = this.data.file.file;
+    if (this.isHeic(file) && !this.imageUrl) {
+      try {
+        this.isLoading.set(true);
+        const jpegBlob = await this.compressionService.prepareSource(file);
+        this.imageUrl = URL.createObjectURL(jpegBlob);
+        this.shouldRevoke = true;
+        this.isLoading.set(false);
+        // Đợi 50ms cho Angular bind URL vào DOM
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      } catch (err) {
+        console.error('Decode HEIC in crop modal failed:', err);
+        this.loadError.set(this.t()['crop_load_error']);
+        this.isLoading.set(false);
+        return;
+      }
+    }
 
     try {
       const CropperModule = await this.loadCropperModule();

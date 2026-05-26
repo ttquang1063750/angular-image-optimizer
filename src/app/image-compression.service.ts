@@ -218,7 +218,7 @@ export class ImageCompressionService {
     );
   }
 
-  private async prepareSource(file: File): Promise<File | Blob> {
+  public async prepareSource(file: File): Promise<File | Blob> {
     if (!this.isHeic(file)) return file;
     try {
       const heicToFn = await this.getHeicTo();

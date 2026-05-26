@@ -72,7 +72,8 @@ export class WatermarkPreviewDialogComponent implements AfterViewInit, OnDestroy
 
   readonly previewBgUrl = computed(() => {
     const files = this.state.processedFiles();
-    return files.length > 0 ? this.state.createBlobUrl(files[0].file) : null;
+    if (files.length === 0) return null;
+    return files[0].result?.decodedOriginalUrl || this.state.createBlobUrl(files[0].file);
   });
 
   /** AbortController cho drag listeners — cleanup khi dialog đóng. */
