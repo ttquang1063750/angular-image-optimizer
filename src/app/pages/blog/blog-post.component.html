@@ -27,6 +27,11 @@
 
     <div class="prose" [innerHTML]="contentSafe()"></div>
 
+    <!-- AdSense Banner -->
+    <div class="blog-ad-banner" style="margin: 32px 0; border-top: 1px solid var(--color-border-soft); border-bottom: 1px solid var(--color-border-soft); padding: 16px 0;">
+      <app-adsense adSlot="5520265774"></app-adsense>
+    </div>
+
     @if (related().length > 0) {
       <aside class="related">
         <h2>{{ t()['blog_related_posts'] }}</h2>

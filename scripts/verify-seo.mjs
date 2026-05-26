@@ -13,9 +13,9 @@ import { join, relative } from 'node:path';
 
 const DIST_DIR = 'dist/angular-image-optimizer/browser';
 
-// Pages dưới đây là prerendered SEO targets. Root index.html chỉ là redirect
-// stub nên skip — nó không cần meta đầy đủ.
-const SKIP = new Set(['index.html']);
+// Pages dưới đây là prerendered SEO targets. Root index.html và các trang redirect
+// stubs như optimize/index.html chỉ là redirect stubs nên skip — chúng không cần meta đầy đủ.
+const SKIP = new Set(['index.html', 'optimize/index.html']);
 
 function walk(dir) {
   const out = [];

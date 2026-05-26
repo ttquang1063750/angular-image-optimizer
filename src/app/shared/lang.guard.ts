@@ -52,4 +52,26 @@ export const rootRedirectGuard: CanActivateFn = () => {
   return router.parseUrl(`/${lang}/`);
 };
 
+/**
+ * Optimize redirect: `/optimize` → `/{detectedLang}/optimize`.
+ */
+export const optimizeRedirectGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  let lang: Lang = 'vi';
+  if (isBrowser) {
+    const saved = localStorage.getItem('lang') as Lang | null;
+    if (isLang(saved)) {
+      lang = saved;
+    } else if (navigator.language.startsWith('vi')) {
+      lang = 'vi';
+    } else {
+      lang = 'en';
+    }
+  }
+
+  return router.parseUrl(`/${lang}/optimize`);
+};
+
 export { SUPPORTED_LANGS };

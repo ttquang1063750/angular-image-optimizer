@@ -8,6 +8,7 @@ import { HowItWorksComponent } from './sections/how-it-works/how-it-works.compon
 import { ComparisonComponent } from './sections/comparison/comparison.component';
 import { FaqComponent } from './sections/faq/faq.component';
 import { CtaComponent } from './sections/cta/cta.component';
+import { AdsenseComponent } from '../../shared/ui/adsense/adsense.component';
 
 const FAQ_KEYS = [
   ['faq_q1', 'faq_a1'],
@@ -30,12 +31,16 @@ const FAQ_KEYS = [
     ComparisonComponent,
     FaqComponent,
     CtaComponent,
+    AdsenseComponent,
   ],
   template: `
     <app-landing-hero></app-landing-hero>
     <app-landing-features></app-landing-features>
     <app-landing-how-it-works></app-landing-how-it-works>
     <app-landing-comparison></app-landing-comparison>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 16px 24px; box-sizing: border-box;">
+      <app-adsense adSlot="8810265774"></app-adsense>
+    </div>
     <app-landing-faq></app-landing-faq>
     <app-landing-cta></app-landing-cta>
   `,
