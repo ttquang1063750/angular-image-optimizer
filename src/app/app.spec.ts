@@ -2,8 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 describe('App', () => {

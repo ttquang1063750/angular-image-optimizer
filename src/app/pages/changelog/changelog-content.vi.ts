@@ -16,6 +16,38 @@ export const changelogContentVi: ChangelogContent = {
 
   entries: [
     {
+      version: 'v0.5.0',
+      date: '2026-05-26',
+      codename: 'SEO Polish & Stability',
+      groups: [
+        {
+          kind: 'added',
+          items: [
+            'Custom UrlSerializer: mọi internal routerLink + canonical + sitemap dùng dạng `/lang/path/` (trailing slash), khớp với Cloudflare Pages 308 — không còn chain redirect khi Googlebot crawl.',
+            '`_redirects` (Cloudflare Pages): server-side redirect `/` → `/vi/` (Vietnam) hoặc `/en/`, thay cho meta-refresh client-side.',
+            'OG image PNG 1200×630 cho LinkedIn/Slack/Facebook (giữ source SVG để re-export khi cần).',
+            '`<meta name="robots" content="noindex">` cho root redirect stub.',
+          ],
+        },
+        {
+          kind: 'changed',
+          items: [
+            'HEIC decoder: heic2any → heic-to (libheif up-to-date, decode được HEIC variant từ iPhone 12+ và file có depth map).',
+            'Compression core: bỏ compressorjs, dùng Canvas API native với single-pass `toBlob`. Initial bundle giảm ~37% raw / ~32% gzip.',
+            'Sitemap.xml + canonical + hreflang + og:url + breadcrumb toàn bộ thống nhất trailing slash → fix GSC "Page with redirect" và "Redirect error".',
+            'Documentation cleanup: GEMINI.md → AGENTS.md, BACKLOG.md → ROADMAP.md, thêm LICENSE MIT, gỡ PLAN/TASK/SEO_PLAN.',
+          ],
+        },
+        {
+          kind: 'fixed',
+          items: [
+            'Donate FAB trên mobile (< 600px) bị méo hình oval + đè lên action buttons của file-item → chuyển sang bottom-left, kích thước 48×48 vuông.',
+            'Pipeline error message khi heic decode fail giờ extract đúng từ object `{ code, message }` thay vì hiển thị "unknown error".',
+          ],
+        },
+      ],
+    },
+    {
       version: 'v0.4.0',
       date: '2026-05-22',
       codename: 'Landing & SEO',

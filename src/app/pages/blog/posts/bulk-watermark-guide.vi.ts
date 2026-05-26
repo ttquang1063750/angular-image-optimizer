@@ -26,7 +26,7 @@ const heroSvg = `
 `.trim();
 
 const contentHtml = `
-<p>Use case quen thuộc: vừa chụp xong 100 ảnh sản phẩm cho shop online, hoặc 150 ảnh sự kiện cho khách. Cần: resize về 1920px chiều ngang, thêm watermark logo nhỏ góc dưới phải, đặt tên thống nhất <code>IMG_001.jpg</code> → <code>IMG_100.jpg</code>. Bằng tay với Photoshop mất 1-2 giờ. Bằng <a href="/vi/optimize">Image Optimizer</a> mất ~30 giây.</p>
+<p>Use case quen thuộc: vừa chụp xong 100 ảnh sản phẩm cho shop online, hoặc 150 ảnh sự kiện cho khách. Cần: resize về 1920px chiều ngang, thêm watermark logo nhỏ góc dưới phải, đặt tên thống nhất <code>IMG_001.jpg</code> → <code>IMG_100.jpg</code>. Bằng tay với Photoshop mất 1-2 giờ. Bằng <a href="/vi/optimize/">Image Optimizer</a> mất ~30 giây.</p>
 
 <p>Bài này hướng dẫn workflow chuẩn cho ai làm việc với batch ảnh thường xuyên: e-commerce, blogger, photographer, marketing team.</p>
 
@@ -130,7 +130,7 @@ const contentHtml = `
 
 <p>Bulk processing quan trọng nhất là setup preset chuẩn 1 lần, dùng lâu dài. Đầu tư 10 phút config preset → tiết kiệm hàng giờ cho mỗi shoot/batch.</p>
 
-<p><a href="/vi/optimize"><strong>Setup workflow bulk của bạn ngay →</strong></a></p>
+<p><a href="/vi/optimize/"><strong>Setup workflow bulk của bạn ngay →</strong></a></p>
 `.trim();
 
 export const bulkWatermarkGuideVi: BlogPost = {

@@ -3,8 +3,9 @@ import { FileItemComponent } from './file-item.component';
 import { UploaderStateService } from '../../../uploader-state.service';
 import { ProcessedFile } from '../../../image-processing.model';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 describe('FileItemComponent', () => {

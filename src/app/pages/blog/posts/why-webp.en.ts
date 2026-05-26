@@ -65,7 +65,7 @@ const contentHtml = `
 <p>The fastest way to convert a folder of JPEGs to WebP without installing anything:</p>
 
 <ol>
-  <li>Open <a href="/en/optimize">Image Optimizer</a> in your browser.</li>
+  <li>Open <a href="/en/optimize/">Image Optimizer</a> in your browser.</li>
   <li>Drag-drop your JPEG folder onto the page.</li>
   <li>In Settings → "Output format" pick <strong>WebP</strong>.</li>
   <li>Choose the "Medium" preset for a balanced size/quality tradeoff.</li>
@@ -82,7 +82,7 @@ const contentHtml = `
 
 <p>With 97%+ browser support and 25-35% file-size savings, WebP should be the default for any new web imagery. Keep JPEG only when you need legacy software compatibility. A bulk convert takes seconds in the browser — no reason to delay.</p>
 
-<p><a href="/en/optimize"><strong>Try a bulk WebP convert →</strong></a></p>
+<p><a href="/en/optimize/"><strong>Try a bulk WebP convert →</strong></a></p>
 `.trim();
 
 export const whyWebpEn: BlogPost = {

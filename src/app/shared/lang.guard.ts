@@ -24,7 +24,8 @@ export const langGuard: CanActivateFn = (route) => {
   }
 
   const rest = route.url.map((s) => s.path).join('/');
-  return router.parseUrl(`/vi/${rest}`);
+  const suffix = rest ? `/${rest}/` : '/';
+  return router.parseUrl(`/vi${suffix}`);
 };
 
 /**
@@ -48,7 +49,7 @@ export const rootRedirectGuard: CanActivateFn = () => {
     }
   }
 
-  return router.parseUrl(`/${lang}`);
+  return router.parseUrl(`/${lang}/`);
 };
 
 export { SUPPORTED_LANGS };

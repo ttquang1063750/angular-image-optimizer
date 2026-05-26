@@ -28,7 +28,7 @@ const X_DEFAULT_LANG = 'vi';
 /** Encode URL cho slug có ký tự đặc biệt (vd. tiếng Việt — hiện tại không có nhưng safe). */
 function abs(lang, path) {
   const cleanPath = path.replace(/^\/+|\/+$/g, '');
-  const suffix = cleanPath ? `/${cleanPath}` : '';
+  const suffix = cleanPath ? `/${cleanPath}/` : '/';
   return `${BASE_URL}/${lang}${suffix}`;
 }
 

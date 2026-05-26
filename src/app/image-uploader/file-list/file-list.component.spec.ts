@@ -6,8 +6,9 @@ import { ImageCompressionService } from '../../image-compression.service';
 import { signal } from '@angular/core';
 import { ProcessedFile } from '../../image-processing.model';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 describe('FileListComponent', () => {

@@ -16,6 +16,38 @@ export const changelogContentEn: ChangelogContent = {
 
   entries: [
     {
+      version: 'v0.5.0',
+      date: '2026-05-26',
+      codename: 'SEO Polish & Stability',
+      groups: [
+        {
+          kind: 'added',
+          items: [
+            'Custom UrlSerializer: every internal routerLink + canonical + sitemap now uses `/lang/path/` (trailing slash) format, matching Cloudflare Pages 308 normalization — no more chained redirects when Googlebot crawls.',
+            '`_redirects` (Cloudflare Pages): server-side redirect `/` → `/vi/` (Vietnam visitors) or `/en/`, replacing the client-side meta-refresh.',
+            '1200×630 PNG OG image for LinkedIn/Slack/Facebook compatibility (SVG kept as source for re-export).',
+            '`<meta name="robots" content="noindex">` on the root redirect stub.',
+          ],
+        },
+        {
+          kind: 'changed',
+          items: [
+            'HEIC decoder: heic2any → heic-to (modern libheif, decodes HEIC variants from iPhone 12+ and files with depth maps).',
+            'Compression core: dropped compressorjs in favor of native Canvas API with single-pass `toBlob`. Initial bundle shrunk by ~37% raw / ~32% gzip.',
+            'sitemap.xml + canonical + hreflang + og:url + breadcrumb all unified on the trailing-slash format — fixes GSC "Page with redirect" and "Redirect error" reports.',
+            'Documentation cleanup: GEMINI.md → AGENTS.md, BACKLOG.md → ROADMAP.md, added MIT LICENSE, removed PLAN/TASK/SEO_PLAN.',
+          ],
+        },
+        {
+          kind: 'fixed',
+          items: [
+            'Donate FAB on mobile (< 600px) was oval and overlapped file-item action buttons → moved to bottom-left at a fixed 48×48 square.',
+            'Pipeline error message after a HEIC decode failure now extracts the message from `{ code, message }` shape correctly instead of falling back to "unknown error".',
+          ],
+        },
+      ],
+    },
+    {
       version: 'v0.4.0',
       date: '2026-05-22',
       codename: 'Landing & SEO',

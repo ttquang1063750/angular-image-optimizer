@@ -5,7 +5,10 @@ import { UploaderStateService } from '../../uploader-state.service';
 import { WatermarkPreviewDialogComponent } from './watermark-preview-dialog.component';
 import { WatermarkItem } from '../../image-processing.model';
 
-vi.mock('heic2any', () => ({ default: vi.fn() }));
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
+}));
 
 describe('WatermarkPreviewDialogComponent', () => {
   let component: WatermarkPreviewDialogComponent;

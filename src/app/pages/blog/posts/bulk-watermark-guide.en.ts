@@ -26,7 +26,7 @@ const heroSvg = `
 `.trim();
 
 const contentHtml = `
-<p>Familiar scenario: you just shot 100 product photos for your online shop, or 150 event photos for a client. You need to resize them to 1920px wide, add a small corner watermark, and rename them consistently <code>IMG_001.jpg</code> → <code>IMG_100.jpg</code>. By hand in Photoshop, that's 1-2 hours. With <a href="/en/optimize">Image Optimizer</a> it's ~30 seconds.</p>
+<p>Familiar scenario: you just shot 100 product photos for your online shop, or 150 event photos for a client. You need to resize them to 1920px wide, add a small corner watermark, and rename them consistently <code>IMG_001.jpg</code> → <code>IMG_100.jpg</code>. By hand in Photoshop, that's 1-2 hours. With <a href="/en/optimize/">Image Optimizer</a> it's ~30 seconds.</p>
 
 <p>This post walks through a standard workflow for anyone batching images regularly: e-commerce, bloggers, photographers, marketing teams.</p>
 
@@ -130,7 +130,7 @@ const contentHtml = `
 
 <p>The biggest win in bulk processing is setting up the right preset once and reusing it. Spend 10 minutes building a preset → save hours on every shoot/batch.</p>
 
-<p><a href="/en/optimize"><strong>Set up your bulk workflow now →</strong></a></p>
+<p><a href="/en/optimize/"><strong>Set up your bulk workflow now →</strong></a></p>
 `.trim();
 
 export const bulkWatermarkGuideEn: BlogPost = {

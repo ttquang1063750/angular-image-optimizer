@@ -36,10 +36,10 @@ Dự án chú trọng vào **hiệu suất cực hạn**, **tính riêng tư tuy
 - **Framework:** [Angular v21.2.x](https://angular.dev/) (Standalone Components, Signals & Modern Control Flow `@if`/`@for`).
 - **State Management:** Angular Signals (Signal-driven UI).
 - **Thư viện lõi xử lý ảnh:**
-  - `compressorjs`: Thư viện lõi nén ảnh hiệu năng cao.
-  - `jszip`: Nén và đóng gói ZIP hàng loạt file tại client.
-  - `cropperjs`: Cắt và thu phóng hình ảnh.
-  - `heic2any`: Chuyển đổi định dạng ảnh HEIC/HEIF từ iPhone sang JPEG/WebP.
+  - **Canvas API (native):** Nén/Resize/Vẽ watermark trực tiếp trên Canvas, không phụ thuộc lib bên ngoài cho compression core.
+  - `jszip`: Nén và đóng gói ZIP hàng loạt file tại client (lazy-loaded).
+  - `cropperjs`: Cắt và thu phóng hình ảnh (lazy-loaded).
+  - `heic-to`: Chuyển đổi HEIC/HEIF từ iPhone sang JPEG (lazy-loaded, dùng libheif WASM).
 - **Styling:** SCSS, CSS Variables, Responsive Grid/Flexbox, Keyframe Animations.
 - **Testing:** [Vitest](https://vitest.dev/) (Unit testing framework thay thế Karma/Jasmine cho tốc độ cực nhanh).
 - **SEO & Prerender:** Angular static prerendering, SEO Service động hỗ trợ SEO Schema và hreflang.

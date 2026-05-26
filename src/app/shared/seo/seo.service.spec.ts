@@ -41,24 +41,24 @@ describe('SeoService', () => {
       expect(tag?.getAttribute('content')).toBe(translation.t()['seo_about_description']);
     });
 
-    it('set canonical link đúng base + lang + path', () => {
+    it('set canonical link đúng base + lang + path (có trailing slash)', () => {
       service.setRoute({
         titleKey: 'seo_about_title',
         descriptionKey: 'seo_about_description',
         path: 'about',
       });
       const link = document.head.querySelector('link[rel="canonical"]');
-      expect(link?.getAttribute('href')).toBe(`${SEO_BASE_URL}/vi/about`);
+      expect(link?.getAttribute('href')).toBe(`${SEO_BASE_URL}/vi/about/`);
     });
 
-    it('canonical cho landing (path rỗng) không có trailing slash', () => {
+    it('canonical cho landing (path rỗng) là /lang/ với trailing slash', () => {
       service.setRoute({
         titleKey: 'seo_landing_title',
         descriptionKey: 'seo_landing_description',
         path: '',
       });
       const link = document.head.querySelector('link[rel="canonical"]');
-      expect(link?.getAttribute('href')).toBe(`${SEO_BASE_URL}/vi`);
+      expect(link?.getAttribute('href')).toBe(`${SEO_BASE_URL}/vi/`);
     });
 
     it('set hreflang alternates cho vi, en, x-default', () => {
@@ -73,9 +73,9 @@ describe('SeoService', () => {
         byLang[el.getAttribute('hreflang') ?? ''] = el.getAttribute('href');
       });
 
-      expect(byLang['vi']).toBe(`${SEO_BASE_URL}/vi/about`);
-      expect(byLang['en']).toBe(`${SEO_BASE_URL}/en/about`);
-      expect(byLang['x-default']).toBe(`${SEO_BASE_URL}/vi/about`);
+      expect(byLang['vi']).toBe(`${SEO_BASE_URL}/vi/about/`);
+      expect(byLang['en']).toBe(`${SEO_BASE_URL}/en/about/`);
+      expect(byLang['x-default']).toBe(`${SEO_BASE_URL}/vi/about/`);
     });
 
     it('set html[lang] theo current lang', () => {
@@ -102,7 +102,7 @@ describe('SeoService', () => {
       expect(get('meta[property="og:description"]')).toBe(
         translation.t()['seo_landing_description'],
       );
-      expect(get('meta[property="og:url"]')).toBe(`${SEO_BASE_URL}/vi`);
+      expect(get('meta[property="og:url"]')).toBe(`${SEO_BASE_URL}/vi/`);
       expect(get('meta[property="og:image"]')).toBe(SEO_DEFAULT_OG_IMAGE);
       expect(get('meta[property="og:locale"]')).toBe('vi_VN');
       expect(get('meta[property="og:type"]')).toBe('website');
@@ -217,13 +217,13 @@ describe('SeoService', () => {
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: `${SEO_BASE_URL}/vi`,
+        item: `${SEO_BASE_URL}/vi/`,
       });
       expect(breadcrumb.itemListElement[1]).toMatchObject({
         '@type': 'ListItem',
         position: 2,
         name: 'About',
-        item: `${SEO_BASE_URL}/vi/about`,
+        item: `${SEO_BASE_URL}/vi/about/`,
       });
     });
 
