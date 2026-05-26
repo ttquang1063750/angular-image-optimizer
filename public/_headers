@@ -1,0 +1,29 @@
+# Cloudflare Pages — custom response headers.
+# Reference: https://developers.cloudflare.com/pages/configuration/headers/
+
+# Chunks + main.js có content-hash trong filename → an toàn cache vĩnh viễn
+# (immutable). New deploys có hash mới → browser tải chunk mới, không stale.
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML KHÔNG có hash — phải revalidate mỗi request để user nhận deploy mới
+# (tránh stale HTML reference chunk đã xoá → MIME error).
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Service worker phải luôn fresh (per Angular SW docs)
+/ngsw-worker.js
+  Cache-Control: no-cache
+
+/ngsw.json
+  Cache-Control: no-cache
+
+# Sitemap + robots
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=86400
