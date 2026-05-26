@@ -29,9 +29,11 @@
 - **Framework:** Angular 21.2.x
 - **State Management:** Angular Signals
 - **Asynchronous Logic:** RxJS (Pipeable operators)
-- **Key Libraries:** 
-  - `compressorjs`: Thư viện lõi để nén ảnh (Nhẹ, ổn định, phổ biến).
+- **Compression Core:** Canvas API native (`drawImage` + `toBlob`), không phụ thuộc lib bên ngoài.
+- **Key Libraries (lazy-loaded):**
+  - `heic-to`: Decode HEIC/HEIF từ iPhone (libheif WASM).
   - `jszip`: Đóng gói file Zip để tải về hàng loạt.
+  - `cropperjs`: Cắt và thu phóng ảnh trong modal.
 - **Testing:** Vitest
 - **Styles:** SCSS (Tách biệt file `.scss`)
 
