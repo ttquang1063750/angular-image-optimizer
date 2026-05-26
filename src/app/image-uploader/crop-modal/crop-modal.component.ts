@@ -175,14 +175,24 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const mimeType = this.data.file.file.type || 'image/jpeg';
+    let mimeType = this.data.file.file.type || 'image/jpeg';
+    let fileName = this.data.file.file.name;
+
+    // Nếu file gốc là HEIC, canvas bắt buộc xuất ra JPEG và đổi đuôi file để tránh giả mạo HEIC
+    if (this.isHeic(this.data.file.file)) {
+      mimeType = 'image/jpeg';
+      const lastDot = fileName.lastIndexOf('.');
+      const baseName = lastDot === -1 ? fileName : fileName.substring(0, lastDot);
+      fileName = `${baseName}.jpg`;
+    }
+
     canvas.toBlob(
       (blob: Blob | null) => {
         if (!blob) {
           this.loadError.set(this.t()['crop_apply_error']);
           return;
         }
-        const croppedFile = new File([blob], this.data.file.file.name, {
+        const croppedFile = new File([blob], fileName, {
           type: mimeType,
           lastModified: Date.now(),
         });

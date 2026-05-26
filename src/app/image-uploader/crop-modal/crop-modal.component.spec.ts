@@ -132,6 +132,25 @@ describe('CropModalComponent', () => {
     expect(dialogRefMock.close).toHaveBeenCalled();
   });
 
+  it('apply() chuyển đổi file gốc HEIC sang JPEG và đổi tên đuôi file sang .jpg', async () => {
+    const heicFile = new File([''], 'photo.heic', { type: 'image/heic' });
+    const heicProcessedFile: ProcessedFile = {
+      id: '456',
+      file: heicFile,
+      status: 'done',
+      progress: 100,
+    };
+    (component as any).data = { file: heicProcessedFile };
+
+    component.apply();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(stateMock.updateFile).toHaveBeenCalledWith('456', expect.any(File));
+    const updatedFile = stateMock.updateFile.mock.calls[0][1] as File;
+    expect(updatedFile.name).toBe('photo.jpg');
+    expect(updatedFile.type).toBe('image/jpeg');
+  });
+
   it('apply() set loadError khi getCroppedCanvas trả null', () => {
     mockCropperInstance.getCroppedCanvas.mockReturnValueOnce(null);
     component.apply();
