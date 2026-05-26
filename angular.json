@@ -28,7 +28,8 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "public/_redirects"
             ],
             "styles": ["@angular/cdk/overlay-prebuilt.css", "src/styles.scss"],
             "server": "src/main.server.ts",
