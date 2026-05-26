@@ -10,19 +10,21 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
-const ROOT_HTML = 'dist/angular-image-optimizer/browser/index.html';
+const TARGETS = [
+  'dist/angular-image-optimizer/browser/index.html',
+  'dist/angular-image-optimizer/browser/optimize/index.html'
+];
 const NOINDEX_TAG = '<meta name="robots" content="noindex,nofollow">';
 
-async function main() {
-  if (!existsSync(ROOT_HTML)) {
-    console.error(`✕ ${ROOT_HTML} not found. Run \`ng build\` first.`);
-    process.exit(1);
+async function processFile(filePath) {
+  if (!existsSync(filePath)) {
+    return;
   }
 
-  const html = await readFile(ROOT_HTML, 'utf8');
+  const html = await readFile(filePath, 'utf8');
 
   if (html.includes('name="robots"')) {
-    console.log(`✓ ${ROOT_HTML} đã có robots meta — skip.`);
+    console.log(`✓ ${filePath} đã có robots meta — skip.`);
     return;
   }
 
@@ -33,12 +35,18 @@ async function main() {
   );
 
   if (updated === html) {
-    console.error(`✕ Không tìm thấy <meta charset> trong ${ROOT_HTML}`);
+    console.error(`✕ Không tìm thấy <meta charset> trong ${filePath}`);
     process.exit(1);
   }
 
-  await writeFile(ROOT_HTML, updated, 'utf8');
-  console.log(`✓ Injected noindex meta vào ${ROOT_HTML}`);
+  await writeFile(filePath, updated, 'utf8');
+  console.log(`✓ Injected noindex meta vào ${filePath}`);
+}
+
+async function main() {
+  for (const target of TARGETS) {
+    await processFile(target);
+  }
 }
 
 main().catch((e) => {

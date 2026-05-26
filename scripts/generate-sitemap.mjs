@@ -107,7 +107,7 @@ function buildEntries() {
   const entries = [];
 
   // Static pages — cùng path 2 langs
-  const staticPages = ['', 'about', 'changelog', 'blog'];
+  const staticPages = ['', 'about', 'changelog', 'blog', 'optimize'];
   for (const path of staticPages) {
     const lastmod = fileLastMod(
       join(DIST_DIR, 'vi', path, 'index.html'),

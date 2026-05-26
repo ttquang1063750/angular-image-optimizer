@@ -4,6 +4,7 @@ import { TranslationService } from '../../translation.service';
 import { SeoService } from '../../shared/seo/seo.service';
 import { BlogPost, readingTimeMinutes } from './blog-post.model';
 import { postsByLang } from './blog-posts.registry';
+import { AdsenseComponent } from '../../shared/ui/adsense/adsense.component';
 
 interface CardView {
   post: BlogPost;
@@ -13,7 +14,7 @@ interface CardView {
 @Component({
   selector: 'app-blog-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AdsenseComponent],
   templateUrl: './blog-list.component.html',
   styleUrl: './blog-list.component.scss',
 })

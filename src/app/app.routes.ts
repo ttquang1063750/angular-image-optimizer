@@ -1,11 +1,17 @@
 import { Routes } from '@angular/router';
-import { langGuard, rootRedirectGuard } from './shared/lang.guard';
+import { langGuard, rootRedirectGuard, optimizeRedirectGuard } from './shared/lang.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     canActivate: [rootRedirectGuard],
+    children: [],
+  },
+  {
+    path: 'optimize',
+    pathMatch: 'full',
+    canActivate: [optimizeRedirectGuard],
     children: [],
   },
   {

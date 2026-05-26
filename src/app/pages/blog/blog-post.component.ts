@@ -8,6 +8,7 @@ import { SeoService } from '../../shared/seo/seo.service';
 import { SEO_BASE_URL, SEO_DEFAULT_OG_IMAGE } from '../../shared/seo/seo.constants';
 import { BlogPost, readingTimeMinutes } from './blog-post.model';
 import { findPost, relatedPosts } from './blog-posts.registry';
+import { AdsenseComponent } from '../../shared/ui/adsense/adsense.component';
 
 interface RelatedView {
   post: BlogPost;
@@ -17,7 +18,7 @@ interface RelatedView {
 @Component({
   selector: 'app-blog-post',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AdsenseComponent],
   templateUrl: './blog-post.component.html',
   styleUrl: './blog-post.component.scss',
 })

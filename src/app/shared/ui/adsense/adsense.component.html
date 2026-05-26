@@ -1,0 +1,21 @@
+@if (isBrowser) {
+  @if (isDev) {
+    <div class="mock-ad-banner" role="presentation">
+      <div class="mock-ad-badge">AdSense Dev Mock</div>
+      <div class="mock-ad-details">
+        <span class="detail-item"><strong>Client:</strong> {{ adClient() }}</span>
+        <span class="detail-item"><strong>Slot:</strong> {{ adSlot() }}</span>
+        <span class="detail-item"><strong>Format:</strong> {{ adFormat() }}</span>
+      </div>
+    </div>
+  } @else {
+    <ins
+      class="adsbygoogle"
+      [style.display]="adStyleDisplay()"
+      [attr.data-ad-client]="adClient()"
+      [attr.data-ad-slot]="adSlot()"
+      [attr.data-ad-format]="adFormat()"
+      [attr.data-full-width-responsive]="fullWidthResponsive() ? 'true' : 'false'"
+    ></ins>
+  }
+}
