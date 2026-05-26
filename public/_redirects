@@ -8,3 +8,7 @@
 # destinations themselves return 200 + canonical to /lang/.
 /   /vi/  302  Country=VN
 /   /en/  302
+
+# SPA Fallback rewrites for localized routing on Cloudflare Pages
+/vi/*  /vi/index.html  200
+/en/*  /en/index.html  200
