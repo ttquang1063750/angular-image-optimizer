@@ -15,9 +15,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: ':lang/changelog', renderMode: RenderMode.Prerender, getPrerenderParams: langs },
   { path: ':lang/blog', renderMode: RenderMode.Prerender, getPrerenderParams: langs },
 
-  // /optimize là SPA app — không cần SEO, không prerender (tránh việc bundle
-  // jszip/heic-to chạy server-side gây lỗi window).
-  { path: ':lang/optimize', renderMode: RenderMode.Client },
+  // /optimize là SPA app — prerender để Cloudflare Pages phục vụ trực tiếp file tĩnh
+  { path: ':lang/optimize', renderMode: RenderMode.Prerender, getPrerenderParams: langs },
 
   // Blog posts — prerender từng slug × lang từ registry.
   {

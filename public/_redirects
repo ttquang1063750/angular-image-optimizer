@@ -28,8 +28,7 @@
 /   /vi/  302  Country=VN
 /   /en/  302
 
-# --- SPA Fallback rewrites for localized routing.
-# Chỉ áp dụng sau khi static file lookup + asset extension rules đã pass.
-# Match navigation routes như /vi/about, /vi/blog/some-post, /vi/optimize…
-/vi/*  /vi/index.html  200
-/en/*  /en/index.html  200
+# --- SPA Fallback is now handled by the custom 404.html (copied from index.csr.html)
+# Cloudflare Pages will serve 404.html for any non-existent paths, which bootstraps
+# the Angular SPA and lets the Angular Router handle non-existent routes natively (showing NotFoundComponent).
+

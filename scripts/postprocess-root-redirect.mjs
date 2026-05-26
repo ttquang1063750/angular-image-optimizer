@@ -47,6 +47,17 @@ async function main() {
   for (const target of TARGETS) {
     await processFile(target);
   }
+
+  // Tạo file 404.html từ index.csr.html làm SPA Fallback cho Cloudflare Pages
+  const csrPath = 'dist/angular-image-optimizer/browser/index.csr.html';
+  const error404Path = 'dist/angular-image-optimizer/browser/404.html';
+  if (existsSync(csrPath)) {
+    const csrHtml = await readFile(csrPath, 'utf8');
+    await writeFile(error404Path, csrHtml, 'utf8');
+    console.log(`✓ Đã tạo file 404.html từ index.csr.html thành công.`);
+  } else {
+    console.warn(`⚠️ Cảnh báo: Không tìm thấy ${csrPath} để tạo 404.html.`);
+  }
 }
 
 main().catch((e) => {
