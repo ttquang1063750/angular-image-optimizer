@@ -5,8 +5,9 @@ import { ImageCompressionService } from './image-compression.service';
 import { SettingsStateService } from './settings-state.service';
 import { FileStatusUpdate, ProcessedFile } from './image-processing.model';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 describe('UploaderStateService', () => {

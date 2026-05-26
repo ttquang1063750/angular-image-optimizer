@@ -10,8 +10,9 @@ const mockCropperInstance = {
   destroy: vi.fn(),
 };
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';

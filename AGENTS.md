@@ -1,9 +1,12 @@
-# Angular Image Optimizer - Project Instructions
+# Angular Image Optimizer — Agent Instructions
+
+> Hướng dẫn cho mọi AI coding agent (Claude, Gemini, Cursor, …) làm việc với
+> codebase này. Đọc trước khi sửa code.
 
 ## Project Overview
 **Angular Image Optimizer** là một ứng dụng web hiện đại được xây dựng để tối ưu hóa và nén hình ảnh trực tiếp trên trình duyệt của người dùng. Ứng dụng tập trung vào hiệu suất, tính riêng tư và trải nghiệm người dùng mượt mà.
 
-**Chi tiết lộ trình phát triển:** Xem tại [BACKLOG.md](./BACKLOG.md)
+**Lộ trình phát triển:** Xem [ROADMAP.md](./ROADMAP.md).
 
 ### Key Features
 - **Client-Side Processing:** Xử lý 100% tại trình duyệt, không upload file lên server, đảm bảo tính riêng tư tuyệt đối và chi phí vận hành thấp.

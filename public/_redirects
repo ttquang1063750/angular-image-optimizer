@@ -1,0 +1,10 @@
+# Cloudflare Pages — server-side redirects.
+# Reference: https://developers.cloudflare.com/pages/configuration/redirects/
+
+# Root → language-detected landing.
+# Vietnam visitors → /vi/, everyone else → /en/.
+# 302 (Found) so language switcher choices aren't permanently cached;
+# Google still treats this as the canonical entry path because the
+# destinations themselves return 200 + canonical to /lang/.
+/   /vi/  302  Country=VN
+/   /en/  302

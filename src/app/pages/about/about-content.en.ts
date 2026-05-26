@@ -16,14 +16,9 @@ export const aboutContentEn: AboutContent = {
     { name: 'Angular 21', role: 'Framework + Signals + SSG prerender', url: 'https://angular.dev' },
     { name: 'RxJS', role: 'Concurrency control (3 images at once)', url: 'https://rxjs.dev' },
     {
-      name: 'compressorjs',
-      role: 'Canvas-based compression core',
-      url: 'https://github.com/fengyuanchen/compressorjs',
-    },
-    {
-      name: 'heic2any',
-      role: 'Decode HEIC files from iPhone',
-      url: 'https://github.com/alexcorvi/heic2any',
+      name: 'heic-to',
+      role: 'Decode HEIC files from iPhone (libheif WASM)',
+      url: 'https://github.com/hoppergee/heic-to',
     },
     { name: 'JSZip', role: 'Bundle batches into .zip', url: 'https://stuk.github.io/jszip/' },
     {

@@ -224,9 +224,21 @@
 
 @media (max-width: 600px) {
   .donation-fab {
-    padding: 12px;
+    // Move to bottom-left on mobile — file-item action buttons (preview/download)
+    // sit on the right side, so a fixed FAB there would block taps.
+    right: auto;
+    left: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
     .text {
       display: none;
+    }
+    .icon {
+      line-height: 1;
     }
   }
 

@@ -7,7 +7,10 @@ import { AppShellLayoutComponent } from './app-shell-layout.component';
 import { SupportDialogComponent } from '../../ui/support-dialog/support-dialog.component';
 import { PwaService, BeforeInstallPromptEvent } from '../../pwa/pwa.service';
 
-vi.mock('heic2any', () => ({ default: vi.fn() }));
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
+}));
 
 interface ShellExposed {
   showSettings: () => boolean;

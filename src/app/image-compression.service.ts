@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
 import { mergeMap, catchError, startWith } from 'rxjs/operators';
-import type Compressor from 'compressorjs';
 import type JSZip from 'jszip';
-import type heic2any from 'heic2any';
+import type { heicTo } from 'heic-to';
 
 import {
   CompressionOptions,
@@ -18,35 +17,23 @@ import {
 } from './image-processing.model';
 import {
   COMPRESSION_PRESETS,
-  CONVERT_SIZE_THRESHOLD,
   DEFAULT_CONCURRENCY,
   FORCE_REENCODE_QUALITY,
   HEIC_CONVERT_QUALITY,
-  WATERMARK_OUTPUT_QUALITY,
 } from './image-processing.constants';
 import { preserveJpegExif } from './utils/exif';
 
 interface ResizeDimensions {
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ImageCompressionService {
-  // Lazy-load các thư viện chỉ chạy được trong browser (compressorjs/jszip/heic2any
-  // truy cập `window` ở top-level). Import tĩnh sẽ fail trong SSR/prerender.
-  private compressorCtor: typeof Compressor | null = null;
   private jsZipCtor: typeof JSZip | null = null;
-  private heic2anyFn: typeof heic2any | null = null;
-
-  private async getCompressor(): Promise<typeof Compressor> {
-    if (!this.compressorCtor) {
-      this.compressorCtor = (await import('compressorjs')).default;
-    }
-    return this.compressorCtor;
-  }
+  private heicToFn: typeof heicTo | null = null;
 
   private async getJSZip(): Promise<typeof JSZip> {
     if (!this.jsZipCtor) {
@@ -55,11 +42,11 @@ export class ImageCompressionService {
     return this.jsZipCtor;
   }
 
-  private async getHeic2any(): Promise<typeof heic2any> {
-    if (!this.heic2anyFn) {
-      this.heic2anyFn = (await import('heic2any')).default;
+  private async getHeicTo(): Promise<typeof heicTo> {
+    if (!this.heicToFn) {
+      this.heicToFn = (await import('heic-to')).heicTo;
     }
-    return this.heic2anyFn;
+    return this.heicToFn;
   }
 
   getOptionsByPreset(preset: CompressionPreset): CompressionOptions {
@@ -92,13 +79,23 @@ export class ImageCompressionService {
         const fileId = item.id;
 
         return this.compressSingleImage(item.file, fileId, options, item.index).pipe(
-          catchError((error) =>
-            of({
+          catchError((error) => {
+            console.error('Compression pipeline failed:', error);
+            let message = 'Unknown error';
+            if (error instanceof Error) {
+              message = error.message;
+            } else if (typeof error === 'string') {
+              message = error;
+            } else if (error && typeof error === 'object' && 'message' in error) {
+              message = String((error as any).message);
+            }
+
+            return of({
               fileId,
               status: 'error' as const,
-              error: error.message || 'Unknown error',
-            }),
-          ),
+              error: message,
+            });
+          }),
           startWith({
             fileId,
             status: 'compressing' as const,
@@ -131,21 +128,71 @@ export class ImageCompressionService {
     index: number,
   ): Promise<CompressedImageResult> {
     const sourceBlob = await this.prepareSource(file);
-    const dimensions = await this.resolveResizeDimensions(sourceBlob, options);
-    const compressed = await this.runCompressor(sourceBlob, options, dimensions);
-    const watermarked = await this.applyWatermarksIfNeeded(compressed, options.watermarks);
-    const withExif = await this.preserveExifIfEligible(file, watermarked, options);
+    const baseImg = await this.loadImage(sourceBlob);
+    const dimensions = this.resolveResizeDimensions(baseImg.width, baseImg.height, options);
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { alpha: options.format !== 'image/jpeg' });
+    if (!ctx) throw new Error('Không thể khởi tạo Canvas Context');
+
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+
+    // Background trắng cho JPEG
+    if (options.format === 'image/jpeg') {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Step 1: Draw Image (Resize)
+    ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
+
+    // Step 2: Draw Watermarks
+    if (options.watermarks && options.watermarks.length > 0) {
+      for (const config of options.watermarks) {
+        if (config.type === 'text' && !config.text) continue;
+        if (config.type === 'image' && !config.image) continue;
+
+        ctx.save();
+        ctx.globalAlpha = config.opacity;
+        if (config.type === 'text') {
+          this.drawTextWatermark(ctx, canvas.width, canvas.height, config);
+        } else {
+          try {
+            const logo = await this.loadImage(config.image);
+            this.drawImageWatermark(ctx, canvas.width, canvas.height, logo, config);
+          } catch {
+            // ignore logo load failures
+          }
+        }
+        ctx.restore();
+      }
+    }
+
+    // Step 3: Compression (Single Pass)
+    let finalBlob = await this.canvasToBlob(canvas, options.format ?? 'image/jpeg', options.quality);
+
+    // Step 4: Strict Mode Check (Nếu nén nhẹ mà phình to hơn file gốc, và không resize/watermark/format change)
+    const isOriginalEligible =
+      !options.watermarks?.length &&
+      options.resizeMode === 'auto' &&
+      dimensions.width === baseImg.width &&
+      dimensions.height === baseImg.height &&
+      (options.format === undefined || options.format === file.type);
+
+    if (isOriginalEligible && options.quality >= FORCE_REENCODE_QUALITY) {
+      if (finalBlob.size > sourceBlob.size) {
+        finalBlob = sourceBlob;
+      }
+    }
+
+    // Step 5: Preserve EXIF (JPEG only)
+    const withExif = await this.preserveExifIfEligible(file, finalBlob, options);
+
     const fileName = this.buildFileName(file.name, withExif.type, options.namePattern, index);
     return this.buildResult(file, withExif, fileName);
   }
 
-  /**
-   * Chèn EXIF từ file gốc vào output đã nén, chỉ khi:
-   *  - User bật `preserveExif`
-   *  - Cả input MIME và output MIME đều là `image/jpeg`
-   *
-   * Các trường hợp khác (WebP output, HEIC source, không có EXIF) silent bỏ qua.
-   */
   private async preserveExifIfEligible(
     originalFile: File,
     compressed: Blob,
@@ -157,12 +204,9 @@ export class ImageCompressionService {
     try {
       return await preserveJpegExif(originalFile, compressed);
     } catch {
-      // Lỗi parse EXIF: giữ output không có metadata thay vì fail toàn bộ
       return compressed;
     }
   }
-
-  // --- Pipeline steps ---
 
   private isHeic(file: File): boolean {
     const name = file.name.toLowerCase();
@@ -177,48 +221,83 @@ export class ImageCompressionService {
   private async prepareSource(file: File): Promise<File | Blob> {
     if (!this.isHeic(file)) return file;
     try {
-      const heic2anyFn = await this.getHeic2any();
-      const conversion = await heic2anyFn({
+      const heicToFn = await this.getHeicTo();
+      return await heicToFn({
         blob: file,
-        toType: 'image/jpeg',
+        type: 'image/jpeg',
         quality: HEIC_CONVERT_QUALITY,
       });
-      return Array.isArray(conversion) ? conversion[0] : conversion;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'unknown error';
-      throw new Error(`Không thể chuyển đổi file HEIC: ${message}`, { cause: err });
+      // heic2any reject với nhiều shape khác nhau: Error, plain object { code, message },
+      // string, hoặc thậm chí DOMException. Cố gắng extract message hữu ích nhất.
+      console.error('HEIC convert failed. Raw error:', err);
+      throw new Error(`Không thể chuyển đổi file HEIC: ${this.describeError(err)}`, {
+        cause: err,
+      });
     }
   }
 
-  private async resolveResizeDimensions(
-    blob: File | Blob,
+  private describeError(err: unknown): string {
+    if (err instanceof Error) return err.message;
+    if (typeof err === 'string') return err;
+    if (err && typeof err === 'object') {
+      const o = err as { message?: unknown; code?: unknown };
+      if (typeof o.message === 'string' && o.message) return o.message;
+      if (typeof o.code !== 'undefined') return `code ${String(o.code)}`;
+      try {
+        return JSON.stringify(err);
+      } catch {
+        return Object.prototype.toString.call(err);
+      }
+    }
+    return String(err);
+  }
+
+  private resolveResizeDimensions(
+    originalWidth: number,
+    originalHeight: number,
     options: CompressionOptions,
-  ): Promise<ResizeDimensions> {
+  ): ResizeDimensions {
     switch (options.resizeMode) {
-      case 'width':
-        return { width: options.resizeWidth };
-      case 'height':
-        return { height: options.resizeHeight };
+      case 'width': {
+        const width = options.resizeWidth ?? originalWidth;
+        const ratio = width / originalWidth;
+        return { width, height: Math.round(originalHeight * ratio) };
+      }
+      case 'height': {
+        const height = options.resizeHeight ?? originalHeight;
+        const ratio = height / originalHeight;
+        return { width: Math.round(originalWidth * ratio), height };
+      }
       case 'percent': {
-        const { width, height } = await this.readImageSize(blob);
         const ratio = (options.resizePercent ?? 100) / 100;
         return {
-          width: Math.round(width * ratio),
-          height: Math.round(height * ratio),
+          width: Math.round(originalWidth * ratio),
+          height: Math.round(originalHeight * ratio),
         };
       }
-      default:
-        return {};
+      case 'auto':
+      default: {
+        const max = options.maxWidthOrHeight;
+        if (originalWidth <= max && originalHeight <= max) {
+          return { width: originalWidth, height: originalHeight };
+        }
+        const ratio = Math.min(max / originalWidth, max / originalHeight);
+        return {
+          width: Math.round(originalWidth * ratio),
+          height: Math.round(originalHeight * ratio),
+        };
+      }
     }
   }
 
-  private readImageSize(blob: File | Blob): Promise<{ width: number; height: number }> {
+  private loadImage(blob: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(blob);
       img.onload = () => {
         URL.revokeObjectURL(url);
-        resolve({ width: img.width, height: img.height });
+        resolve(img);
       };
       img.onerror = () => {
         URL.revokeObjectURL(url);
@@ -228,41 +307,90 @@ export class ImageCompressionService {
     });
   }
 
-  private async runCompressor(
-    blob: File | Blob,
-    options: CompressionOptions,
-    dimensions: ResizeDimensions,
-  ): Promise<Blob> {
-    const CompressorCtor = await this.getCompressor();
+  private canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: number): Promise<Blob> {
     return new Promise((resolve, reject) => {
-      new CompressorCtor(blob, {
-        quality: options.quality,
-        width: dimensions.width,
-        height: dimensions.height,
-        maxWidth: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
-        maxHeight: options.resizeMode === 'auto' ? options.maxWidthOrHeight : undefined,
-        strict: false,
-        mimeType: options.format ?? 'image/jpeg',
-        convertSize:
-          options.quality < FORCE_REENCODE_QUALITY || options.format === 'image/webp'
-            ? 0
-            : CONVERT_SIZE_THRESHOLD,
-        success: (result: Blob) => resolve(result),
-        error: (err) => reject(err),
-      });
+      canvas.toBlob(
+        (result) => {
+          if (result) resolve(result);
+          else reject(new Error('Lỗi khi xuất Canvas sang Blob'));
+        },
+        mimeType,
+        quality,
+      );
     });
   }
 
-  private async applyWatermarksIfNeeded(
-    blob: Blob,
-    watermarks: WatermarkConfig[] | undefined,
-  ): Promise<Blob> {
-    if (!watermarks || watermarks.length === 0) return blob;
-    try {
-      return await this.applyWatermarks(blob, watermarks);
-    } catch {
-      // Vẫn tiếp tục với ảnh đã nén nếu lỗi đóng dấu
-      return blob;
+  private drawTextWatermark(
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+    config: TextWatermarkConfig,
+  ): void {
+    const fontSize = (canvasWidth * config.fontSize) / 100;
+    ctx.font = `bold ${fontSize}px Inter, Roboto, sans-serif`;
+    ctx.fillStyle = config.color;
+    ctx.textBaseline = 'middle';
+
+    const padding = fontSize;
+    const { x, y, align } = this.computeAnchor(config.position, canvasWidth, canvasHeight, padding);
+    ctx.textAlign = align;
+    ctx.fillText(config.text, x, y);
+  }
+
+  private drawImageWatermark(
+    ctx: CanvasRenderingContext2D,
+    canvasWidth: number,
+    canvasHeight: number,
+    logo: HTMLImageElement,
+    config: ImageWatermarkConfig,
+  ): void {
+    const targetWidth = (canvasWidth * config.size) / 100;
+    const targetHeight = targetWidth * (logo.height / logo.width);
+    const padding = targetWidth * 0.05;
+
+    const { x, y, align } = this.computeAnchor(config.position, canvasWidth, canvasHeight, padding);
+
+    let drawX = x;
+    let drawY = y - targetHeight / 2;
+
+    if (typeof config.position === 'object' && config.position !== null) {
+      drawX = x - targetWidth / 2;
+      drawY = y - targetHeight / 2;
+    } else {
+      if (align === 'right') drawX = x - targetWidth;
+      else if (align === 'center') drawX = x - targetWidth / 2;
+
+      const posStr = config.position as string;
+      if (posStr.startsWith('top-')) drawY = padding;
+      else if (posStr.startsWith('bottom-')) drawY = canvasHeight - targetHeight - padding;
+    }
+
+    ctx.drawImage(logo, drawX, drawY, targetWidth, targetHeight);
+  }
+
+  private computeAnchor(
+    position: WatermarkConfig['position'],
+    canvasWidth: number,
+    canvasHeight: number,
+    padding: number,
+  ): { x: number; y: number; align: CanvasTextAlign } {
+    if (typeof position === 'object' && position !== null) {
+      const xVal = (canvasWidth * position.x) / 100;
+      const yVal = (canvasHeight * position.y) / 100;
+      return { x: xVal, y: yVal, align: 'center' };
+    }
+
+    switch (position) {
+      case 'top-left':
+        return { x: padding, y: padding, align: 'left' };
+      case 'top-right':
+        return { x: canvasWidth - padding, y: padding, align: 'right' };
+      case 'bottom-left':
+        return { x: padding, y: canvasHeight - padding, align: 'left' };
+      case 'bottom-right':
+        return { x: canvasWidth - padding, y: canvasHeight - padding, align: 'right' };
+      case 'center':
+        return { x: canvasWidth / 2, y: canvasHeight / 2, align: 'center' };
     }
   }
 
@@ -350,141 +478,5 @@ export class ImageCompressionService {
       candidate = `${namePart}_${counter}${extPart}`;
     }
     return candidate;
-  }
-
-  private async applyWatermarks(blob: Blob, watermarks: WatermarkConfig[]): Promise<Blob> {
-    const baseImg = await this.loadImage(blob);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Không thể khởi tạo Canvas Context');
-
-    canvas.width = baseImg.width;
-    canvas.height = baseImg.height;
-    ctx.drawImage(baseImg, 0, 0);
-
-    for (const config of watermarks) {
-      if (config.type === 'text' && !config.text) continue;
-      if (config.type === 'image' && !config.image) continue;
-
-      ctx.save();
-      ctx.globalAlpha = config.opacity;
-      if (config.type === 'text') {
-        this.drawTextWatermark(ctx, canvas.width, canvas.height, config);
-      } else {
-        try {
-          const logo = await this.loadImage(config.image);
-          this.drawImageWatermark(ctx, canvas.width, canvas.height, logo, config);
-        } catch {
-          // ignore logo load failures
-        }
-      }
-      ctx.restore();
-    }
-
-    return this.canvasToBlob(canvas, blob.type);
-  }
-
-  private loadImage(blob: Blob): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(blob);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        resolve(img);
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Không thể tải ảnh'));
-      };
-      img.src = url;
-    });
-  }
-
-  private canvasToBlob(canvas: HTMLCanvasElement, mimeType: string): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (result) => {
-          if (result) resolve(result);
-          else reject(new Error('Lỗi khi xuất Canvas sang Blob'));
-        },
-        mimeType,
-        WATERMARK_OUTPUT_QUALITY,
-      );
-    });
-  }
-
-  private drawTextWatermark(
-    ctx: CanvasRenderingContext2D,
-    canvasWidth: number,
-    canvasHeight: number,
-    config: TextWatermarkConfig,
-  ): void {
-    const fontSize = (canvasWidth * config.fontSize) / 100;
-    ctx.font = `bold ${fontSize}px Inter, Roboto, sans-serif`;
-    ctx.fillStyle = config.color;
-    ctx.textBaseline = 'middle';
-
-    const padding = fontSize;
-    const { x, y, align } = this.computeAnchor(config.position, canvasWidth, canvasHeight, padding);
-    ctx.textAlign = align;
-    ctx.fillText(config.text, x, y);
-  }
-
-  private drawImageWatermark(
-    ctx: CanvasRenderingContext2D,
-    canvasWidth: number,
-    canvasHeight: number,
-    logo: HTMLImageElement,
-    config: ImageWatermarkConfig,
-  ): void {
-    const targetWidth = (canvasWidth * config.size) / 100;
-    const targetHeight = targetWidth * (logo.height / logo.width);
-    const padding = targetWidth * 0.05;
-
-    const { x, y, align } = this.computeAnchor(config.position, canvasWidth, canvasHeight, padding);
-
-    // Chuyển anchor sang góc trên-trái cho drawImage
-    let drawX = x;
-    let drawY = y - targetHeight / 2;
-
-    if (typeof config.position === 'object' && config.position !== null) {
-      drawX = x - targetWidth / 2;
-      drawY = y - targetHeight / 2;
-    } else {
-      if (align === 'right') drawX = x - targetWidth;
-      else if (align === 'center') drawX = x - targetWidth / 2;
-
-      const posStr = config.position as string;
-      if (posStr.startsWith('top-')) drawY = padding;
-      else if (posStr.startsWith('bottom-')) drawY = canvasHeight - targetHeight - padding;
-    }
-
-    ctx.drawImage(logo, drawX, drawY, targetWidth, targetHeight);
-  }
-
-  private computeAnchor(
-    position: WatermarkConfig['position'],
-    canvasWidth: number,
-    canvasHeight: number,
-    padding: number,
-  ): { x: number; y: number; align: CanvasTextAlign } {
-    if (typeof position === 'object' && position !== null) {
-      const xVal = (canvasWidth * position.x) / 100;
-      const yVal = (canvasHeight * position.y) / 100;
-      return { x: xVal, y: yVal, align: 'center' };
-    }
-
-    switch (position) {
-      case 'top-left':
-        return { x: padding, y: padding, align: 'left' };
-      case 'top-right':
-        return { x: canvasWidth - padding, y: padding, align: 'right' };
-      case 'bottom-left':
-        return { x: padding, y: canvasHeight - padding, align: 'left' };
-      case 'bottom-right':
-        return { x: canvasWidth - padding, y: canvasHeight - padding, align: 'right' };
-      case 'center':
-        return { x: canvasWidth / 2, y: canvasHeight / 2, align: 'center' };
-    }
   }
 }

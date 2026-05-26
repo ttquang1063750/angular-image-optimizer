@@ -1,6 +1,7 @@
-# Project Backlog & Roadmap 🚀
+# Roadmap
 
-Dưới đây là danh sách các tính năng và cải tiến được lên kế hoạch để biến **Angular Image Optimizer** thành một sản phẩm thương mại hoàn chỉnh.
+Lộ trình tính năng và cải tiến cho **Angular Image Optimizer**. Mục đã ✅ là
+deliverable đã ship trên `main`; các mục còn lại tổ chức theo mức ưu tiên.
 
 ## 🔴 Ưu tiên cao (Sắp thực hiện)
 1.  **Chuyển đổi sang WebP/AVIF (Hoàn thành ✅):**

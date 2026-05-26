@@ -3,31 +3,6 @@ import { ImageCompressionService } from './image-compression.service';
 import { firstValueFrom } from 'rxjs';
 import { toArray } from 'rxjs/operators';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
-}));
-
-interface CompressorMockOptions {
-  mimeType?: string;
-  success?: (blob: Blob) => void;
-}
-
-vi.mock('compressorjs', () => {
-  return {
-    default: class MockCompressor {
-      constructor(file: File | Blob, options: CompressorMockOptions) {
-        setTimeout(() => {
-          if (options.success) {
-            options.success(
-              new Blob(['compressed_data'], { type: options.mimeType || 'image/jpeg' }),
-            );
-          }
-        }, 0);
-      }
-    },
-  };
-});
-
 vi.mock('jszip', () => {
   return {
     default: class MockJSZip {
@@ -48,6 +23,46 @@ describe('ImageCompressionService', () => {
   beforeEach(() => {
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    // Mock Canvas Context
+    const mockCtx = {
+      drawImage: vi.fn(),
+      fillRect: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      fillText: vi.fn(),
+      getContext: vi.fn(),
+      scale: vi.fn(),
+      rotate: vi.fn(),
+      translate: vi.fn(),
+      transform: vi.fn(),
+      setTransform: vi.fn(),
+      beginPath: vi.fn(),
+      closePath: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      clearRect: vi.fn(),
+    } as any;
+
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(mockCtx);
+
+    // Mock HTMLCanvasElement.prototype.toBlob
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(
+      (callback: (blob: Blob | null) => void, type?: string) => {
+        callback(new Blob(['mock_compressed_data'], { type: type || 'image/jpeg' }));
+      },
+    );
+
+    // Mock HTMLImageElement
+    // @ts-ignore
+    global.Image = class {
+      onload: () => void = () => {};
+      width: number = 2000;
+      height: number = 1000;
+      set src(value: string) {
+        setTimeout(() => this.onload(), 0);
+      }
+    };
 
     TestBed.configureTestingModule({});
     service = TestBed.inject(ImageCompressionService);

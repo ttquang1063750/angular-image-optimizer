@@ -4,8 +4,9 @@ import { SettingsStateService } from '../../settings-state.service';
 import { UploaderStateService } from '../../uploader-state.service';
 import { ImageCompressionService } from '../../image-compression.service';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 describe('SettingsPanelComponent', () => {

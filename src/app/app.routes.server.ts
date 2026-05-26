@@ -16,7 +16,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: ':lang/blog', renderMode: RenderMode.Prerender, getPrerenderParams: langs },
 
   // /optimize là SPA app — không cần SEO, không prerender (tránh việc bundle
-  // compressorjs/jszip/heic2any chạy server-side gây lỗi window).
+  // jszip/heic-to chạy server-side gây lỗi window).
   { path: ':lang/optimize', renderMode: RenderMode.Client },
 
   // Blog posts — prerender từng slug × lang từ registry.

@@ -65,7 +65,7 @@ const contentHtml = `
 <p>Cách nhanh nhất để chuyển nhiều ảnh JPEG sang WebP mà không cài đặt thêm gì:</p>
 
 <ol>
-  <li>Mở <a href="/vi/optimize">Image Optimizer</a> trong trình duyệt.</li>
+  <li>Mở <a href="/vi/optimize/">Image Optimizer</a> trong trình duyệt.</li>
   <li>Drag-drop folder ảnh JPEG vào.</li>
   <li>Trong Settings → "Định dạng đầu ra" chọn <strong>WebP</strong>.</li>
   <li>Chọn preset "Nén vừa" cho cân bằng chất lượng/dung lượng.</li>
@@ -82,7 +82,7 @@ const contentHtml = `
 
 <p>Với 97%+ browser support và 25-35% tiết kiệm dung lượng, WebP nên là default cho mọi ảnh web mới. JPEG chỉ giữ khi cần tương thích phần mềm cũ. Bulk convert chỉ mất vài giây trong trình duyệt — không lý do gì để trì hoãn.</p>
 
-<p><a href="/vi/optimize"><strong>Thử bulk convert sang WebP →</strong></a></p>
+<p><a href="/vi/optimize/"><strong>Thử bulk convert sang WebP →</strong></a></p>
 `.trim();
 
 export const whyWebpVi: BlogPost = {

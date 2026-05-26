@@ -138,7 +138,7 @@ export class SeoService {
 
   private buildUrl(lang: Lang, path: string): string {
     const cleanPath = path.replace(/^\/+|\/+$/g, '');
-    const suffix = cleanPath ? `/${cleanPath}` : '';
+    const suffix = cleanPath ? `/${cleanPath}/` : '/';
     return `${SEO_BASE_URL}/${lang}${suffix}`;
   }
 

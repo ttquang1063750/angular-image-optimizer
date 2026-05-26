@@ -16,14 +16,9 @@ export const aboutContentVi: AboutContent = {
     { name: 'Angular 21', role: 'Framework + Signals + SSG prerender', url: 'https://angular.dev' },
     { name: 'RxJS', role: 'Điều phối nén song song (3 ảnh/lần)', url: 'https://rxjs.dev' },
     {
-      name: 'compressorjs',
-      role: 'Core nén ảnh trên Canvas',
-      url: 'https://github.com/fengyuanchen/compressorjs',
-    },
-    {
-      name: 'heic2any',
-      role: 'Decode HEIC từ iPhone',
-      url: 'https://github.com/alexcorvi/heic2any',
+      name: 'heic-to',
+      role: 'Decode HEIC từ iPhone (libheif WASM)',
+      url: 'https://github.com/hoppergee/heic-to',
     },
     { name: 'JSZip', role: 'Đóng gói batch thành .zip', url: 'https://stuk.github.io/jszip/' },
     {

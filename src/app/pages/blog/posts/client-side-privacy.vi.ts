@@ -42,7 +42,7 @@ const contentHtml = `
   <li>Trả Blob mới về cho download (createObjectURL).</li>
 </ol>
 
-<p>Toàn bộ chạy local. <a href="/vi/optimize">Image Optimizer</a> mã nguồn mở implement đúng pattern này — bạn có thể audit code trên GitHub để xác nhận không có endpoint upload nào.</p>
+<p>Toàn bộ chạy local. <a href="/vi/optimize/">Image Optimizer</a> mã nguồn mở implement đúng pattern này — bạn có thể audit code trên GitHub để xác nhận không có endpoint upload nào.</p>
 
 <h2>Performance: client-side có chậm hơn không?</h2>
 
@@ -80,13 +80,13 @@ const contentHtml = `
   <li>Tắt mạng (DevTools → Network → Offline) sau khi trang load xong. Nén ảnh. Nếu vẫn chạy được thì 100% là client-side.</li>
 </ol>
 
-<p><a href="/vi/optimize">Image Optimizer</a> pass cả hai test. Source code MIT trên GitHub — bạn có thể self-host trên domain riêng.</p>
+<p><a href="/vi/optimize/">Image Optimizer</a> pass cả hai test. Source code MIT trên GitHub — bạn có thể self-host trên domain riêng.</p>
 
 <h2>Kết luận</h2>
 
 <p>Client-side image processing không còn là experimental. Năm 2026, mọi browser hiện đại đủ năng lực để xử lý batch ảnh nhanh hơn upload lên server. Kết hợp lợi ích privacy + bandwidth + không cần backend, đây nên là default cho ứng dụng web mới.</p>
 
-<p><a href="/vi/optimize"><strong>Thử Image Optimizer chạy 100% trong browser →</strong></a></p>
+<p><a href="/vi/optimize/"><strong>Thử Image Optimizer chạy 100% trong browser →</strong></a></p>
 `.trim();
 
 export const clientSidePrivacyVi: BlogPost = {

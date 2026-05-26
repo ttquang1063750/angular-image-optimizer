@@ -42,7 +42,7 @@ const contentHtml = `
   <li>Hand the new Blob back as a download (createObjectURL).</li>
 </ol>
 
-<p>It all runs locally. <a href="/en/optimize">Image Optimizer</a> is open source and implements exactly this pattern — you can audit the code on GitHub to confirm there's no upload endpoint anywhere.</p>
+<p>It all runs locally. <a href="/en/optimize/">Image Optimizer</a> is open source and implements exactly this pattern — you can audit the code on GitHub to confirm there's no upload endpoint anywhere.</p>
 
 <h2>Performance: is client-side slower?</h2>
 
@@ -80,13 +80,13 @@ const contentHtml = `
   <li>Disable network (DevTools → Network → Offline) once the page is loaded. Compress an image. If it still works, it's 100% client-side.</li>
 </ol>
 
-<p><a href="/en/optimize">Image Optimizer</a> passes both checks. Source is MIT on GitHub — you can self-host on your own domain.</p>
+<p><a href="/en/optimize/">Image Optimizer</a> passes both checks. Source is MIT on GitHub — you can self-host on your own domain.</p>
 
 <h2>Wrap-up</h2>
 
 <p>Client-side image processing is no longer experimental. In 2026, every modern browser is fast enough to batch-process images faster than uploading to a server would take. Combined with privacy, bandwidth savings, and zero backend, this should be the default for new web apps.</p>
 
-<p><a href="/en/optimize"><strong>Try Image Optimizer running 100% in your browser →</strong></a></p>
+<p><a href="/en/optimize/"><strong>Try Image Optimizer running 100% in your browser →</strong></a></p>
 `.trim();
 
 export const clientSidePrivacyEn: BlogPost = {

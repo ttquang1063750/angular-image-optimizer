@@ -2,8 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { SettingsStateService } from './settings-state.service';
 import { ImageCompressionService } from './image-compression.service';
 
-vi.mock('heic2any', () => ({
-  default: vi.fn(),
+vi.mock('heic-to', () => ({
+  heicTo: vi.fn(),
+  isHeic: vi.fn(),
 }));
 
 describe('SettingsStateService', () => {

@@ -6,10 +6,10 @@ import { Lang } from '../../translation.service';
  */
 export const SEO_BASE_URL = 'https://image-optimizer.js-tools.org';
 
-// SVG vì source-of-truth nằm trong public/og-image.svg. Trước khi deploy có
-// thể export PNG cùng tên (LinkedIn/Slack thích PNG hơn) — xem comment đầu
-// public/og-image.svg.
-export const SEO_DEFAULT_OG_IMAGE = `${SEO_BASE_URL}/og-image.svg`;
+// PNG vì một số platform (LinkedIn, Slack, Facebook) không render OG image
+// SVG. Source-of-truth vẫn là public/og-image.svg — re-export PNG bằng:
+//   npx svgexport public/og-image.svg public/og-image.png 1200:630
+export const SEO_DEFAULT_OG_IMAGE = `${SEO_BASE_URL}/og-image.png`;
 
 export const SEO_SUPPORTED_LANGS: Lang[] = ['vi', 'en'];
 
