@@ -75,6 +75,7 @@ export interface CompressedImageResult {
   compressedSize: number;
   savedPercentage: number;
   compressedUrl: string;
+  decodedOriginalUrl?: string;
 }
 
 // Định nghĩa các trạng thái cập nhật cho một file

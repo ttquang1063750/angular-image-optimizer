@@ -218,6 +218,12 @@ export class UploaderStateService {
     if (file.result?.compressedUrl) {
       URL.revokeObjectURL(file.result.compressedUrl);
     }
+    if (file.result?.decodedOriginalUrl) {
+      const cachedUrl = this.blobUrlCache.get(file.file);
+      if (file.result.decodedOriginalUrl !== cachedUrl) {
+        URL.revokeObjectURL(file.result.decodedOriginalUrl);
+      }
+    }
   }
 
   private cleanupBlobUrls(): void {

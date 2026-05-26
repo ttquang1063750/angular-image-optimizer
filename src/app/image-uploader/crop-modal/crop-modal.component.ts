@@ -49,6 +49,7 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('imageElement') imageElement!: ElementRef<HTMLImageElement>;
 
   imageUrl = '';
+  private shouldRevoke = false;
   private cropper: Cropper | null = null;
 
   /** Mode hiện tại — driver state cho UI active class + aspect ratio thực. */
@@ -72,7 +73,13 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.imageUrl = URL.createObjectURL(this.data.file.file);
+    if (this.data.file.result?.decodedOriginalUrl) {
+      this.imageUrl = this.data.file.result.decodedOriginalUrl;
+      this.shouldRevoke = false;
+    } else {
+      this.imageUrl = URL.createObjectURL(this.data.file.file);
+      this.shouldRevoke = true;
+    }
   }
 
   async ngAfterViewInit(): Promise<void> {
@@ -157,7 +164,7 @@ export class CropModalComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.cropper) {
       this.cropper.destroy();
     }
-    if (this.imageUrl) {
+    if (this.imageUrl && this.shouldRevoke) {
       URL.revokeObjectURL(this.imageUrl);
     }
   }

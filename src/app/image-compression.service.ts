@@ -190,7 +190,7 @@ export class ImageCompressionService {
     const withExif = await this.preserveExifIfEligible(file, finalBlob, options);
 
     const fileName = this.buildFileName(file.name, withExif.type, options.namePattern, index);
-    return this.buildResult(file, withExif, fileName);
+    return this.buildResult(file, withExif, fileName, sourceBlob);
   }
 
   private async preserveExifIfEligible(
@@ -445,6 +445,7 @@ export class ImageCompressionService {
     originalFile: File,
     finalBlob: Blob,
     fileName: string,
+    sourceBlob?: File | Blob,
   ): CompressedImageResult {
     const compressedFile = new File([finalBlob], fileName, {
       type: finalBlob.type,
@@ -454,6 +455,11 @@ export class ImageCompressionService {
     const compressedSize = compressedFile.size;
     const savedPercentage = ((originalSize - compressedSize) / originalSize) * 100;
 
+    let decodedOriginalUrl = '';
+    if (sourceBlob && sourceBlob !== originalFile) {
+      decodedOriginalUrl = URL.createObjectURL(sourceBlob);
+    }
+
     return {
       originalFile,
       compressedFile,
@@ -461,6 +467,7 @@ export class ImageCompressionService {
       compressedSize,
       savedPercentage: parseFloat(savedPercentage.toFixed(2)),
       compressedUrl: URL.createObjectURL(compressedFile),
+      decodedOriginalUrl,
     };
   }
 

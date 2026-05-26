@@ -41,7 +41,7 @@
           (touchstart)="onTouchMove($event)"
           (touchend)="onMouseLeave()"
         >
-          <img [src]="createBlobUrl(item.file)" alt="Original" />
+          <img [src]="item.result?.decodedOriginalUrl || createBlobUrl(item.file)" alt="Original" />
           <span class="label-tag tag-original"
             >{{ t()['tag_original'] }} ({{ formatBytes(item.result!.originalSize) }})</span
           >
@@ -50,7 +50,7 @@
               class="zoom-lens"
               [style.left.px]="lensPos().x"
               [style.top.px]="lensPos().y"
-              [style.background-image]="'url(' + createBlobUrl(item.file) + ')'"
+              [style.background-image]="'url(' + (item.result?.decodedOriginalUrl || createBlobUrl(item.file)) + ')'"
               [style.background-size]="(imgSize().w * zoomFactor) + 'px ' + (imgSize().h * zoomFactor) + 'px'"
               [style.background-position]="(-zoomPct().x / 100 * imgSize().w * zoomFactor + lensSize / 2) + 'px ' + (-zoomPct().y / 100 * imgSize().h * zoomFactor + lensSize / 2) + 'px'"
             ></div>
