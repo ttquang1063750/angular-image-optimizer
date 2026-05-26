@@ -7,8 +7,9 @@
  * Chạy sau `ng build`:
  *   node scripts/postprocess-root-redirect.mjs
  */
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 const TARGETS = [
   'dist/angular-image-optimizer/browser/index.html',
@@ -43,6 +44,41 @@ async function processFile(filePath) {
   console.log(`✓ Injected noindex meta vào ${filePath}`);
 }
 
+async function getAllHtmlFiles(dir) {
+  const files = await readdir(dir);
+  const htmlFiles = [];
+  for (const file of files) {
+    const fullPath = join(dir, file);
+    const s = await stat(fullPath);
+    if (s.isDirectory()) {
+      htmlFiles.push(...(await getAllHtmlFiles(fullPath)));
+    } else if (file.endsWith('.html')) {
+      htmlFiles.push(fullPath);
+    }
+  }
+  return htmlFiles;
+}
+
+async function makePathsAbsolute(filePath) {
+  let html = await readFile(filePath, 'utf8');
+
+  // Sửa các đường dẫn relative thành absolute
+  // 1. Sửa chunk JS preloads: href="chunk-... -> href="/chunk-...
+  html = html.replace(/(href=")(chunk-[a-zA-Z0-9_-]+\.js")/g, '$1/$2');
+  
+  // 2. Sửa main script: src="main-... -> src="/main-...
+  html = html.replace(/(src=")(main-[a-zA-Z0-9_-]+\.js")/g, '$1/$2');
+  
+  // 3. Sửa styles CSS: href="styles-... -> href="/styles-...
+  html = html.replace(/(href=")(styles-[a-zA-Z0-9_-]+\.css")/g, '$1/$2');
+  
+  // 4. Sửa favicon và manifest:
+  html = html.replace(/(href=")(favicon\.(ico|svg)")/g, '$1/$2');
+  html = html.replace(/(href=")(manifest\.webmanifest")/g, '$1/$2');
+
+  await writeFile(filePath, html, 'utf8');
+}
+
 async function main() {
   for (const target of TARGETS) {
     await processFile(target);
@@ -57,6 +93,16 @@ async function main() {
     console.log(`✓ Đã tạo file 404.html từ index.csr.html thành công.`);
   } else {
     console.warn(`⚠️ Cảnh báo: Không tìm thấy ${csrPath} để tạo 404.html.`);
+  }
+
+  // Biến toàn bộ các đường dẫn assets trong các file HTML thành absolute paths bắt đầu bằng /
+  const distDir = 'dist/angular-image-optimizer/browser';
+  if (existsSync(distDir)) {
+    const htmlFiles = await getAllHtmlFiles(distDir);
+    for (const file of htmlFiles) {
+      await makePathsAbsolute(file);
+    }
+    console.log(`✓ Đã cập nhật đường dẫn tuyệt đối (absolute paths) cho ${htmlFiles.length} file HTML.`);
   }
 }
 
