@@ -12,6 +12,30 @@ import { DefaultUrlSerializer, UrlTree } from '@angular/router';
  * Ta tách query/fragment ra, append `/` vào path nếu chưa có, rồi nối lại.
  */
 export class TrailingSlashUrlSerializer extends DefaultUrlSerializer {
+  override parse(url: string): UrlTree {
+    // Loại bỏ trailing slash ở cuối path segment trước khi parse.
+    // Điều này tránh việc Angular Router parse ra một empty segment ở cuối URL
+    // (ví dụ: "/en/" -> ['en', '']), gây lỗi không khớp route (pathMatch: 'full').
+    const queryIdx = url.indexOf('?');
+    const fragmentIdx = url.indexOf('#');
+    const splitIdx =
+      queryIdx === -1
+        ? fragmentIdx
+        : fragmentIdx === -1
+          ? queryIdx
+          : Math.min(queryIdx, fragmentIdx);
+
+    let path = splitIdx === -1 ? url : url.substring(0, splitIdx);
+    const rest = splitIdx === -1 ? '' : url.substring(splitIdx);
+
+    // Bỏ trailing slash nếu path kết thúc bằng '/' và không phải là root '/'
+    if (path.endsWith('/') && path !== '/') {
+      path = path.slice(0, -1);
+    }
+
+    return super.parse(`${path}${rest}`);
+  }
+
   override serialize(tree: UrlTree): string {
     const url = super.serialize(tree);
 

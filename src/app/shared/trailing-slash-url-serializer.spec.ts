@@ -37,4 +37,10 @@ describe('TrailingSlashUrlSerializer', () => {
     expect(serializeFromString('/vi')).toBe('/vi/');
     expect(serializeFromString('/en')).toBe('/en/');
   });
+
+  it('parse() loại bỏ trailing slash để khớp với UrlTree không có trailing slash', () => {
+    const treeWithSlash = serializer.parse('/vi/about/');
+    const treeWithoutSlash = serializer.parse('/vi/about');
+    expect(treeWithSlash.toString()).toBe(treeWithoutSlash.toString());
+  });
 });
