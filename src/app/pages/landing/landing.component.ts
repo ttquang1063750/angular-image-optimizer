@@ -39,7 +39,7 @@ const FAQ_KEYS = [
     <app-landing-how-it-works></app-landing-how-it-works>
     <app-landing-comparison></app-landing-comparison>
     <div style="max-width: 1200px; margin: 0 auto; padding: 16px 24px; box-sizing: border-box;">
-      <app-adsense adSlot="8810265774"></app-adsense>
+      <app-adsense adSlot="8171527266"></app-adsense>
     </div>
     <app-landing-faq></app-landing-faq>
     <app-landing-cta></app-landing-cta>
