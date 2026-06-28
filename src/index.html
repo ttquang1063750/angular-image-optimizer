@@ -28,19 +28,50 @@
     <link rel="dns-prefetch" href="https://github.com" />
     <link rel="dns-prefetch" href="https://paypal.me" />
 
-    <!--
-      <title>, description, canonical, hreflang, OG, JSON-LD are all
-      set per-route by SeoService at prerender + runtime. See
-      src/app/shared/seo/seo.service.ts.
-    -->
-    <title>Image Optimizer</title>
+    <!-- SEO — app một trang, meta tĩnh. Ngôn ngữ đổi client-side qua language switcher. -->
+    <title>App nén ảnh — Image Optimizer</title>
+    <meta
+      name="description"
+      content="Công cụ nén và resize ảnh hàng loạt chạy trực tiếp trên trình duyệt của bạn."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://image-optimizer.js-tools.org/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="App nén ảnh — Image Optimizer" />
+    <meta
+      property="og:description"
+      content="Công cụ nén và resize ảnh hàng loạt chạy trực tiếp trên trình duyệt của bạn."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://image-optimizer.js-tools.org/" />
+    <meta property="og:image" content="https://image-optimizer.js-tools.org/og-image.png" />
+    <meta property="og:locale" content="vi_VN" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="App nén ảnh — Image Optimizer" />
+    <meta
+      name="twitter:description"
+      content="Công cụ nén và resize ảnh hàng loạt chạy trực tiếp trên trình duyệt của bạn."
+    />
+    <meta name="twitter:image" content="https://image-optimizer.js-tools.org/og-image.png" />
+
+    <!-- JSON-LD: SoftwareApplication schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Image Optimizer",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="manifest" href="manifest.webmanifest" />
-
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3175971990265774" crossorigin="anonymous"></script>
   </head>
   <body>
     <app-root></app-root>

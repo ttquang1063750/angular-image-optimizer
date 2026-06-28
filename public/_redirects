@@ -1,34 +1,16 @@
 # Cloudflare Pages — server-side redirects.
 # Reference: https://developers.cloudflare.com/pages/configuration/redirects/
 #
-# QUAN TRỌNG: Cloudflare Pages serve static files TRƯỚC khi áp _redirects.
-# Nên các chunk JS/CSS tồn tại sẽ luôn được serve trực tiếp — không bị
-# rewrite. Vấn đề MIME error xảy ra khi browser request chunk với path
-# KHÔNG tồn tại (vd. stale hash sau deploy) → fallback rule `/vi/*` cũ
-# match cả `/vi/foo.js` → trả HTML → "Expected JavaScript-or-Wasm module
-# script but the server responded with a MIME type of 'text/html'".
-#
-# Giải pháp: short-circuit asset extensions thành 404 TRƯỚC khi rơi vào
-# SPA fallback. Cloudflare _redirects áp rule theo thứ tự dòng — quan
-# trọng phải đặt asset rules TRƯỚC SPA fallback.
+# App giờ là SPA một trang (CSR, không prerender). Mọi path không khớp file
+# tĩnh đều fallback về /index.html để Angular bootstrap.
 
-# --- Asset extensions: 404 thẳng nếu file không tồn tại, KHÔNG fall
-# through SPA fallback. Tránh trả HTML cho JS/CSS request → MIME error.
+# --- Asset extensions: 404 thẳng nếu file không tồn tại, KHÔNG fall through
+# SPA fallback. Tránh trả HTML cho JS/CSS request → MIME error.
 /*.js     /:splat   404!
 /*.css    /:splat   404!
 /*.map    /:splat   404!
 /*.json   /:splat   404!
 /*.webmanifest  /:splat  404!
 
-# --- Root language detection.
-# Vietnam visitors → /vi/, everyone else → /en/.
-# 302 (Found) so language switcher choices aren't permanently cached;
-# Google still treats this as the canonical entry path because the
-# destinations themselves return 200 + canonical to /lang/.
-/   /vi/  302  Country=VN
-/   /en/  302
-
-# --- SPA Fallback is now handled by the custom 404.html (copied from index.csr.html)
-# Cloudflare Pages will serve 404.html for any non-existent paths, which bootstraps
-# the Angular SPA and lets the Angular Router handle non-existent routes natively (showing NotFoundComponent).
-
+# --- SPA fallback: mọi path còn lại render index.html.
+/*    /index.html   200

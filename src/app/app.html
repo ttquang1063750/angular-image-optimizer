@@ -1,12 +1,16 @@
 <header class="shell-header">
-  <a href="https://js-tools.org" target="_blank" rel="noopener" class="js-tools-link">
-    ← JS Tools
-  </a>
-  <a [routerLink]="['/', lang()]" class="brand">
+  <div class="brand">
     <app-logo class="logo-icon"></app-logo>
-    <span class="brand-text">Image Optimizer</span>
-  </a>
+    <h1 class="brand-text">Image Optimizer</h1>
+  </div>
   <div class="header-spacer"></div>
+  <a href="https://js-tools.org" target="_blank" rel="noopener" class="other-apps-link">
+    Other apps <span aria-hidden="true">↗</span>
+  </a>
+  <a href="https://js-tools.org/donate" target="_blank" rel="noopener" class="support-btn" [title]="t()['btn_support']">
+    <span class="icon" aria-hidden="true">☕</span>
+    <span class="text">{{ t()['btn_support'] }}</span>
+  </a>
   <app-theme-toggle></app-theme-toggle>
   <app-lang-switcher></app-lang-switcher>
   <button
@@ -31,7 +35,6 @@
       />
     </svg>
   </button>
-  <a [routerLink]="['/', lang()]" class="back-link">{{ t()['app_shell_back_to_home'] }}</a>
 </header>
 
 @if (showSettings()) {
@@ -62,18 +65,8 @@
 }
 
 <main class="shell-main">
-  <router-outlet></router-outlet>
+  <app-image-uploader></app-image-uploader>
 </main>
-
-<button
-  type="button"
-  class="donation-fab"
-  (click)="openSupport()"
-  [attr.title]="t()['btn_support']"
->
-  <span class="icon" aria-hidden="true">☕</span>
-  <span class="text">{{ t()['btn_support'] }}</span>
-</button>
 
 @if (pwa.updateAvailable()) {
   <div class="pwa-update-toast" role="alert">

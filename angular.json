@@ -33,9 +33,6 @@
               "public/_redirects"
             ],
             "styles": ["@angular/cdk/overlay-prebuilt.css", "src/styles.scss"],
-            "server": "src/main.server.ts",
-            "outputMode": "static",
-            "prerender": true,
             "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
@@ -43,14 +40,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "350kB",
-                  "maximumError": "500kB"
-                },
-                {
-                  "type": "bundle",
-                  "name": "landing-component",
-                  "maximumWarning": "40kB",
-                  "maximumError": "60kB"
+                  "maximumWarning": "450kB",
+                  "maximumError": "600kB"
                 },
                 {
                   "type": "anyComponentStyle",

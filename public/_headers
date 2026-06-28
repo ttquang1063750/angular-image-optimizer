@@ -21,9 +21,6 @@
 /ngsw.json
   Cache-Control: no-cache
 
-# Sitemap + robots
-/sitemap.xml
-  Cache-Control: public, max-age=3600
-
+# robots
 /robots.txt
   Cache-Control: public, max-age=86400

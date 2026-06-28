@@ -1,8 +1,67 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
 .uploader-container {
+  width: 100%;
+}
+
+/* Mobile-first: mọi thứ xếp dọc, trang scroll bình thường. */
+.columns {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  width: 100%;
+}
+
+.main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+// host app-drop-zone thành block để .drop-zone bên trong tự lấp đầy chiều rộng
+.upload-col {
+  display: block;
+}
+
+/* Desktop: full màn hình, 2 cột, chỉ scroll bên trong từng cột. */
+@media (min-width: 769px) {
+  :host {
+    height: 100%;
+  }
+
+  .uploader-container {
+    height: 100%;
+  }
+
+  .columns {
+    flex-direction: row;
+    height: 100%;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  // Cột trái lấp phần còn lại; file-list cuộn riêng, drop-zone/banner giữ cố định.
+  .main-col {
+    flex: 1 1 0;
+    overflow: hidden;
+  }
+
+  .file-list-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  // Cột phải: settings rộng cố định, tự cuộn khi nội dung cao.
+  .settings-col {
+    flex: 0 0 40vw;
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
 /* Collapsible Parameters Settings Panel (Accordion) */

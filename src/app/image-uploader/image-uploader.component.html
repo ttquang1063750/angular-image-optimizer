@@ -1,64 +1,74 @@
 <div class="uploader-container">
-  <div class="config-accordion" [class.collapsed]="!showConfig()">
-    <button type="button" class="accordion-header" (click)="toggleConfig()">
-      <div class="accordion-header-title">
-        <span class="icon">🛠️</span>
-        <span>{{ t()['label_settings'] }}</span>
+  <div class="columns">
+    <!-- Cột trái: upload + danh sách file (scroll riêng) -->
+    <div class="main-col">
+      <app-drop-zone class="upload-col" (filesSelected)="onFilesSelected($event)"></app-drop-zone>
+
+      @if (settingsChanged() && processedFiles().length > 0) {
+        <div class="settings-warning-banner">
+          <div class="warning-content">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-text">
+              <p>
+                <strong>{{ t()['warning_settings_changed'] }}</strong>
+              </p>
+              <p>{{ t()['warning_settings_desc'] }}</p>
+            </div>
+          </div>
+          <button class="btn-apply-changes" (click)="recompressAll()" [disabled]="isCompressing()">
+            @if (isCompressing()) {
+              {{ t()['status_compressing'] }}
+            } @else {
+              {{ t()['btn_apply_changes'] }}
+            }
+          </button>
+        </div>
+      }
+
+      @if (processedFiles().length > 0) {
+        <div class="batch-actions">
+          <div class="stats">
+            {{ t()['done_count'] }}:
+            <strong>{{ completedCount() }}/{{ processedFiles().length }}</strong>
+          </div>
+          <div class="buttons">
+            <button class="btn-clear" (click)="clearAll()">{{ t()['btn_clear'] }}</button>
+            <button
+              class="btn-download"
+              [disabled]="completedCount() === 0"
+              aria-keyshortcuts="Control+S Meta+S"
+              [title]="t()['shortcut_download_all']"
+              (click)="downloadAll()"
+            >
+              {{ t()['btn_download_zip'] }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <div class="file-list-scroll">
+        <app-file-list></app-file-list>
       </div>
-      <span class="accordion-arrow">{{ showConfig() ? '▲' : '▼' }}</span>
-    </button>
-    <div class="accordion-content">
-      <div class="accordion-inner">
-        <app-settings-panel></app-settings-panel>
+    </div>
+
+    <!-- Cột phải: settings (scroll riêng) -->
+    <div class="settings-col">
+      <div class="config-accordion" [class.collapsed]="!showConfig()">
+        <button type="button" class="accordion-header" (click)="toggleConfig()">
+          <div class="accordion-header-title">
+            <span class="icon">🛠️</span>
+            <span>{{ t()['label_settings'] }}</span>
+          </div>
+          <span class="accordion-arrow">{{ showConfig() ? '▲' : '▼' }}</span>
+        </button>
+        <div class="accordion-content">
+          <div class="accordion-inner">
+            <app-settings-panel></app-settings-panel>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-  @if (settingsChanged() && processedFiles().length > 0) {
-    <div class="settings-warning-banner">
-      <div class="warning-content">
-        <span class="warning-icon">⚠️</span>
-        <div class="warning-text">
-          <p>
-            <strong>{{ t()['warning_settings_changed'] }}</strong>
-          </p>
-          <p>{{ t()['warning_settings_desc'] }}</p>
-        </div>
-      </div>
-      <button class="btn-apply-changes" (click)="recompressAll()" [disabled]="isCompressing()">
-        @if (isCompressing()) {
-          {{ t()['status_compressing'] }}
-        } @else {
-          {{ t()['btn_apply_changes'] }}
-        }
-      </button>
-    </div>
-  }
-
-  <app-drop-zone (filesSelected)="onFilesSelected($event)"></app-drop-zone>
-
-  @if (processedFiles().length > 0) {
-    <div class="batch-actions">
-      <div class="stats">
-        {{ t()['done_count'] }}:
-        <strong>{{ completedCount() }}/{{ processedFiles().length }}</strong>
-      </div>
-      <div class="buttons">
-        <button class="btn-clear" (click)="clearAll()">{{ t()['btn_clear'] }}</button>
-        <button
-          class="btn-download"
-          [disabled]="completedCount() === 0"
-          aria-keyshortcuts="Control+S Meta+S"
-          [title]="t()['shortcut_download_all']"
-          (click)="downloadAll()"
-        >
-          {{ t()['btn_download_zip'] }}
-        </button>
-      </div>
-    </div>
-  }
-
-  <app-file-list></app-file-list>
 
   <app-comparison-modal></app-comparison-modal>
 </div>

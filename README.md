@@ -42,7 +42,6 @@ Dự án chú trọng vào **hiệu suất cực hạn**, **tính riêng tư tuy
   - `heic-to`: Chuyển đổi HEIC/HEIF từ iPhone sang JPEG (lazy-loaded, dùng libheif WASM).
 - **Styling:** SCSS, CSS Variables, Responsive Grid/Flexbox, Keyframe Animations.
 - **Testing:** [Vitest](https://vitest.dev/) (Unit testing framework thay thế Karma/Jasmine cho tốc độ cực nhanh).
-- **SEO & Prerender:** Angular static prerendering, SEO Service động hỗ trợ SEO Schema và hreflang.
 
 ---
 
@@ -78,11 +77,8 @@ Dự án chú trọng vào **hiệu suất cực hạn**, **tính riêng tư tuy
 | :--- | :--- |
 | `npm start` | Chạy dev server tại `http://localhost:4200/` |
 | `npm run build` | Build ứng dụng Angular ra thư mục `dist/` |
-| `npm run build:full` | Build đầy đủ, tự động sinh Sitemap và chạy kiểm tra SEO tự động |
 | `npm test` | Chạy bộ kiểm thử (Unit tests) với Vitest |
 | `npm run lint` | Chạy công cụ kiểm tra chất lượng code ESLint |
-| `npm run build:sitemap` | Tạo file sitemap XML tự động cho SEO |
-| `npm run verify:seo` | Chạy script kiểm tra SEO cho toàn bộ trang tĩnh đã build |
 
 ---
 

@@ -6,7 +6,7 @@
 ## Project Overview
 **Angular Image Optimizer** là một ứng dụng web hiện đại được xây dựng để tối ưu hóa và nén hình ảnh trực tiếp trên trình duyệt của người dùng. Ứng dụng tập trung vào hiệu suất, tính riêng tư và trải nghiệm người dùng mượt mà.
 
-**Lộ trình phát triển:** Xem [ROADMAP.md](./ROADMAP.md).
+**Lộ trình phát triển:** Xem phần [Roadmap](#roadmap) ở cuối tài liệu.
 
 ### Key Features
 - **Client-Side Processing:** Xử lý 100% tại trình duyệt, không upload file lên server, đảm bảo tính riêng tư tuyệt đối và chi phí vận hành thấp.
@@ -104,3 +104,47 @@
 - **Development:** `npm start`
 - **Testing:** `npm test`
 - **Building:** `npm run build`
+
+## Roadmap
+
+Lộ trình tính năng và cải tiến cho **Angular Image Optimizer**. Các mục đã ✅ là đã hoàn thành và release; các mục ❌ đã bị loại bỏ hoặc hủy bỏ để tập trung tối đa vào trang xử lý hình ảnh duy nhất.
+
+### 🔴 Ưu tiên cao (Sắp thực hiện)
+- [x] **Chuyển đổi sang WebP/AVIF (Hoàn thành ✅):** Hỗ trợ xuất tệp ảnh định dạng AVIF/WebP/JPEG nén trực tiếp tại client-side.
+- [x] **Tính năng Resize hàng loạt (Bulk Resize) (Hoàn thành ✅):** Cho phép người dùng thiết lập chiều rộng/chiều cao cố định cho tất cả ảnh. Tùy chọn: Resize theo % hoặc giữ nguyên tỷ lệ (Aspect Ratio).
+- [x] **Đổi tên file hàng loạt (Bulk Rename) (Hoàn thành ✅):** Thêm tiền tố (prefix), hậu tố (suffix) hoặc số thứ tự vào tên file sau khi nén.
+
+### 🟡 Ưu tiên trung bình (Nâng cao trải nghiệm)
+- [x] **Công cụ so sánh (Side-by-Side Compare) (Hoàn thành ✅):** Sử dụng thanh trượt (slider) để so sánh trực quan chất lượng ảnh Gốc vs Ảnh nén.
+- [x] **Đóng dấu ảnh (Watermark) (Hoàn thành ✅):** Cho phép chèn text hoặc logo đè lên ảnh để bảo vệ bản quyền. Hỗ trợ cả 2 chế độ: text watermark + image (logo) watermark với position/size/opacity.
+- [x] **Hỗ trợ đa ngôn ngữ (i18n) (Hoàn thành ✅):** Tiếng Việt + tiếng Anh, lưu trong localStorage, default theo `navigator.language`.
+- [x] **Chế độ tối (Dark Mode) (Hoàn thành ✅):** Override theme qua CSS variables + `data-theme` attribute. Default theo `prefers-color-scheme`.
+- [x] **Input validation (Hoàn thành ✅):** Mọi ô số có range hợp lệ + thông báo lỗi inline khi vượt range.
+
+### 🟢 Ưu tiên thấp (Mở rộng & Marketing)
+- [x] **PWA (Progressive Web App) (Hoàn thành ✅):** Cho phép cài đặt ứng dụng vào máy tính và sử dụng offline.
+- [x] **Hệ thống quyên góp/Kiếm tiền (Hoàn thành ✅):** Tích hợp nút và dialog "Buy me a coffee" hỗ trợ Momo, Paypal, Bank transfer.
+- [ ] **SEO Landing Page (Đã loại bỏ ❌):** Đã xóa các trang Blog, About, Changelog để ứng dụng tập trung 100% vào việc xử lý ảnh tối giản trên một trang duy nhất.
+- [ ] **Đặt quảng cáo AdSense (Đã loại bỏ ❌):** Đã loại bỏ hoàn toàn mã AdSense và các vị trí quảng cáo để đảm bảo giao diện sạch và hiệu suất cao nhất.
+
+### 💡 Ý tưởng tiềm năng (chưa lên lịch)
+- [x] **Keyboard shortcuts (Hoàn thành ✅):** `Cmd/Ctrl+O` mở file picker, `Cmd/Ctrl+S` download all, `Esc` đóng modal/popover. Có aria-keyshortcuts + visible kbd hint.
+- [x] **Drag-to-reorder (Hoàn thành ✅):** Kéo thả file trong danh sách qua HTML5 Drag API, có grip handle + drop indicator. Chỉ mark `settingsChanged` khi numbering bật.
+- [x] **Multi-watermark (Hoàn thành ✅):** Tối đa 5 watermark đồng thời (text + image trộn lẫn), drag-reorder, accordion expand/collapse, sanitize/MAX_WATERMARKS chống DoS ở cả import + load.
+- [x] **EXIF preservation toggle (Hoàn thành ✅):** Giữ metadata EXIF (camera info, GPS, timestamps). Inline JPEG APP1 splicer, không cần dependency. Chỉ áp dụng JPEG → JPEG.
+
+---
+
+### 📐 Đã hoàn thành — Refactor lớn (Phase 4)
+- ✅ Tách `ImageUploaderComponent` God Component → 8 sub-components + 2 state services.
+- ✅ Signal store pattern (`UploaderStateService`, `SettingsStateService`).
+- ✅ SCSS modular: mixins (`_mixins.scss`), global utility classes, shadow tokens.
+- ✅ Type-safe DOM helpers (`utils/dom-event.ts`).
+- ✅ Test coverage: **135 tests / 18 spec files**.
+- ✅ Memory leak fix: tất cả `URL.createObjectURL` đã được revoke đúng chỗ.
+- ✅ **Preset save/load:** Lưu và tải cấu hình settings tùy chỉnh trực tiếp tại trình duyệt (hỗ trợ Import/Export và Reset cấu hình) — kèm sanitize/whitelist khi import để chặn JSON ngoại lai.
+- ✅ **Keyboard shortcuts:** Cmd/Ctrl+O, Cmd/Ctrl+S, Esc + aria-keyshortcuts.
+- ✅ **EXIF preservation toggle:** Inline JPEG APP1 splicer (~100 dòng) — extract EXIF từ source, inject vào output sau pipeline. Toggle disabled khi format ≠ JPEG.
+- ✅ **Multi-watermark:** Up to 5 watermark (text + image), drag-reorder, accordion UI, `MAX_WATERMARKS` enforce ở `addWatermark`, `sanitizePresetData`, `applyPresetData`.
+- ✅ **Drag-to-reorder file:** HTML5 Drag API trong file list, grip handle, drop indicator. Mark `settingsChanged` khi numbering bật để gợi ý recompress.
+
