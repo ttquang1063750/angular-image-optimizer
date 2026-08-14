@@ -1,16 +1,48 @@
 # Cloudflare Pages — server-side redirects.
 # Reference: https://developers.cloudflare.com/pages/configuration/redirects/
 #
-# App giờ là SPA một trang (CSR, không prerender). Mọi path không khớp file
-# tĩnh đều fallback về /index.html để Angular bootstrap.
+# App là SPA MỘT TRANG (CSR, không prerender, không Angular Router). Ngôn ngữ
+# chuyển phía client qua translation.service.ts — KHÔNG có URL riêng cho locale.
+#
+# Trước phiên bản một-trang, site từng là SSG với routing đa ngôn ngữ theo path
+# (/vi/, /en/, /vi/about, /vi/blog/:slug ...). Google vẫn còn nhớ những URL đó
+# và crawl lại. Nếu để chúng rơi vào SPA fallback 200 thì mỗi URL cũ trở thành
+# một bản sao của trang chủ (soft 404) và kẹt vĩnh viễn ở trạng thái
+# "Crawled - currently not indexed" trong Search Console.
+# Vì vậy: 301 tất cả về "/", và mọi path lạ còn lại trả 404 thật.
 
 # --- Asset extensions: 404 thẳng nếu file không tồn tại, KHÔNG fall through
 # SPA fallback. Tránh trả HTML cho JS/CSS request → MIME error.
-/*.js     /:splat   404!
-/*.css    /:splat   404!
-/*.map    /:splat   404!
-/*.json   /:splat   404!
-/*.webmanifest  /:splat  404!
+/*.js           /:splat   404!
+/*.css          /:splat   404!
+/*.map          /:splat   404!
+/*.json         /:splat   404!
+/*.webmanifest  /:splat   404!
 
-# --- SPA fallback: mọi path còn lại render index.html.
-/*    /index.html   200
+# --- URL cũ từ thời SSG đa ngôn ngữ → gộp hết về trang duy nhất.
+# Bài blog cũ (slug lấy từ blog-posts.registry trước commit 0ba0520).
+/vi/blog/nen-anh-client-side              /  301
+/vi/blog/huong-dan-bulk-resize-watermark  /  301
+/vi/blog/webp-vs-jpeg                     /  301
+/en/blog/client-side-image-compression    /  301
+/en/blog/bulk-resize-watermark-guide      /  301
+/en/blog/webp-vs-jpeg                     /  301
+
+# Trang marketing cũ + mọi path con còn lại của 2 locale.
+/vi/blog        /  301
+/en/blog        /  301
+/vi/about       /  301
+/en/about       /  301
+/vi/changelog   /  301
+/en/changelog   /  301
+/vi/optimize    /  301
+/en/optimize    /  301
+/optimize       /  301
+/vi/*           /  301
+/en/*           /  301
+/vi             /  301
+/en             /  301
+
+# --- Mọi path còn lại KHÔNG tồn tại → 404 thật, không phải vỏ SPA kèm 200.
+# Không còn Angular Router nên không có route nào để SPA xử lý ngoài "/".
+/*    /404.html   404

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#c3002f" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e2128" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Không tìm thấy trang (404) — Image Optimizer</title>
+    <meta name="robots" content="noindex, follow" />
+    <meta
+      name="description"
+      content="Đường dẫn này không tồn tại. Image Optimizer giờ là một trang duy nhất — nén và resize ảnh ngay trên trình duyệt."
+    />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #1e2128;
+        --muted: #5b6270;
+        --accent: #c3002f;
+        --border: #e3e6ea;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1e2128;
+          --fg: #f2f4f7;
+          --muted: #a2abb8;
+          --accent: #ff5470;
+          --border: #333842;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.7;
+      }
+      main {
+        max-width: 560px;
+        text-align: center;
+      }
+      .code {
+        font-size: 4.5rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--accent);
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 14px 0 12px;
+      }
+      p {
+        color: var(--muted);
+        margin: 0 0 14px;
+      }
+      .cta {
+        display: inline-block;
+        margin-top: 18px;
+        padding: 12px 26px;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .cta:hover {
+        opacity: 0.9;
+      }
+      .back {
+        display: block;
+        margin-top: 22px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .back a {
+        color: inherit;
+      }
+      img {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/logo.svg" alt="Image Optimizer" />
+      <div class="code">404</div>
+      <h1>Không tìm thấy trang này</h1>
+      <p>
+        Đường dẫn bạn vừa mở không tồn tại. Image Optimizer trước đây có nhiều trang riêng theo ngôn ngữ
+        (<code>/vi/</code>, <code>/en/</code>, trang blog…), nhưng nay đã gộp lại thành
+        <strong>một trang duy nhất</strong> — các địa chỉ cũ đều tự chuyển hướng về đó.
+      </p>
+      <p>Nếu bạn tới đây từ một liên kết cũ, bấm nút bên dưới là vào thẳng công cụ.</p>
+      <a class="cta" href="/">Mở Image Optimizer</a>
+      <span class="back"><a href="https://js-tools.org">← Xem các công cụ khác trên js-tools.org</a></span>
+    </main>
+  </body>
+</html>
