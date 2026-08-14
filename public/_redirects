@@ -19,6 +19,22 @@
 /*.json         /:splat   404!
 /*.webmanifest  /:splat   404!
 
+# ⚠️ CÁC RULE 301 DƯỚI ĐÂY LÀ VĨNH VIỄN — ĐỌC TRƯỚC KHI ĐỔI Ý VỀ ĐA NGÔN NGỮ
+#
+# 301 = Moved Permanently. Trình duyệt cache nó rất dai (Chrome giữ tới khi
+# người dùng tự xoá cache), và Google dùng nó để GỘP tín hiệu của URL cũ vào "/".
+# Đó chính là thứ ta cần để thoát "Crawled - currently not indexed" — 302 sẽ
+# KHÔNG làm được, vì 302 bảo Google giữ URL cũ như một trang riêng.
+#
+# Cái giá: nếu sau này muốn dùng lại /en hoặc /vi làm URL thật, xoá rule ở đây
+# LÀ KHÔNG ĐỦ. Người dùng cũ và crawler vẫn đi theo bản cache 301 một thời gian
+# dài. Muốn đảo ngược thì phải:
+#   1. Xoá rule tương ứng bên dưới.
+#   2. Cho URL đó trả 200 kèm Cache-Control: no-store trong public/_headers
+#      một thời gian, để ép client làm mới bản 301 đã cache.
+#   3. Khai lại trong sitemap.xml + hreflang, rồi Request Indexing trong GSC.
+# Nói cách khác: quyết định "một trang duy nhất" nên chắc trước khi deploy.
+
 # --- URL cũ từ thời SSG đa ngôn ngữ → gộp hết về trang duy nhất.
 # Bài blog cũ (slug lấy từ blog-posts.registry trước commit 0ba0520).
 /vi/blog/nen-anh-client-side              /  301
